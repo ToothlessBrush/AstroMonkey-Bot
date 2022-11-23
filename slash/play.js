@@ -7,28 +7,7 @@ module.exports = {
 		.setName("play")
 		.setDescription("loads songs from youtube")
 		.addStringOption((option) => option.setName("query").setDescription("a search term, share link, or URL of the song").setRequired(true)),
-        /*
-        .addSubcommand((subcommand) =>
-			subcommand
-				.setName("song")
-				.setDescription("Loads a single song from a url")
-				.addStringOption((option) => option.setName("url").setDescription("the song's url").setRequired(true))
-		)
-		.addSubcommand((subcommand) =>
-			subcommand
-				.setName("playlist")
-				.setDescription("Loads a playlist of songs from a url")
-				.addStringOption((option) => option.setName("url").setDescription("the playlist's url").setRequired(true))
-		)
-		.addSubcommand((subcommand) =>
-			subcommand
-				.setName("search")
-				.setDescription("Searches for sogn based on provided keywords")
-				.addStringOption((option) =>
-					option.setName("searchterms").setDescription("the search keywords").setRequired(true)
-				)
-		),
-        */
+        
 	run: async ({ client, interaction }) => {
 		if (!interaction.member.voice.channel) return interaction.editReply("You need to be in a VC to use this command")
 
