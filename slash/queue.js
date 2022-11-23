@@ -10,7 +10,7 @@ module.exports = {
     run: async ({ client, interaction }) => {
         const queue = client.player.getQueue(interaction.guildId)
         if (!queue || !queue.playing){
-            return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setTitle(`No songs in queue!`)]})
+            return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setDescription(`**No Music in Queue!**`)]})
         }
 
         let totalPages = Math.ceil(queue.tracks.length / 10)
@@ -25,7 +25,7 @@ module.exports = {
         }
 
         const queueString = queue.tracks.slice(page * 10, page * 10 + 10).map((song, i) => {
-            return `**${page * 10 + i + 1}.** \`[${song.duration}]\` ${song.title}\n**Requested By: <@${song.requestedBy.id}>**`
+            return `**${page * 10 + i + 1}.** \`[${song.duration}]\` [${song.title}](${song.url})\n**Requested By: <@${song.requestedBy.id}>**`
         }).join("\n")
 
         const currentSong = queue.current
@@ -35,7 +35,7 @@ module.exports = {
                 new EmbedBuilder()
                 .setColor(0xA020F0)
                 .setDescription(`**Currently Playing**\n` + 
-                (currentSong ? `\`[${currentSong.duration}]\` ${currentSong.title}\n**Requested by: <@${currentSong.requestedBy.id}>**` : "None") +
+                (currentSong ? `\`[${currentSong.duration}]\` [${currentSong.title}](${currentSong.url})\n**Requested by: <@${currentSong.requestedBy.id}>**` : "None") +
                 `\n\n**Queue**\n${queueString}`
                 )
                 .setFooter({
