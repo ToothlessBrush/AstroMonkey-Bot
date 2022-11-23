@@ -5,7 +5,7 @@ module.exports = {
     data: new SlashCommandBuilder()
     .setName("queue")
     .setDescription("display the current songs in queue")
-    .addNumberOption((option) => option.setName("page").setDescription("page number of the queue").setMinValue(1)),
+    .addNumberOption((option) => option.setName("page").setDescription("page number").setMinValue(1)),
 
     run: async ({ client, interaction }) => {
         const queue = client.player.getQueue(interaction.guildId)
@@ -13,15 +13,19 @@ module.exports = {
             return await interaction.editReply("No songs is queue")
         }
 
-        const totalPages = Math.ceil(queue.tracks.length / 10)
+        let totalPages = Math.ceil(queue.tracks.length / 10)
+        if (totalPages == 0) { //set pages to 1 when song playing but no queue
+            totalPages = 1
+        }
+        
         const page = (interaction.options.getNumber("page") || 1) - 1
 
-        if (page > totalPages) {
-            return await interaction.editReply(`Invalid Page. there are a total of ${totalPages} pages of songs`)
+        if (page >= totalPages) {
+            return await interaction.editReply(`Invalid Page. there are only ${totalPages} pages`)
         }
 
         const queueString = queue.tracks.slice(page * 10, page * 10 + 10).map((song, i) => {
-            return `**${page * 10 + i + 1}.** \`[${song.duration}]\` ${song.title} -- <@${song.requestedBy.id}>`
+            return `**${page * 10 + i + 1}.** \`[${song.duration}]\` ${song.title} Requested By: <@${song.requestedBy.id}>`
         }).join("\n")
 
         const currentSong = queue.current
@@ -36,7 +40,7 @@ module.exports = {
                 .setFooter({
                     text: `Page ${page + 1} of ${totalPages}`
                 })
-                .setThumbnail(currentSong.setThumbnail)
+                .setThumbnail(currentSong.thumbnail)
             ]
         })
     }
