@@ -33,8 +33,9 @@ module.exports = {
         await interaction.editReply({
             embeds: [
                 new EmbedBuilder()
+                .setColor(0xA020F0)
                 .setDescription(`**Currently Playing**\n` + 
-                (currentSong ? `\`[${currentSong.duration}]\` ${currentSong.title} -- <@${currentSong.requestedBy.id}>` : "None") +
+                (currentSong ? `\`[${currentSong.duration}]\` ${currentSong.title} **Requested by: <@${currentSong.requestedBy.id}>**` : "None") +
                 `\n\n**Queue**\n${queueString}`
                 )
                 .setFooter({
