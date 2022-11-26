@@ -1,11 +1,11 @@
-const { SlashCommandBuilder } = require("@discordjs/builders")
-const { EmbedBuilder } = require("discord.js")
+const { SlashCommandBuilder, ActionRowBuilder } = require("@discordjs/builders")
+const { EmbedBuilder, ButtonBuilder, ButtonStyle } = require("discord.js")
 
 module.exports = {
     data: new SlashCommandBuilder()
-    .setName("queue")
-    .setDescription("display the current songs in queue")
-    .addNumberOption((option) => option.setName("page").setDescription("page number").setMinValue(1)),
+        .setName("queue")
+        .setDescription("display the current songs in queue")
+        .addNumberOption((option) => option.setName("page").setDescription("page number").setMinValue(1)),
 
     run: async ({ client, interaction }) => {
         const queue = client.player.getQueue(interaction.guildId)
@@ -30,6 +30,21 @@ module.exports = {
 
         const currentSong = queue.current
 
+        //let nextButton
+        let prevPage
+        if (page == 0) {
+            prevPage = 0
+        } else {
+            prevPage = page - 1
+        }
+
+        let nextPage
+        if ((page + 1) == totalPages) {
+            nextPage = page
+        } else {
+            nextPage = page + 1 
+        }
+        
         await interaction.editReply({
             embeds: [
                 new EmbedBuilder()
@@ -42,6 +57,20 @@ module.exports = {
                     text: `Page ${page + 1} of ${totalPages}`
                 })
                 .setThumbnail(currentSong.thumbnail)
+            ],
+            components: [
+                new ActionRowBuilder()
+                    .addComponents(
+                        new ButtonBuilder()
+                            .setCustomId(`prevPageButton_${prevPage}`)
+                            .setLabel(`<`)
+                            .setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder()
+                            .setCustomId(`nextPageButton_${nextPage}`)
+                            .setLabel(`>`)
+                            .setStyle(ButtonStyle.Secondary)                             
+                    )
+                    
             ]
         })
     }

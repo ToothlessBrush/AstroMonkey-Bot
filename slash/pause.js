@@ -1,5 +1,5 @@
-const { SlashCommandBuilder } = require("@discordjs/builders")
-const { EmbedBuilder } = require("discord.js")
+const { SlashCommandBuilder, ActionRowBuilder } = require("@discordjs/builders")
+const { EmbedBuilder, ButtonBuilder, ButtonStyle } = require("discord.js")
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -13,13 +13,26 @@ module.exports = {
             return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setDescription(`**No Music in Queue!**`)]})
         }
 		//calling queue.setPaused() causes queue to break
+        
+        //queue.playing
+        
         queue.setPaused(true)
+        
         await interaction.editReply({
             embeds: [
                 new EmbedBuilder()
                 .setColor(0xA020F0) //purple
                 .setTitle(`Paused`)
-                .setDescription(`use /resume to resume the queue`)
+                .setDescription(`Click Resume or use /resume to resume the queue`)
+            ],
+            components: [
+                new ActionRowBuilder()
+                    .addComponents(
+                        new ButtonBuilder()
+                            .setCustomId(`resumeButton`)
+                            .setLabel(`Resume`)
+                            .setStyle(ButtonStyle.Primary)
+                    )
             ]
         })     //("Paused! Use /resume to resume")
         //queue.setPause()

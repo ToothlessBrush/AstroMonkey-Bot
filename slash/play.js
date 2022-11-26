@@ -1,5 +1,5 @@
-const { SlashCommandBuilder } = require("@discordjs/builders")
-const { EmbedBuilder } = require("discord.js")
+const { SlashCommandBuilder, ButtonBuilder } = require("@discordjs/builders")
+const { EmbedBuilder, ActionRowBuilder, ButtonStyle } = require("discord.js")
 const { QueryType } = require("discord-player")
 
 module.exports = {
@@ -54,7 +54,28 @@ module.exports = {
 		
         if (!queue.playing) await queue.play()
         await interaction.editReply({
-            embeds: [embed]
+            embeds: [embed],
+            components: [
+                new ActionRowBuilder()
+                    .addComponents(
+                        new ButtonBuilder()
+                            .setCustomId(`pauseButton`)
+                            .setLabel(`Pause`)
+                            .setStyle(ButtonStyle.Secondary)
+                    )
+                    .addComponents(
+                        new ButtonBuilder()
+                            .setCustomId(`skipButton`)
+                            .setLabel(`Skip`)
+                            .setStyle(ButtonStyle.Secondary)
+                    )
+                    .addComponents(
+                        new ButtonBuilder()
+                            .setCustomId(`queueButton`)
+                            .setLabel(`Queue`)
+                            .setStyle(ButtonStyle.Secondary)
+                    )
+            ]
         })
 	},
 }

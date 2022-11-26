@@ -1,5 +1,5 @@
-const { SlashCommandBuilder } = require("@discordjs/builders")
-const { EmbedBuilder } = require("discord.js")
+const { SlashCommandBuilder, ActionRowBuilder } = require("@discordjs/builders")
+const { EmbedBuilder, ButtonBuilder, ButtonStyle } = require("discord.js")
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -14,14 +14,25 @@ module.exports = {
         }
 		//calling queue.setPaused() causes queue to break
         queue.setPaused(false)
+        
         await interaction.editReply({
             embeds: [
                 new EmbedBuilder()
                 .setColor(0xA020F0) //purple
                 .setTitle(`Resumed`)
-                .setDescription(`use /pause to pause the queue`)
+                .setDescription(`Press Pause or use /pause to pause the queue`)
+            ],
+            components: [
+                new ActionRowBuilder()
+                    .addComponents(
+                        new ButtonBuilder()
+                            .setCustomId(`pauseButton`)
+                            .setLabel(`Pause`)
+                            .setStyle(ButtonStyle.Primary)
+                    )
             ]
         })
+
         //queue.setPause()
 	},
 }
