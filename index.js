@@ -95,17 +95,17 @@ else {
                         break
                     case ("queueButton"):
                         await interaction.deferReply()
-                        queue(interaction, 0, 0)
+                        queue(interaction, 0, false)
                         return
                     case ("skipButton"):
                         command = "skip"
                         break
                     case ("nextPageButton"):
-                        queue(interaction, parseInt(interaction.customId.split("_")[1]), 1)
+                        queue(interaction, parseInt(interaction.customId.split("_")[1]), true)
                         //console.log(interaction.customId.split("_")[1])
                         return
                     case ("prevPageButton"):
-                        queue(interaction, parseInt(interaction.customId.split("_")[1]), 1)                        //console.log(interaction.customId.split("_")[1])
+                        queue(interaction, parseInt(interaction.customId.split("_")[1]), true)                        //console.log(interaction.customId.split("_")[1])
                         return
                     default:
                         return                
@@ -127,8 +127,13 @@ else {
 //probably bad coding but couldn't figure out how to get queue button to work
 async function queue(interaction, pageNumber, update) {
     const queue = client.player.getQueue(interaction.guildId)
+    
     if (!queue || !queue.playing){
-        return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setDescription(`**No Music in Queue!**`)]})
+        if (update) {
+            return await interaction.update({embeds: [new EmbedBuilder().setColor(0xA020F0).setDescription(`**No Music in Queue!**`)]})
+        } else {
+            return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setDescription(`**No Music in Queue!**`)]})
+        }
     }
 
     let totalPages = Math.ceil(queue.tracks.length / 10)
@@ -139,7 +144,11 @@ async function queue(interaction, pageNumber, update) {
     const page = pageNumber
 
     if (page >= totalPages) {
-        return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setTitle(`Invalid Page!`).setDescription(`there are only ${totalPages} pages`)]})
+        if (update) {
+            return await interaction.update({embeds: [new EmbedBuilder().setColor(0xA020F0).setTitle(`Invalid Page!`).setDescription(`there are only ${totalPages} pages`)]})
+        } else {
+            return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setTitle(`Invalid Page!`).setDescription(`there are only ${totalPages} pages`)]})
+        }
     }
 
     const queueString = queue.tracks.slice(page * 10, page * 10 + 10).map((song, i) => {
@@ -185,7 +194,7 @@ async function queue(interaction, pageNumber, update) {
                 .setStyle(ButtonStyle.Secondary)                             
         )
     
-    if (update == 1) {
+    if (update) {
         await interaction.update({
             embeds: [embed],
             components: [component]
