@@ -11,8 +11,8 @@ const TOKEN = process.env.TOKEN
 
 const LOAD_SLASH = process.argv[2] == "load"
 
-const CLIENT_ID = "892848741860638781"
-const GUILD_ID = "892850656002600960"
+const CLIENT_ID = "1046617120408080475"
+const GUILD_ID = "892850656002600960" //test server
 
 const client = new Client({
     intents: [
@@ -44,7 +44,7 @@ for (const file of slashFiles){
 if (LOAD_SLASH) {
     const rest = new REST({ version: "9" }).setToken(TOKEN)
     console.log("Deploying slash commands")
-    rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), {body: commands}) //.applicationCommands(clientId) for global
+    rest.put(Routes.applicationCommands(CLIENT_ID), {body: commands}) //.applicationCommands(clientId) for global
     .then(() => {
         console.log("Successfully loaded")
         process.exit(0)
