@@ -80,7 +80,7 @@ else {
                 
                 // console.log(interaction.customId)
                 
-                await interaction.deferReply()
+                //await interaction.deferReply()
                 
                 const customId = interaction.customId.split("_")[0];
                 console.log(customId)
@@ -94,6 +94,7 @@ else {
                         command = "pause"
                         break
                     case ("queueButton"):
+                        await interaction.deferReply()
                         queue(interaction, 0, 0)
                         return
                     case ("skipButton"):
@@ -110,7 +111,7 @@ else {
                         return                
                 }
 
-                //await interaction.deferReply()
+                await interaction.deferReply()
                 await client.slashcommands.get(command).run({ client, interaction })
             
             } else {
@@ -190,7 +191,7 @@ async function queue(interaction, pageNumber, update) {
             components: [component]
         })
     } else {
-        await interaction.editreply({
+        await interaction.editReply({
             embeds: [embed],
             components: [component]
         })    
