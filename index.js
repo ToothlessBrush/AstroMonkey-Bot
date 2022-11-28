@@ -80,7 +80,7 @@ else {
                 
                 // console.log(interaction.customId)
                 
-                await interaction.deferReply()
+                //await interaction.deferReply()
                 
                 const customId = interaction.customId.split("_")[0];
                 console.log(customId)
@@ -99,7 +99,6 @@ else {
                     case ("skipButton"):
                         command = "skip"
                         break
-
                     case ("nextPageButton"):
                         queue(interaction, parseInt(interaction.customId.split("_")[1]))
                         //console.log(interaction.customId.split("_")[1])
@@ -162,7 +161,7 @@ async function queue(interaction, pageNumber) {
         nextPage = page + 1 
     }
     
-    await interaction.editReply({
+    await interaction.update({
         embeds: [
             new EmbedBuilder()
             .setColor(0xA020F0)
