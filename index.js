@@ -80,7 +80,7 @@ else {
                 
                 // console.log(interaction.customId)
                 
-                //await interaction.deferReply()
+                await interaction.deferReply()
                 
                 const customId = interaction.customId.split("_")[0];
                 console.log(customId)
@@ -94,23 +94,23 @@ else {
                         command = "pause"
                         break
                     case ("queueButton"):
-                        queue(interaction, 0)
+                        queue(interaction, 0, 0)
                         return
                     case ("skipButton"):
                         command = "skip"
                         break
                     case ("nextPageButton"):
-                        queue(interaction, parseInt(interaction.customId.split("_")[1]))
+                        queue(interaction, parseInt(interaction.customId.split("_")[1]), 1)
                         //console.log(interaction.customId.split("_")[1])
                         return
                     case ("prevPageButton"):
-                        queue(interaction, parseInt(interaction.customId.split("_")[1]))
-                        //console.log(interaction.customId.split("_")[1])
+                        queue(interaction, parseInt(interaction.customId.split("_")[1]), 1)                        //console.log(interaction.customId.split("_")[1])
                         return
                     default:
                         return                
                 }
 
+                //await interaction.deferReply()
                 await client.slashcommands.get(command).run({ client, interaction })
             
             } else {
@@ -124,7 +124,7 @@ else {
 }
 
 //probably bad coding but couldn't figure out how to get queue button to work
-async function queue(interaction, pageNumber) {
+async function queue(interaction, pageNumber, update) {
     const queue = client.player.getQueue(interaction.guildId)
     if (!queue || !queue.playing){
         return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setDescription(`**No Music in Queue!**`)]})
@@ -161,32 +161,38 @@ async function queue(interaction, pageNumber) {
         nextPage = page + 1 
     }
     
-    await interaction.update({
-        embeds: [
-            new EmbedBuilder()
-            .setColor(0xA020F0)
-            .setDescription(`**Currently Playing**\n` + 
-            (currentSong ? `\`[${currentSong.duration}]\` [${currentSong.title}](${currentSong.url})\n**Requested by: <@${currentSong.requestedBy.id}>**` : "None") +
-            `\n\n**Queue**\n${queueString}`
-            )
-            .setFooter({
-                text: `Page ${page + 1} of ${totalPages}`
-            })
-            .setThumbnail(currentSong.thumbnail)
-        ],
-        components: [
-            new ActionRowBuilder()
-                .addComponents(
-                    new ButtonBuilder()
-                        .setCustomId(`prevPageButton_${prevPage}`)
-                        .setLabel(`<`)
-                        .setStyle(ButtonStyle.Secondary),
-                    new ButtonBuilder()
-                        .setCustomId(`nextPageButton_${nextPage}`)
-                        .setLabel(`>`)
-                        .setStyle(ButtonStyle.Secondary)                             
-                )
-                
-        ]
-    })
+    const embed = new EmbedBuilder()
+        .setColor(0xA020F0)
+        .setDescription(`**Currently Playing**\n` + 
+        (currentSong ? `\`[${currentSong.duration}]\` [${currentSong.title}](${currentSong.url})\n**Requested by: <@${currentSong.requestedBy.id}>**` : "None") +
+        `\n\n**Queue**\n${queueString}`
+        )
+        .setFooter({
+            text: `Page ${page + 1} of ${totalPages}`
+        })
+        .setThumbnail(currentSong.thumbnail)
+
+    let component = new ActionRowBuilder()
+        .addComponents(
+            new ButtonBuilder()
+                .setCustomId(`prevPageButton_${prevPage}`)
+                .setLabel(`<`)
+                .setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder()
+                .setCustomId(`nextPageButton_${nextPage}`)
+                .setLabel(`>`)
+                .setStyle(ButtonStyle.Secondary)                             
+        )
+    
+    if (update == 1) {
+        await interaction.update({
+            embeds: [embed],
+            components: [component]
+        })
+    } else {
+        await interaction.editreply({
+            embeds: [embed],
+            components: [component]
+        })    
+    }
 }
