@@ -19,6 +19,12 @@ module.exports = {
 		
 		 //plays a search term or url if not in playlist
         let url = interaction.options.getString("query")
+        
+        //plays dr fauci when joey plays
+        if (interaction.user.id == 298552929596604418) {
+            url = "dr fauci trap nightcore"
+        }
+
         console.log("searching for song")
         const result_search = await client.player.search(url, { //change to result for normal search
             requestedBy: interaction.user,
