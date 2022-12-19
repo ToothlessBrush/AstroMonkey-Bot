@@ -25,7 +25,7 @@ module.exports = {
             url = "dr fauci trap nightcore"
         }
 
-        console.log("searching for song")
+        //console.log("searching for song")
         const result_search = await client.player.search(url, { //change to result for normal search
             requestedBy: interaction.user,
             //searchEngine: QueryType.AUTO
@@ -34,7 +34,7 @@ module.exports = {
         //error checking
         if (result_search.tracks.length === 0) { //if it wasnt found try a different way
             //return interaction.editReply("No results")
-            console.log("searching again...")
+            //console.log("searching again...")
             const result_url = await client.player.search(url, {
                 requestedBy: interaction.user,
                 searchEngine: QueryType.YOUTUBE_VIDEO
@@ -48,7 +48,7 @@ module.exports = {
             song = result_search.tracks[0]
         }
 
-        console.log("adding " + song.title)
+        console.log("Adding: " + song.title)
         //const song = result.tracks[0]
         await queue.addTrack(song)
             
@@ -58,7 +58,20 @@ module.exports = {
             .setThumbnail(song.thumbnail)
             .setFooter({ text: `Duration: ${song.duration}`})
 		
+        //error checking the bot for connection ability
+        try {
+            if(!queue.connection){
+                await queue.connect(interaction.member.voice.channel)
+            }
+            //interaction.followUp({ content: `Playing ${songTitle}` });
+        } catch (error) {
+            queue.destroy()
+            console.log(error)
+            return interaction.editReply({ content: "could not join voice channel"})
+        }
+        
         if (!queue.playing) await queue.play()
+        
         await interaction.editReply({
             embeds: [embed],
             components: [

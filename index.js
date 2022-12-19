@@ -5,13 +5,15 @@ const { REST } = require("@discordjs/rest")
 const { Routes } = require("discord-api-types/v9")
 const fs = require("fs")
 const { Player } = require("discord-player")
+const { registerPlayerEvents } = require('./events');
 
 dotenv.config()
 const TOKEN = process.env.TOKEN
+const CLIENT_ID = process.env.CLIENTID
 
 const LOAD_SLASH = process.argv[2] == "load"
 
-const CLIENT_ID = "1046617120408080475"
+//const CLIENT_ID = "1046617120408080475"
 const GUILD_ID = "892850656002600960" //test server
 
 const client = new Client({
@@ -28,6 +30,8 @@ client.player = new Player(client, {
         highWaterMark: 1 << 25
     }
 })
+
+registerPlayerEvents(client.player);
 
 let commands = []
 
