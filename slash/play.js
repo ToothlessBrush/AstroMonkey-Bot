@@ -58,7 +58,7 @@ module.exports = {
             .setThumbnail(song.thumbnail)
             .setFooter({ text: `Duration: ${song.duration}`})
 		
-        //error checking the bot for connection ability
+        //verify vc connection
         try {
             if(!queue.connection){
                 await queue.connect(interaction.member.voice.channel)
@@ -67,7 +67,7 @@ module.exports = {
         } catch (error) {
             queue.destroy()
             console.log(error)
-            return interaction.editReply({ content: "could not join voice channel"})
+            return await interaction.editReply({ content: "could not join voice channel"})
         }
         
         if (!queue.playing) await queue.play()
