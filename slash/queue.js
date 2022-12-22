@@ -13,6 +13,7 @@ module.exports = {
             return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setDescription(`**No Music in Queue!**`)]})
         }
 
+        console.log(queue.tracks.length)
         let totalPages = Math.ceil(queue.tracks.length / 10)
         if (totalPages == 0) { //set pages to 1 when song playing but no queue
             totalPages = 1
@@ -29,6 +30,11 @@ module.exports = {
         }).join("\n")
 
         const currentSong = queue.current
+
+        let bar = queue.createProgressBar({
+            queue: false,
+            length: 19,
+        })
 
         //let nextButton
         let prevPage
@@ -50,7 +56,7 @@ module.exports = {
                 new EmbedBuilder()
                 .setColor(0xA020F0)
                 .setDescription(`**Currently Playing**\n` + 
-                (currentSong ? `\`[${currentSong.duration}]\` [${currentSong.title}](${currentSong.url})\n**Requested by: <@${currentSong.requestedBy.id}>**` : "None") +
+                (currentSong ? `\`[${currentSong.duration}]\` [${currentSong.title}](${currentSong.url})\n${bar}\n**Requested by: <@${currentSong.requestedBy.id}>**` : "None") +
                 `\n\n**Queue**\n${queueString}`
                 )
                 .setFooter({

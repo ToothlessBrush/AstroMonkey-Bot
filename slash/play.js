@@ -52,12 +52,6 @@ module.exports = {
         //const song = result.tracks[0]
         await queue.addTrack(song)
             
-        embed
-            .setColor(0xA020F0) //purple
-            .setDescription(`**[${song.title}](${song.url})** has been added to the Queue`)
-            .setThumbnail(song.thumbnail)
-            .setFooter({ text: `Duration: ${song.duration}`})
-		
         //verify vc connection
         try {
             if(!queue.connection){
@@ -71,7 +65,26 @@ module.exports = {
         }
         
         if (!queue.playing) await queue.play()
-        
+
+        //build embed based on info 
+        if (queue.tracks.length == 0) {
+            embed
+                .setColor(0xA020F0) //purple
+                .setTitle(`**Playing**`)
+                .setDescription(`**[${song.title}](${song.url})**`)
+                .setThumbnail(song.thumbnail)
+                .setFooter({ text: `Duration: ${song.duration}`})
+        } else {
+            embed
+                .setColor(0xA020F0) //purple
+                .setTitle(`**Queued in Position ${queue.tracks.length}**`)
+                .setDescription(`**[${song.title}](${song.url})**`)
+                .setThumbnail(song.thumbnail)
+                .setFooter({ text: `Duration: ${song.duration}`})
+        }
+
+        console.log(queue.tracks.length)     
+
         await interaction.editReply({
             embeds: [embed],
             components: [

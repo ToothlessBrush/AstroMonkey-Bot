@@ -161,6 +161,11 @@ async function queue(interaction, pageNumber, update) {
 
     const currentSong = queue.current
 
+    let bar = queue.createProgressBar({
+        queue: false,
+        length: 19,
+    })
+
     let prevPage
     if (page == 0) {
         prevPage = 0
@@ -178,7 +183,7 @@ async function queue(interaction, pageNumber, update) {
     const embed = new EmbedBuilder()
         .setColor(0xA020F0)
         .setDescription(`**Currently Playing**\n` + 
-        (currentSong ? `\`[${currentSong.duration}]\` [${currentSong.title}](${currentSong.url})\n**Requested by: <@${currentSong.requestedBy.id}>**` : "None") +
+        (currentSong ? `\`[${currentSong.duration}]\` [${currentSong.title}](${currentSong.url})\n${bar}\n**Requested by: <@${currentSong.requestedBy.id}>**` : "None") +
         `\n\n**Queue**\n${queueString}`
         )
         .setFooter({
