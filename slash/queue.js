@@ -5,7 +5,12 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName("queue")
         .setDescription("display the current songs in queue")
-        .addNumberOption((option) => option.setName("page").setDescription("page number").setMinValue(1)),
+        .addNumberOption((option) => 
+            option
+                .setName("page")
+                .setDescription("page number")
+                .setMinValue(1)
+                ),
 
     run: async ({ client, interaction }) => {
         const queue = client.player.getQueue(interaction.guildId)
@@ -13,7 +18,7 @@ module.exports = {
             return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setDescription(`**No Music in Queue!**`)]})
         }
 
-        console.log(queue.tracks.length)
+        //console.log(queue.tracks.length)
         let totalPages = Math.ceil(queue.tracks.length / 10)
         if (totalPages == 0) { //set pages to 1 when song playing but no queue
             totalPages = 1
