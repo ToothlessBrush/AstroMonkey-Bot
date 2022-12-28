@@ -2,12 +2,12 @@
 this is the second version on the astromonkey discord bot
 
 ## Commands
-/play   \n
-/pause  \n
-/resume \n
-/queue  \n
-/skip   \n
-/quit   \n
+/play  
+/pause  
+/resume 
+/queue  
+/skip   
+/quit   
 
 ## Invite Link
 https://discord.com/api/oauth2/authorize?client_id=1046617120408080475&permissions=1067336584256&scope=bot
