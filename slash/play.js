@@ -83,7 +83,7 @@ module.exports = {
                 .setFooter({ text: `Duration: ${song.duration}`})
         }
 
-        console.log(queue.tracks.length)     
+        //console.log(queue.tracks.length)     
 
         await interaction.editReply({
             embeds: [embed],
