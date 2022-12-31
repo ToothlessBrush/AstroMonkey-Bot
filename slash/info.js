@@ -20,12 +20,14 @@ module.exports = {
             length: 19,
         })
 
+        let progressBar = `${queue.getPlayerTimestamp().current} **|**${bar}**|** ${queue.getPlayerTimestamp().end}`
+
         await interaction.editReply({
             embeds: [
                 new EmbedBuilder()
                 .setColor(0xA020F0) //purple
                 .setTitle(`Currently Playing`)
-                .setDescription(currentSong ? `\`[${currentSong.duration}]\` [${currentSong.title}](${currentSong.url})\n${bar}\n**Requested by: <@${currentSong.requestedBy.id}>**` : "None")
+                .setDescription(currentSong ? `[${currentSong.title}](${currentSong.url})\n${progressBar}\n**Requested by: <@${currentSong.requestedBy.id}>**` : "None")
             ]
         })
 	},

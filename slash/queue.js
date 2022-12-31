@@ -19,6 +19,7 @@ module.exports = {
         }
 
         //console.log(queue.tracks.length)
+        //console.log(queue.getPlayerTimestamp().current)
         let totalPages = Math.ceil(queue.tracks.length / 10)
         if (totalPages == 0) { //set pages to 1 when song playing but no queue
             totalPages = 1
@@ -41,6 +42,8 @@ module.exports = {
             length: 19,
         })
 
+        let progressBar = `${queue.getPlayerTimestamp().current} **|**${bar}**|** ${queue.getPlayerTimestamp().end}`
+
         //let nextButton
         let prevPage
         if (page == 0) {
@@ -61,7 +64,7 @@ module.exports = {
                 new EmbedBuilder()
                 .setColor(0xA020F0)
                 .setDescription(`**Currently Playing**\n` + 
-                (currentSong ? `\`[${currentSong.duration}]\` [${currentSong.title}](${currentSong.url})\n${bar}\n**Requested by: <@${currentSong.requestedBy.id}>**` : "None") +
+                (currentSong ? `[${currentSong.title}](${currentSong.url})\n${progressBar}\n**Requested by: <@${currentSong.requestedBy.id}>**` : "None") +
                 `\n\n**Queue**\n${queueString}`
                 )
                 .setFooter({
