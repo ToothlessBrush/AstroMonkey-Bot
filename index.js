@@ -108,6 +108,9 @@ else {
                         queue(interaction, parseInt(interaction.customId.split("_")[1]), true)
                         //console.log(interaction.customId.split("_")[1])
                         return
+                    case ("refreshQueue"):
+                        queue(interaction, 0, true)
+                        return
                     case ("prevPageButton"):
                         queue(interaction, parseInt(interaction.customId.split("_")[1]), true)                        //console.log(interaction.customId.split("_")[1])
                         return
@@ -198,6 +201,10 @@ async function queue(interaction, pageNumber, update) {
             new ButtonBuilder()
                 .setCustomId(`prevPageButton_${prevPage}`)
                 .setLabel(`<`)
+                .setStyle(ButtonStyle.Secondary),
+            new ButtonBuilder()
+                .setCustomId(`refreshQueue`)
+                .setLabel("↻")
                 .setStyle(ButtonStyle.Secondary),
             new ButtonBuilder()
                 .setCustomId(`nextPageButton_${nextPage}`)

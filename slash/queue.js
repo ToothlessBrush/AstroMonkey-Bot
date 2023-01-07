@@ -80,6 +80,10 @@ module.exports = {
                             .setLabel(`<`)
                             .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
+                            .setCustomId(`refreshQueue`)
+                            .setLabel("↻")
+                            .setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder()
                             .setCustomId(`nextPageButton_${nextPage}`)
                             .setLabel(`>`)
                             .setStyle(ButtonStyle.Secondary)                             
