@@ -31,8 +31,8 @@ module.exports = {
             return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setTitle(`Invalid Page!`).setDescription(`there are only ${totalPages} pages`)]})
         }
 
-        console.log(queue.tracks)
-        const queueString = queue.tracks.slice(page * 10, page * 10 + 10).map((song, i) => {
+        //console.log(queue.node)
+        const queueString = queue.tracks.data.slice(page * 10, page * 10 + 10).map((song, i) => {
             return `**${page * 10 + i + 1}.** \`[${song.duration}]\` [${song.title}](${song.url})\n**Requested By: <@${song.requestedBy.id}>**`
         }).join("\n")
 
@@ -43,7 +43,7 @@ module.exports = {
             length: 19,
         })
 
-        let progressBar = `${queue.getPlayerTimestamp().current} **|**${bar}**|** ${queue.getPlayerTimestamp().end}`
+        //let progressBar = `/*${queue.node.getTimestamp()} **|***/${bar}/***|** ${queue.node.getTimestamp()}*/`
 
         //let nextButton
         let prevPage
@@ -65,7 +65,7 @@ module.exports = {
                 new EmbedBuilder()
                 .setColor(0xA020F0)
                 .setDescription(`**Currently Playing**\n` + 
-                (currentSong ? `[${currentSong.title}](${currentSong.url})\n${progressBar}\n**Requested by: <@${currentSong.requestedBy.id}>**` : "None") +
+                (currentSong ? `[${currentSong.title}](${currentSong.url})\n${bar}\n**Requested by: <@${currentSong.requestedBy.id}>**` : "None") +
                 `\n\n**Queue**\n${queueString}`
                 )
                 .setFooter({

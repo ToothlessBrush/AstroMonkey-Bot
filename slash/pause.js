@@ -7,7 +7,7 @@ module.exports = {
         .setDescription("pauses the music queue"),
 	
     run: async ({ client, interaction }) => {
-		const queue = client.player.getQueue(interaction.guildId)
+		const queue = client.player.nodes.get(interaction.guildId)
         
         if (!queue) {
             return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setDescription(`**No Music in Queue!**`)]})
@@ -16,7 +16,7 @@ module.exports = {
         
         //queue.playing
         
-        queue.setPaused(true)
+        queue.node.pause()
         
         await interaction.editReply({
             embeds: [

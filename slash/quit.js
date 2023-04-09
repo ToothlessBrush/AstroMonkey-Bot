@@ -7,11 +7,11 @@ module.exports = {
         .setDescription("clears queue and stops bot"),
 	
     run: async ({ client, interaction }) => {
-		const queue = client.player.getQueue(interaction.guildId)
+		const queue = client.player.nodes.get(interaction.guildId)
 
 		if (!queue) return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setDescription(`**No Music in Queue!**`)]})
 
-		queue.destroy()
+		queue.delete();
         await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setDescription(`**Quitting**`)]})
 	},
 }

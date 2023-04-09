@@ -8,13 +8,12 @@ module.exports = {
         .setDescription("shuffles the music queue"),
     
     run: async ({ client, interaction }) => {
-        const queue = client.player.getQueue(interaction.guildId)
-
+        const queue = client.player.nodes.get(interaction.guildId)
         if (!queue) {
             return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setDescription(`**no song is currently playing**`)]})
         }
 
-        await queue.shuffle()
+        queue.tracks.shuffle();
         
         await interaction.editReply({
             embeds: [

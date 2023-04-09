@@ -15,7 +15,7 @@ module.exports = {
                 ),
 
     run: async ({ client, interaction }) => {
-        const queue = client.player.getQueue(interaction.guildId)
+        const queue = client.player.nodes.get(interaction.guildId)
         
         if (!queue) {
             return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setDescription(`**no song is currently playing**`)]})
@@ -23,7 +23,7 @@ module.exports = {
 
         const volume = interaction.options.getNumber("volume")
 
-        await queue.setVolume(volume)
+        await queue.node.setVolume(volume)
 
         await interaction.editReply({
             embeds: [

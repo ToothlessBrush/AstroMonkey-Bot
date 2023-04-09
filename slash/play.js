@@ -30,6 +30,9 @@ module.exports = {
 		
 		 //plays a search term or url if not in playlist
         let url = interaction.options.getString("query")
+
+        isURL = isValidUrl(url)
+        console.log(isURL)
         
         //plays dr fauci when joey plays
         if (interaction.user.id == 298552929596604418) {
@@ -37,6 +40,7 @@ module.exports = {
         }
 
         //console.log("searching for song")
+        //searches youtube for the query 
         interaction.editReply({embeds: [new EmbedBuilder().setColor(0xFF0000).setDescription('searching youtube...')]})
         const result_search = await client.player.search(url, { //change to result for normal search
             requestedBy: interaction.user,
@@ -44,13 +48,14 @@ module.exports = {
         })
         let song
         //error checking
+        //searches url for all platforms if wasnt found on youtube (such as a url)
         if (result_search.tracks.length === 0) { //if it wasnt found try a different way
             //return interaction.editReply("No results")
             interaction.editReply({embeds: [new EmbedBuilder().setColor(0x00FF00).setDescription('searching everything...')]})
             //console.log("searching again...")
             const result_url = await client.player.search(url, {
                 requestedBy: interaction.user,
-                searchEngine: QueryType.SPOTIFY_SEARCH
+                searchEngine: QueryType.AUTO
             })
             if (result_url.tracks.length === 0) { //if still not found send no results
                 return interaction.editReply("No Results")
@@ -124,4 +129,16 @@ module.exports = {
             ]
         })
 	},
+}
+
+function isValidUrl(urlString) {
+  // Regular expression for validating URLs
+  var urlPattern = new RegExp('^(https?:\\/\\/)?' +
+    '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' +
+    '((\\d{1,3}\\.){3}\\d{1,3}))' +
+    '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' +
+    '(\\?[;&a-z\\d%_.~+=-]*)?' +
+    '(\\#[-a-z\\d_]*)?$','i');
+
+  return !!urlPattern.test(urlString);
 }
