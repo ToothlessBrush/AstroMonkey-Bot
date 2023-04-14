@@ -18,7 +18,7 @@ module.exports = {
         const queue = client.player.nodes.get(interaction.guildId)
         
         if (!queue) {
-            return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setDescription(`**no song is currently playing**`)]})
+            return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xFF0000).setDescription(`**no song is currently playing**`)]})
         }
 
         const volume = interaction.options.getNumber("volume")

@@ -9,7 +9,7 @@ module.exports = {
     run: async ({ client, interaction }) => {
 		const queue = client.player.nodes.get(interaction.guildId)
 
-		if (!queue) return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setDescription(`**No Music in Queue!**`)]})
+		if (!queue) return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xFF0000).setDescription(`**No Music in Queue!**`)]})
 
         const currentSong = queue.currentTrack
         

@@ -10,14 +10,14 @@ module.exports = {
 		const queue = client.player.nodes.get(interaction.guildId)
         
         if (!queue) {
-            return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setDescription(`**no song is currently playing**`)]})
+            return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xFF0000).setDescription(`**No Music in Queue!**`)]})
         }
 
         let embed = new EmbedBuilder()
 
         embed.setColor(0xA020F0)
         
-        if  (queue.previousTracks.length > 1) {
+        if  (queue.history.previousTrack >= 1) {
             await queue.history.back()
             let song = queue.currentTrack;
             embed
@@ -27,7 +27,7 @@ module.exports = {
                 .setFooter({ text: `Duration: ${song.duration}`})
         }
         else {
-            embed.setTitle(`There is no previous track`)
+            embed.setColor(0xFF0000).setDescription(`**There is no Previous Track**`)
         }
         
         await interaction.editReply({

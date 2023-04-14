@@ -15,7 +15,7 @@ module.exports = {
     run: async ({ client, interaction }) => {
         const queue = client.player.nodes.get(interaction.guildId)
         if (!queue || !queue.node.isPlaying()){
-            return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setDescription(`**No Music in Queue!**`)]})
+            return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xFF0000).setDescription(`**No Music in Queue!**`)]})
         }
 
         //console.log(queue.tracks.length)
@@ -28,7 +28,7 @@ module.exports = {
         const page = (interaction.options.getNumber("page") || 1) - 1
 
         if (page >= totalPages) {
-            return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setTitle(`Invalid Page!`).setDescription(`there are only ${totalPages} pages`)]})
+            return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xFF0000).setTitle(`Invalid Page!`).setDescription(`there are only ${totalPages} pages`)]})
         }
 
         //console.log(queue.node)
