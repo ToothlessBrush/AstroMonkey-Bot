@@ -65,9 +65,8 @@ module.exports = {
             return interaction.editReply({embeds: [new EmbedBuilder().setColor(0xFF0000).setDescription(`**No Results!**`)]})
         }
 
-        console.log(tracks)
+        //console.log(tracks)
 
-        
         blackList(tracks, blackListedSong, interaction)
 
         if (tracks.length == 0) {

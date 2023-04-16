@@ -72,7 +72,7 @@ else {
             
             if (interaction.isChatInputCommand()) {
 
-                console.log(interaction.commandName)
+                console.log(`Interaction: ${interaction.commandName}`)
 
                 const slashcmd = client.slashcommands.get(interaction.commandName)
                 if (!slashcmd) interaction.reply("Not a valid slash command")
@@ -87,7 +87,7 @@ else {
                 //await interaction.deferReply()
                 
                 const customId = interaction.customId.split("_")[0];
-                console.log(customId)
+                console.log(`Button: ${customId}`)
                 let command
 
                 switch (customId) {

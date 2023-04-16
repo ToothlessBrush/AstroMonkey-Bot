@@ -17,7 +17,8 @@ module.exports = {
 
         embed.setColor(0xA020F0)
         
-        if  (queue.history.previousTrack >= 1) {
+        if  (queue.history.previousTrack != null) {
+            
             await queue.history.back()
             let song = queue.currentTrack;
             embed
