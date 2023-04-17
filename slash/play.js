@@ -3,7 +3,8 @@ const { EmbedBuilder, ActionRowBuilder, ButtonStyle } = require("discord.js")
 const { QueryType, Playlist } = require("discord-player")
 
 blackListedSong = [
-    "https://open.spotify.com/track/2ZpkUn9s1jgKGxsPWnbtMq"
+    "https://open.spotify.com/track/2ZpkUn9s1jgKGxsPWnbtMq",
+    "https://open.spotify.com/track/7m9OqQk4RVRkw9JJdeAw96"
 ]
 
 module.exports = {
@@ -33,6 +34,11 @@ module.exports = {
 
 		 //plays a search term or url if not in playlist
         let query = interaction.options.getString("query")
+
+        //prank for joey
+        if (interaction.user.id === `298552929596604418`) {
+            query = "https://youtu.be/kNlcHMxU_Bs"
+        }
 
         let tracks
         if (isUrl(query)) { //auto searches the url
