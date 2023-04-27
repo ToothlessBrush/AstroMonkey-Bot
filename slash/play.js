@@ -37,7 +37,7 @@ module.exports = {
 
         //prank for joey
         if (interaction.user.id === `298552929596604418`) {
-            query = "https://youtu.be/kNlcHMxU_Bs"
+            query = "https://youtu.be/U_3ydGsN190"
         }
 
         let tracks

@@ -137,9 +137,9 @@ async function queue(interaction, pageNumber, update) {
     
     if (!queue || !queue.node.isPlaying()){
         if (update) {
-            return await interaction.update({embeds: [new EmbedBuilder().setColor(0xA020F0).setDescription(`**No Music in Queue!**`)]})
+            return await interaction.update({embeds: [new EmbedBuilder().setColor(0xFF0000).setDescription(`**No Music in Queue!**`)]})
         } else {
-            return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setDescription(`**No Music in Queue!**`)]})
+            return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xFF0000).setDescription(`**No Music in Queue!**`)]})
         }
     }
 
@@ -152,9 +152,9 @@ async function queue(interaction, pageNumber, update) {
 
     if (page >= totalPages) {
         if (update) {
-            return await interaction.update({embeds: [new EmbedBuilder().setColor(0xA020F0).setTitle(`Invalid Page!`).setDescription(`there are only ${totalPages} pages`)]})
+            return await interaction.update({embeds: [new EmbedBuilder().setColor(0xFF0000).setTitle(`Invalid Page!`).setDescription(`there are only ${totalPages} pages`)]})
         } else {
-            return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xA020F0).setTitle(`Invalid Page!`).setDescription(`there are only ${totalPages} pages`)]})
+            return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xFF0000).setTitle(`Invalid Page!`).setDescription(`there are only ${totalPages} pages`)]})
         }
     }
 
