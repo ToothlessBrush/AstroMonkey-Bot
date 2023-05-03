@@ -9,9 +9,9 @@ blackListedSong = [
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName("play")
-		.setDescription("plays a song from youtube or spotify")
-		.addStringOption((option) => option.setName("query").setDescription("a search term, share link, or URL of the song").setRequired(true)),
+		.setName("spotifysearch")
+		.setDescription("searches spotify with a prompt and adds first result to queue")
+		.addStringOption((option) => option.setName("query").setDescription("search term for spotify").setRequired(true)),
         
 	run: async ({ client, interaction }) => {
 		if (!interaction.member.voice.channel) return interaction.editReply({embeds: [new EmbedBuilder().setColor(0xFF0000).setDescription(`**You Must be in a VC!**`)]})
@@ -35,32 +35,17 @@ module.exports = {
 		 //plays a search term or url if not in playlist
         let query = interaction.options.getString("query")
 
-        let tracks
-        if (isUrl(query)) { //auto searches the url
-            console.log(`searching url: ${query}`)
+        let tracks = []
+            console.log(`searching spotify: ${query}`)
             
-            interaction.editReply({embeds: [new EmbedBuilder().setColor(0x00cbb7).setTitle('Searching...').setDescription('searching URL ')]})
+            interaction.editReply({embeds: [new EmbedBuilder().setColor(0x00cbb7).setTitle('Searching...').setDescription(`searching spotify for ${query}`)]})
 
             const result_search = await client.player.search(query, {
                 requestedBy: interaction.user,
-                searchEngine: QueryType.AUTO
+                searchEngine: QueryType.SPOTIFY_SEARCH
             })
 
-            tracks = result_search.tracks //add multiple tracks if playlist/album
-
-        }
-        else { //searches youtube if its not a url
-            console.log(`searching prompt: ${query}`)
-            
-            interaction.editReply({embeds: [new EmbedBuilder().setColor(0x00cbb7).setTitle('Searching...').setDescription(`searching youtube for ${query}`)]})
-
-            const result_search = await client.player.search(query, {
-                requestedBy: interaction.user,
-                searchEngine: QueryType.YOUTUBE_SEARCH
-            })
-
-            tracks = [result_search.tracks[0]] //adds 1 track from search
-        }
+            tracks.push(result_search.tracks[0]) //adds first result
 
         if (tracks.length === 0) {
             return interaction.editReply({embeds: [new EmbedBuilder().setColor(0xFF0000).setDescription(`**No Results!**`)]})
@@ -150,29 +135,6 @@ module.exports = {
         })
 	},
 }
-
-/* does not work with soundcloud urls
-function isUrl(urlString) {
-  // Regular expression for validating URLs
-  var urlPattern = new RegExp('^(https?:\\/\\/)?' +
-    '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' +
-    '((\\d{1,3}\\.){3}\\d{1,3}))' +
-    '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' +
-    '(\\?[;&a-z\\d%_.~+=-]*)?' +
-    '(\\#[-a-z\\d_]*)?$','i');
-
-  return !!urlPattern.test(urlString);
-}
-*/
-function isUrl(urlString) {
-    try {
-      new URL(urlString);
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-  
 
 function blackList(tracks, blackList, interaction) {
     let removed = []
