@@ -5,7 +5,8 @@ const { REST } = require("@discordjs/rest")
 const { Routes } = require("discord-api-types/v9")
 const fs = require("fs")
 const { Player } = require("discord-player")
-const { registerPlayerEvents } = require('./events');
+const { registerPlayerEvents } = require('./functions/events');
+const { queueButton } = require("./functions/queueButton")
 
 dotenv.config()
 const TOKEN = process.env.TOKEN
@@ -99,20 +100,20 @@ else {
                         break
                     case ("queueButton"):
                         await interaction.deferReply()
-                        queue(interaction, 0, false)
+                        queueButton(client, interaction, 0, false)
                         return
                     case ("skipButton"):
                         command = "skip"
                         break
                     case ("nextPageButton"):
-                        queue(interaction, parseInt(interaction.customId.split("_")[1]), true)
+                        queueButton(client, interaction, parseInt(interaction.customId.split("_")[1]), true)
                         //console.log(interaction.customId.split("_")[1])
                         return
                     case ("refreshQueue"):
-                        queue(interaction, 0, true)
+                        queueButton(client, interaction, 0, true)
                         return
                     case ("prevPageButton"):
-                        queue(interaction, parseInt(interaction.customId.split("_")[1]), true)                        //console.log(interaction.customId.split("_")[1])
+                        queueButton(client, interaction, parseInt(interaction.customId.split("_")[1]), true)                        //console.log(interaction.customId.split("_")[1])
                         return
                     default:
                         return                
@@ -130,7 +131,7 @@ else {
     })
     client.login(TOKEN)
 }
-
+/*
 //probably bad coding but couldn't figure out how to get queue button to work
 async function queue(interaction, pageNumber, update) {
     const queue = client.player.nodes.get(interaction.guildId)
@@ -224,3 +225,4 @@ async function queue(interaction, pageNumber, update) {
         })    
     }
 }
+*/

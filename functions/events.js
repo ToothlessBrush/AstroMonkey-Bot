@@ -13,7 +13,7 @@ module.exports.registerPlayerEvents = (player) => {
         
     })
     player.events.on("disconnect", (queue) => {
-        console.log(`bot manually disconnected from ${queue.channel.name}`)
+        console.log(`bot disconnected from ${queue.channel.name} | ${queue.guild.name}`)
     })
     player.events.on("emptyChannel", (queue) => {
         console.log(`leaving due to empty channel`)
