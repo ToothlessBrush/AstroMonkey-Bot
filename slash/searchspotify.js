@@ -3,12 +3,13 @@ const { EmbedBuilder, ActionRowBuilder, ButtonStyle } = require("discord.js")
 const { QueryType, Playlist } = require("discord-player")
 
 const { blackList } = require("./../functions/blacklist")
+const { isUrl } = require("./../functions/isUrl")
 
 module.exports = {
 	data: new SlashCommandBuilder()
 		.setName("spotifysearch")
 		.setDescription("searches spotify with a prompt and adds first result to queue")
-		.addStringOption((option) => option.setName("query").setDescription("search term for spotify").setRequired(true)),
+		.addStringOption((option) => option.setName("query").setDescription("search term for spotify (use /play for url)").setRequired(true)),
         
 	run: async ({ client, interaction }) => {
 		if (!interaction.member.voice.channel) return interaction.editReply({embeds: [new EmbedBuilder().setColor(0xFF0000).setDescription(`**You Must be in a VC!**`)]})
@@ -31,6 +32,8 @@ module.exports = {
 
 		 //plays a search term or url if not in playlist
         let query = interaction.options.getString("query")
+
+        if (isUrl(query)) return interaction.editReply({embeds: [new EmbedBuilder().setColor(0xFF0000).setDescription(`**query cant be url! use /play to use url.**`)]})
 
         let tracks = []
             console.log(`searching spotify: ${query}`)

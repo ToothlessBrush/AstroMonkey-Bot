@@ -16,6 +16,7 @@ module.exports = {
         **Music Commands**
         </play:1046623522757296131> - Play a song or playlist from Youtube or Spotify
         </spotifysearch:1103280072074461274> - searches spotify for a prompt and adds first result to queue
+        </searchresults:1104006453498478724> - get the search results of a prompt and choose which to play
         </skip:1046623522757296135> - Skips the currently playing song
         </pause:1046623522757296130> - Pause the current song
         </resume:1046623522757296134> - Resume the current song

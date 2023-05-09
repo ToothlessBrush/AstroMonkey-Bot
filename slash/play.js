@@ -1,8 +1,9 @@
 const { SlashCommandBuilder, ButtonBuilder } = require("@discordjs/builders")
 const { EmbedBuilder, ActionRowBuilder, ButtonStyle } = require("discord.js")
-const { QueryType, Playlist } = require("discord-player")
+const { QueryType } = require("discord-player")
 
 const { blackList } = require("./../functions/blacklist")
+const { isUrl } = require("./../functions/isUrl")
 
 module.exports = {
 	data: new SlashCommandBuilder()
@@ -10,8 +11,8 @@ module.exports = {
 		.setDescription("plays a song from youtube or spotify")
 		.addStringOption((option) => option.setName("query").setDescription("a search term, share link, or URL of the song").setRequired(true)),
         
-	run: async ({ client, interaction }) => {
-		if (!interaction.member.voice.channel) return interaction.editReply({embeds: [new EmbedBuilder().setColor(0xFF0000).setDescription(`**You Must be in a VC!**`)]})
+	run: async ({ client, interaction }) => {       
+        if (!interaction.member.voice.channel) return interaction.editReply({embeds: [new EmbedBuilder().setColor(0xFF0000).setDescription(`**You Must be in a VC!**`)]})
 
 		const queue = await client.player.nodes.create(interaction.guild, {
             metadata: {
@@ -28,9 +29,15 @@ module.exports = {
 		if (!queue.connection) await queue.connect(interaction.member.voice.channel)
 
 		let embed = new EmbedBuilder() //need to change this to embed builder for v14 (done)
-
-		 //plays a search term or url if not in playlist
-        let query = interaction.options.getString("query")
+ 
+        //grabs query string differently depending on which interaction type it is
+        let query
+        if (interaction.isChatInputCommand()) {
+            query = interaction.options.getString("query")
+        } else if (interaction.isStringSelectMenu()) {
+            query = interaction.values[0]
+        }
+        console.log(query)
 
         let tracks
         if (isUrl(query)) { //auto searches the url
@@ -146,26 +153,4 @@ module.exports = {
             ]
         })
 	},
-}
-
-/* does not work with soundcloud urls
-function isUrl(urlString) {
-  // Regular expression for validating URLs
-  var urlPattern = new RegExp('^(https?:\\/\\/)?' +
-    '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' +
-    '((\\d{1,3}\\.){3}\\d{1,3}))' +
-    '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' +
-    '(\\?[;&a-z\\d%_.~+=-]*)?' +
-    '(\\#[-a-z\\d_]*)?$','i');
-
-  return !!urlPattern.test(urlString);
-}
-*/
-function isUrl(urlString) {
-    try {
-      new URL(urlString);
-      return true;
-    } catch (e) {
-      return false;
-    }
 }

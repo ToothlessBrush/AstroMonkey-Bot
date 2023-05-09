@@ -1,10 +1,11 @@
 //const Discord = require("discord.js")
-const { Client, GatewayIntentBits, Collection, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle } = require('discord.js');
-const dotenv = require("dotenv")
+const { Client, GatewayIntentBits, Collection, InteractionCollector } = require('discord.js');
 const { REST } = require("@discordjs/rest")
 const { Routes } = require("discord-api-types/v9")
 const fs = require("fs")
 const { Player } = require("discord-player")
+const dotenv = require("dotenv")
+
 const { registerPlayerEvents } = require('./functions/events');
 const { queueButton } = require("./functions/queueButton")
 
@@ -122,6 +123,15 @@ else {
                 await interaction.deferReply()
                 await client.slashcommands.get(command).run({ client, interaction })
             
+            } else if (interaction.isStringSelectMenu()) {
+                const optionValue = interaction.values[0]
+                const optionID = interaction.customId
+                console.log(`option: ${optionID} value: ${optionValue}`)
+                if (optionID == "select") {
+                    await interaction.deferReply()
+                    await client.slashcommands.get("play").run({ client, interaction });
+                    
+                }
             } else {
                 return
             }
@@ -131,98 +141,3 @@ else {
     })
     client.login(TOKEN)
 }
-/*
-//probably bad coding but couldn't figure out how to get queue button to work
-async function queue(interaction, pageNumber, update) {
-    const queue = client.player.nodes.get(interaction.guildId)
-    
-    if (!queue || !queue.node.isPlaying()){
-        if (update) {
-            return await interaction.update({embeds: [new EmbedBuilder().setColor(0xFF0000).setDescription(`**No Music in Queue!**`)]})
-        } else {
-            return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xFF0000).setDescription(`**No Music in Queue!**`)]})
-        }
-    }
-
-    let totalPages = Math.ceil(queue.tracks.size / 10)
-    if (totalPages == 0) { //set pages to 1 when song playing but no queue
-        totalPages = 1
-    }
-        
-    const page = pageNumber
-
-    if (page >= totalPages) {
-        if (update) {
-            return await interaction.update({embeds: [new EmbedBuilder().setColor(0xFF0000).setTitle(`Invalid Page!`).setDescription(`there are only ${totalPages} pages`)]})
-        } else {
-            return await interaction.editReply({embeds: [new EmbedBuilder().setColor(0xFF0000).setTitle(`Invalid Page!`).setDescription(`there are only ${totalPages} pages`)]})
-        }
-    }
-
-    const queueString = queue.tracks.data.slice(page * 10, page * 10 + 10).map((song, i) => {
-        return `**${page * 10 + i + 1}.** \`[${song.duration}]\` [${song.title}](${song.url})\n**Requested By: <@${song.requestedBy.id}>**`
-    }).join("\n")
-
-    const currentSong = queue.currentTrack
-
-    let bar = queue.node.createProgressBar({
-        queue: false,
-        length: 19,
-    })
-
-    //let progressBar = `${queue.getPlayerTimestamp().current} **|**${bar}**|** ${queue.getPlayerTimestamp().end}`
-
-    let prevPage
-    if (page == 0) {
-        prevPage = 0
-    } else {
-        prevPage = page - 1
-    }
-
-    let nextPage
-    if ((page + 1) == totalPages) {
-        nextPage = page
-    } else {
-        nextPage = page + 1 
-    }
-    
-    const embed = new EmbedBuilder()
-        .setColor(0xA020F0)
-        .setDescription(`**Currently Playing**\n` + 
-        (currentSong ? `[${currentSong.title}](${currentSong.url})\n${bar}\n**Requested by: <@${currentSong.requestedBy.id}>**` : "None") +
-        `\n\n**Queue**\n${queueString}`
-        )
-        .setFooter({
-            text: `Page ${page + 1} of ${totalPages}`
-        })
-        .setThumbnail(currentSong.thumbnail)
-
-    let component = new ActionRowBuilder()
-        .addComponents(
-            new ButtonBuilder()
-                .setCustomId(`prevPageButton_${prevPage}`)
-                .setLabel(`<`)
-                .setStyle(ButtonStyle.Secondary),
-            new ButtonBuilder()
-                .setCustomId(`refreshQueue`)
-                .setLabel("↻")
-                .setStyle(ButtonStyle.Secondary),
-            new ButtonBuilder()
-                .setCustomId(`nextPageButton_${nextPage}`)
-                .setLabel(`>`)
-                .setStyle(ButtonStyle.Secondary)                             
-        )
-    
-    if (update) {
-        await interaction.update({
-            embeds: [embed],
-            components: [component]
-        })
-    } else {
-        await interaction.editReply({
-            embeds: [embed],
-            components: [component]
-        })    
-    }
-}
-*/
