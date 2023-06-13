@@ -1,5 +1,5 @@
 //const Discord = require("discord.js")
-const { Client, GatewayIntentBits, Collection, InteractionCollector, ActivityType } = require('discord.js');
+const { Client, GatewayIntentBits, Collection } = require('discord.js');
 const { REST } = require("@discordjs/rest")
 const { Routes } = require("discord-api-types/v9")
 const fs = require("fs")
@@ -7,8 +7,7 @@ const path = require("path")
 const { Player } = require("discord-player")
 const dotenv = require("dotenv")
 
-const { registerPlayerEvents } = require('./utils/events');
-const { queueButton } = require("./utils/queueButton")
+const { registerPlayerEvents } = require('./events/playerEvents');
 
 dotenv.config()
 const TOKEN = process.env.TOKEN
@@ -35,12 +34,14 @@ client.player = new Player(client, {
     }
 })
 
-registerPlayerEvents(client.player);
+registerPlayerEvents(client.player); //register player events
 
 let commands = []
 
 const slashDirectory = path.join(__dirname, 'slash');
 const subDir = fs.readdirSync(slashDirectory).filter(file => fs.statSync(path.join(slashDirectory, file)).isDirectory())
+
+//register commands
 for (const dir of subDir) {
     const slashFiles = fs.readdirSync(path.join(slashDirectory, dir)).filter(file => file.endsWith(".js"))
     for (const file of slashFiles){
@@ -54,6 +55,7 @@ for (const dir of subDir) {
 }
 
 if (LOAD_SLASH) {
+    
     const rest = new REST({ version: "9" }).setToken(TOKEN)
     console.log("Deploying slash commands")
     const route = GLOBAL ? Routes.applicationCommands(CLIENT_ID) : Routes.applicationCommands(CLIENT_ID, GUILD_ID)
@@ -71,85 +73,19 @@ if (LOAD_SLASH) {
 }
 else {
     
-    client.on("ready", () => {
-        console.log(`Logged in as ${client.user.tag}`)
-        client.user.setStatus('available')
-        client.user.setActivity({
-            name: '/help',
-            type: ActivityType.Streaming
-          });
-    })
+    const eventsPath = path.join(__dirname, 'events')
+    const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'))
 
-    client.on("interactionCreate", (interaction) => {
-        async function handleCommand() {
-            //console.log(interaction)
-            
-            if (interaction.isChatInputCommand()) {
-
-                console.log(`Interaction: ${interaction.commandName}`)
-
-                const slashcmd = client.slashcommands.get(interaction.commandName)
-                if (!slashcmd) interaction.reply("Not a valid slash command")
-
-                await interaction.deferReply()
-                await slashcmd.run({ client, interaction })
-            
-            } else if (interaction.isButton()) {
-                
-                // console.log(interaction.customId)
-                
-                //await interaction.deferReply()
-                
-                const customId = interaction.customId.split("_")[0];
-                console.log(`Button: ${customId}`)
-                let command
-
-                switch (customId) {
-                    case ("resumeButton"):
-                        command = "resume"
-                        break
-                    case ("pauseButton"):
-                        command = "pause"
-                        break
-                    case ("queueButton"):
-                        await interaction.deferReply()
-                        queueButton(client, interaction, 0, false)
-                        return
-                    case ("skipButton"):
-                        command = "skip"
-                        break
-                    case ("nextPageButton"):
-                        queueButton(client, interaction, parseInt(interaction.customId.split("_")[1]), true)
-                        //console.log(interaction.customId.split("_")[1])
-                        return
-                    case ("refreshQueue"):
-                        queueButton(client, interaction, 0, true)
-                        return
-                    case ("prevPageButton"):
-                        queueButton(client, interaction, parseInt(interaction.customId.split("_")[1]), true)                        //console.log(interaction.customId.split("_")[1])
-                        return
-                    default:
-                        return                
-                }
-
-                await interaction.deferReply()
-                await client.slashcommands.get(command).run({ client, interaction })
-            
-            } else if (interaction.isStringSelectMenu()) {
-                const optionValue = interaction.values[0]
-                const optionID = interaction.customId
-                console.log(`option: ${optionID} value: ${optionValue}`)
-                if (optionID == "select") {
-                    await interaction.deferReply()
-                    await client.slashcommands.get("play").run({ client, interaction });
-                    
-                }
-            } else {
-                return
-            }
-        } 
-        
-        handleCommand()
-    })
+    //register discord events
+    for (const file of eventFiles) {
+        const filePath = path.join(eventsPath, file)
+        const event = require(filePath)
+        if (event.once) {
+            client.once(event.name, (...args) => event.execute(client, ...args))
+        } else {
+            client.on(event.name, (...args) => event.execute(client, ...args))
+        }
+    }
+   
     client.login(TOKEN)
 }
