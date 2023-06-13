@@ -11,11 +11,12 @@ const { queueButton } = require("./functions/queueButton")
 
 dotenv.config()
 const TOKEN = process.env.TOKEN
-//const CLIENT_ID = process.env.CLIENTID
+const CLIENT_ID = process.env.CLIENT_ID
 
 const LOAD_SLASH = process.argv[2] == "load"
+const GLOBAL = process.argv[3] == "global"
 
-const CLIENT_ID = "1046617120408080475"
+//const CLIENT_ID = "892848741860638781"
 const GUILD_ID = "892850656002600960" //test server
 
 const client = new Client({
@@ -50,9 +51,10 @@ for (const file of slashFiles){
 if (LOAD_SLASH) {
     const rest = new REST({ version: "9" }).setToken(TOKEN)
     console.log("Deploying slash commands")
-    rest.put(Routes.applicationCommands(CLIENT_ID), {body: commands}) //.applicationCommands(clientId) for global
+    const route = GLOBAL ? Routes.applicationCommands(CLIENT_ID) : Routes.applicationCommands(CLIENT_ID, GUILD_ID)
+    rest.put(route, { body: commands })
     .then(() => {
-        console.log("Successfully loaded")
+        console.log(`Successfully loaded commands ${GLOBAL ? 'globally' : 'locally'}`)
         process.exit(0)
     })
     .catch((err) => {
