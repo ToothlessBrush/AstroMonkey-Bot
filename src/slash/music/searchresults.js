@@ -16,13 +16,12 @@ module.exports = {
                 .addChoices(
                     { name: "Youtube", value: "YOUTUBE" },
                     { name: "Spotify", value: "SPOTIFY" },
+                    { name: "SoundCloud", value: "SOUNDCLOUD"}
                 ))
 		.addStringOption((option) => option.setName("query").setDescription("search term (use /play for url)").setRequired(true)),
         
 	run: async ({ client, interaction }) => {
 		if (!interaction.member.voice.channel) return interaction.editReply({embeds: [new EmbedBuilder().setColor(0xFF0000).setDescription(`**You Must be in a VC!**`)]})
-        
-        let embed = new EmbedBuilder() //need to change this to embed builder for v14 (done)
 
 		 //plays a search term or url if not in playlist
         let query = interaction.options.getString("query")
@@ -32,7 +31,7 @@ module.exports = {
 
         let tracks
         if (platform == "YOUTUBE") { //auto searches the url
-            console.log(`searching url: ${query}`)
+            console.log(`searching Youtube results for: ${query}`)
             
             interaction.editReply({embeds: [new EmbedBuilder().setColor(0x00cbb7).setTitle('Searching...').setDescription('Searching Youtube')]})
 
@@ -45,7 +44,7 @@ module.exports = {
 
         }
         else if (platform == "SPOTIFY") { //searches youtube if its not a url
-            console.log(`searching prompt: ${query}`)
+            console.log(`searching Spotify results for: ${query}`)
             
             interaction.editReply({embeds: [new EmbedBuilder().setColor(0x00cbb7).setTitle('Searching...').setDescription(`searching Spotify`)]})
 
@@ -55,6 +54,18 @@ module.exports = {
             })
 
             tracks = result_search.tracks //adds 1 track from search
+        }
+        else if (platform == "SOUNDCLOUD") {
+            console.log(`searching SoundCloud results for: ${query}`)
+
+            interaction.editReply({embeds: [new EmbedBuilder().setColor(0x00cbb7).setTitle('Searching...').setDescription(`searching SoundCloud`)]})
+
+            const result_search = await client.player.search(query, {
+                requestedBy: interaction.user,
+                searchEngine: QueryType.SOUNDCLOUD_SEARCH
+            })
+
+            tracks = result_search.tracks
         }
 
         if (tracks.length === 0) {

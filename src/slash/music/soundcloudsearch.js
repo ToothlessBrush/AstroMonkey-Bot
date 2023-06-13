@@ -1,18 +1,18 @@
 const { SlashCommandBuilder, ButtonBuilder } = require("@discordjs/builders")
 const { EmbedBuilder, ActionRowBuilder, ButtonStyle } = require("discord.js")
-const { QueryType, SearchResult } = require("discord-player")
+const { QueryType, Playlist } = require("discord-player")
 
-const { blackList } = require("./../../utils/blacklist")
-const { isUrl } = require("./../../utils/isUrl")
+const { blackList } = require("../../utils/blacklist")
+const { isUrl } = require("../../utils/isUrl")
 
 module.exports = {
 	data: new SlashCommandBuilder()
-		.setName("play")
-		.setDescription("plays a song from youtube or spotify")
-		.addStringOption((option) => option.setName("query").setDescription("a search term, share link, or URL of the song").setRequired(true)),
+		.setName("soundcloudsearch")
+		.setDescription("searches SoundCloud with a prompt and adds first result to queue")
+		.addStringOption((option) => option.setName("query").setDescription("search term for SoundCloud (use /play for url)").setRequired(true)),
         
-	run: async ({ client, interaction }) => {       
-        if (!interaction.member.voice.channel) return interaction.editReply({embeds: [new EmbedBuilder().setColor(0xFF0000).setDescription(`**You Must be in a VC!**`)]})
+	run: async ({ client, interaction }) => {
+		if (!interaction.member.voice.channel) return interaction.editReply({embeds: [new EmbedBuilder().setColor(0xFF0000).setDescription(`**You Must be in a VC!**`)]})
 
 		const queue = await client.player.nodes.create(interaction.guild, {
             metadata: {
@@ -29,41 +29,23 @@ module.exports = {
 		if (!queue.connection) await queue.connect(interaction.member.voice.channel)
 
 		let embed = new EmbedBuilder() //need to change this to embed builder for v14 (done)
- 
-        //grabs query string differently depending on which interaction type it is
-        let query
-        if (interaction.isChatInputCommand()) {
-            query = interaction.options.getString("query")
-        } else if (interaction.isStringSelectMenu()) {
-            query = interaction.values[0]
-        }
 
-        let tracks
-        if (isUrl(query)) { //auto searches the url
-            console.log(`searching url: ${query}`)
+		 //plays a search term or url if not in playlist
+        let query = interaction.options.getString("query")
+
+        if (isUrl(query)) return interaction.editReply({embeds: [new EmbedBuilder().setColor(0xFF0000).setDescription(`**query cant be url! use /play to use url.**`)]})
+
+        let tracks = []
+            console.log(`searching SoundCloud: ${query}`)
             
-            interaction.editReply({embeds: [new EmbedBuilder().setColor(0x00cbb7).setTitle('Searching...').setDescription('searching URL ')]})
+            interaction.editReply({embeds: [new EmbedBuilder().setColor(0x00cbb7).setTitle('Searching...').setDescription(`searching SoundCloud for ${query}`)]})
 
             const result_search = await client.player.search(query, {
                 requestedBy: interaction.user,
-                searchEngine: QueryType.AUTO
+                searchEngine: QueryType.SOUNDCLOUD_SEARCH
             })
 
-            tracks = result_search.tracks //add multiple tracks if playlist/album
-
-        }
-        else { //searches youtube if its not a url
-            console.log(`searching prompt: ${query}`)
-            
-            interaction.editReply({embeds: [new EmbedBuilder().setColor(0x00cbb7).setTitle('Searching...').setDescription(`searching youtube for ${query}`)]})
-
-            const result_search = await client.player.search(query, {
-                requestedBy: interaction.user,
-                searchEngine: QueryType.YOUTUBE_SEARCH
-            })
-
-            tracks = [result_search.tracks[0]] //adds 1 track from search
-        }
+            tracks.push(result_search.tracks[0]) //adds first result
 
         if (tracks.length === 0) {
             return interaction.editReply({embeds: [new EmbedBuilder().setColor(0xFF0000).setDescription(`**No Results!**`)]})
@@ -71,7 +53,7 @@ module.exports = {
 
         //console.log(tracks)
 
-        //blackList(tracks, interaction)
+        blackList(tracks, interaction)
 
         if (tracks.length == 0) {
             console.log(`cannot start playing as all songs are removed or dont exist`)
