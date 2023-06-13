@@ -3,11 +3,12 @@ const { Client, GatewayIntentBits, Collection, InteractionCollector, ActivityTyp
 const { REST } = require("@discordjs/rest")
 const { Routes } = require("discord-api-types/v9")
 const fs = require("fs")
+const path = require("path")
 const { Player } = require("discord-player")
 const dotenv = require("dotenv")
 
-const { registerPlayerEvents } = require('./functions/events');
-const { queueButton } = require("./functions/queueButton")
+const { registerPlayerEvents } = require('./utils/events');
+const { queueButton } = require("./utils/queueButton")
 
 dotenv.config()
 const TOKEN = process.env.TOKEN
@@ -36,15 +37,20 @@ client.player = new Player(client, {
 
 registerPlayerEvents(client.player);
 
+const slashDirectory = path.join(__dirname, 'slash');
 let commands = []
 
-const slashFiles = fs.readdirSync("./slash").filter(file => file.endsWith(".js"))
-for (const file of slashFiles){
-    const slashcmd = require(`./slash/${file}`)
-    client.slashcommands.set(slashcmd.data.name, slashcmd)
-    if (LOAD_SLASH) {
-        commands.push(slashcmd.data.toJSON()) //.toJSON because it can catch errors I think
-        //console.log(slashcmd.data)
+
+const subDir = fs.readdirSync(slashDirectory).filter(file => fs.statSync(path.join(slashDirectory, file)).isDirectory())
+for (const dir of subDir) {
+    const slashFiles = fs.readdirSync(path.join(slashDirectory, dir)).filter(file => file.endsWith(".js"))
+    for (const file of slashFiles){
+        const slashcmd = require(path.join(slashDirectory, dir, file))
+        client.slashcommands.set(slashcmd.data.name, slashcmd)
+        if (LOAD_SLASH) {
+            commands.push(slashcmd.data.toJSON()) //.toJSON because it can catch errors I think
+            //console.log(slashcmd.data)
+        }
     }
 }
 

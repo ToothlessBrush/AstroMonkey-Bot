@@ -1,8 +1,8 @@
 const { EmbedBuilder, ActionRowBuilder, StringSelectMenuBuilder, StringSelectMenuOptionBuilder, SlashCommandBuilder } = require('discord.js');
 const { QueryType } = require("discord-player")
 
-const { blackList } = require("./../functions/blacklist")
-const { isUrl } = require("./../functions/isUrl")
+const { blackList } = require("./../../utils/blacklist")
+const { isUrl } = require("./../../utils/isUrl")
 
 module.exports = {
 	data: new SlashCommandBuilder()
