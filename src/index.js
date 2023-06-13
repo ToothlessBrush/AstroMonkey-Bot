@@ -37,10 +37,9 @@ client.player = new Player(client, {
 
 registerPlayerEvents(client.player);
 
-const slashDirectory = path.join(__dirname, 'slash');
 let commands = []
 
-
+const slashDirectory = path.join(__dirname, 'slash');
 const subDir = fs.readdirSync(slashDirectory).filter(file => fs.statSync(path.join(slashDirectory, file)).isDirectory())
 for (const dir of subDir) {
     const slashFiles = fs.readdirSync(path.join(slashDirectory, dir)).filter(file => file.endsWith(".js"))

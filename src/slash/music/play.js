@@ -37,7 +37,6 @@ module.exports = {
         } else if (interaction.isStringSelectMenu()) {
             query = interaction.values[0]
         }
-        console.log(query)
 
         let tracks
         if (isUrl(query)) { //auto searches the url
