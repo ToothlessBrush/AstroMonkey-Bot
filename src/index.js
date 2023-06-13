@@ -34,6 +34,9 @@ client.player = new Player(client, {
     }
 })
 
+//register extractor
+client.player.extractors.loadDefault()
+
 registerPlayerEvents(client.player); //register player events
 
 let commands = []

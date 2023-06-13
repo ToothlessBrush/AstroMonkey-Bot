@@ -1,6 +1,6 @@
 const { SlashCommandBuilder, ButtonBuilder } = require("@discordjs/builders")
 const { EmbedBuilder, ActionRowBuilder, ButtonStyle } = require("discord.js")
-const { QueryType } = require("discord-player")
+const { QueryType, SearchResult } = require("discord-player")
 
 const { blackList } = require("./../../utils/blacklist")
 const { isUrl } = require("./../../utils/isUrl")

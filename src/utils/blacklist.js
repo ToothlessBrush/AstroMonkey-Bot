@@ -1,10 +1,7 @@
 //filters out songs that have been blacklisted
 
 //array of blacklisted songs
-blackListedSong = [
-    "https://open.spotify.com/track/2ZpkUn9s1jgKGxsPWnbtMq",
-    "https://open.spotify.com/track/7m9OqQk4RVRkw9JJdeAw96"
-]
+blackListedSong = []
 
 function blackList(tracks, interaction) {
     let removed = []
