@@ -14,8 +14,10 @@ function blackList(tracks, interaction) {
     }
     if (removed.length > 0) {
         console.log(`removed: ${removed} via blakcList`)
-        interaction.editReply(`the following songs have issues extracting and were removed: ${removed}`)
+        interaction.editReply(
+            `the following songs have issues extracting and were removed: ${removed}`
+        )
     }
 }
 
-module.exports = {blackList}
+module.exports = { blackList }

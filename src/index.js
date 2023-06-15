@@ -1,5 +1,5 @@
 //const Discord = require("discord.js")
-const { Client, GatewayIntentBits, Collection } = require('discord.js');
+const { Client, GatewayIntentBits, Collection } = require("discord.js")
 const { REST } = require("@discordjs/rest")
 const { Routes } = require("discord-api-types/v9")
 const fs = require("fs")
@@ -7,7 +7,7 @@ const path = require("path")
 const { Player } = require("discord-player")
 const dotenv = require("dotenv")
 
-const { registerPlayerEvents } = require('./events/playerEvents');
+const { registerPlayerEvents } = require("./events/playerEvents")
 
 dotenv.config()
 const TOKEN = process.env.TOKEN
@@ -20,34 +20,37 @@ const GLOBAL = process.argv[3] == "global"
 const GUILD_ID = "892850656002600960" //test server
 
 const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildVoiceStates,
-    ]
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
 })
 
 client.slashcommands = new Collection()
 client.player = new Player(client, {
     ytdlOptions: {
         quality: "highestaudio",
-        highWaterMark: 1 << 25
-    }
+        highWaterMark: 1 << 25,
+    },
 })
 
 //register extractor
 client.player.extractors.loadDefault()
 
-registerPlayerEvents(client.player); //register player events
+registerPlayerEvents(client.player) //register player events
 
 let commands = []
 
-const slashDirectory = path.join(__dirname, 'slash');
-const subDir = fs.readdirSync(slashDirectory).filter(file => fs.statSync(path.join(slashDirectory, file)).isDirectory())
+const slashDirectory = path.join(__dirname, "slash")
+const subDir = fs
+    .readdirSync(slashDirectory)
+    .filter((file) =>
+        fs.statSync(path.join(slashDirectory, file)).isDirectory()
+    )
 
 //register commands
 for (const dir of subDir) {
-    const slashFiles = fs.readdirSync(path.join(slashDirectory, dir)).filter(file => file.endsWith(".js"))
-    for (const file of slashFiles){
+    const slashFiles = fs
+        .readdirSync(path.join(slashDirectory, dir))
+        .filter((file) => file.endsWith(".js"))
+    for (const file of slashFiles) {
         const slashcmd = require(path.join(slashDirectory, dir, file))
         client.slashcommands.set(slashcmd.data.name, slashcmd)
         if (LOAD_SLASH) {
@@ -58,26 +61,31 @@ for (const dir of subDir) {
 }
 
 if (LOAD_SLASH) {
-    
     const rest = new REST({ version: "9" }).setToken(TOKEN)
     console.log("Deploying slash commands")
-    const route = GLOBAL ? Routes.applicationCommands(CLIENT_ID) : Routes.applicationCommands(CLIENT_ID, GUILD_ID)
+    const route = GLOBAL
+        ? Routes.applicationCommands(CLIENT_ID)
+        : Routes.applicationCommands(CLIENT_ID, GUILD_ID)
     rest.put(route, { body: commands })
-    .then(() => {
-        console.log(`Successfully loaded commands ${GLOBAL ? 'globally' : 'locally'}`)
-        process.exit(0)
-    })
-    .catch((err) => {
-        if (err){
-            console.log(err)
-            process.exit(1)
-        }
-    })
-}
-else {
-    
-    const eventsPath = path.join(__dirname, 'events')
-    const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'))
+        .then(() => {
+            console.log(
+                `Successfully loaded commands ${
+                    GLOBAL ? "globally" : "locally"
+                }`
+            )
+            process.exit(0)
+        })
+        .catch((err) => {
+            if (err) {
+                console.log(err)
+                process.exit(1)
+            }
+        })
+} else {
+    const eventsPath = path.join(__dirname, "events")
+    const eventFiles = fs
+        .readdirSync(eventsPath)
+        .filter((file) => file.endsWith(".js"))
 
     //register discord events
     for (const file of eventFiles) {
@@ -89,6 +97,6 @@ else {
             client.on(event.name, (...args) => event.execute(client, ...args))
         }
     }
-   
+
     client.login(TOKEN)
 }

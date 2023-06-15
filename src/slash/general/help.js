@@ -7,7 +7,6 @@ module.exports = {
         .setDescription("show the bot commands"),
 
     run: async ({ client, interaction }) => {
-        
         const description = `
         **General Commands**
         </help:1103275724183453708> - Displays the bot commands (what this is)
@@ -32,10 +31,10 @@ module.exports = {
         await interaction.editReply({
             embeds: [
                 new EmbedBuilder()
-                .setColor(0xA020F0) //purple
-                .setTitle(`Help Menu`)
-                .setDescription(description)
-            ]
+                    .setColor(0xa020f0) //purple
+                    .setTitle(`Help Menu`)
+                    .setDescription(description),
+            ],
         })
-    }
+    },
 }

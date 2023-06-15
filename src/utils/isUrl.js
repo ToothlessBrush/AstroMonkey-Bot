@@ -2,11 +2,11 @@
 
 function isUrl(urlString) {
     try {
-      new URL(urlString);
-      return true;
+        new URL(urlString)
+        return true
     } catch (e) {
-      return false;
+        return false
     }
 }
 
-module.exports = {isUrl}
+module.exports = { isUrl }
