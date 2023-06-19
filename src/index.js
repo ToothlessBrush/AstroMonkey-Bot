@@ -82,14 +82,14 @@ if (LOAD_SLASH) {
             }
         })
 } else {
-    const eventsPath = path.join(__dirname, "events")
+    const clientEventsPath = path.join(__dirname, "events", "clientEvents")
     const eventFiles = fs
-        .readdirSync(eventsPath)
+        .readdirSync(clientEventsPath)
         .filter((file) => file.endsWith(".js"))
 
     //register discord events
     for (const file of eventFiles) {
-        const filePath = path.join(eventsPath, file)
+        const filePath = path.join(clientEventsPath, file)
         const event = require(filePath)
         if (event.once) {
             client.once(event.name, (...args) => event.execute(client, ...args))
@@ -97,6 +97,8 @@ if (LOAD_SLASH) {
             client.on(event.name, (...args) => event.execute(client, ...args))
         }
     }
+
+    //register database events
 
     client.login(TOKEN)
 }

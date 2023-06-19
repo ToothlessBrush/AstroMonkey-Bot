@@ -1,4 +1,4 @@
-const { queueButton } = require("./../utils/queueButton")
+const { queueButton } = require("../../utils/queueButton")
 
 module.exports = {
     name: "interactionCreate",
