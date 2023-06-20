@@ -2,9 +2,13 @@ const { queueButton } = require("../../utils/queueButton")
 
 module.exports = {
     name: "interactionCreate",
-    async execute(client, interaction) {
+    async execute(interaction) {
+        const client = interaction.client
+
         if (interaction.isChatInputCommand()) {
             console.log(`Interaction: ${interaction.commandName}`)
+            //console.log(interaction.client)
+            //console.log(client)
 
             const slashcmd = client.slashcommands.get(interaction.commandName)
             if (!slashcmd) interaction.reply("Not a valid slash command")

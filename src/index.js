@@ -2,16 +2,22 @@
 const { Client, GatewayIntentBits, Collection } = require("discord.js")
 const { REST } = require("@discordjs/rest")
 const { Routes } = require("discord-api-types/v9")
+
+const { connect, connection } = require("mongoose")
+
 const fs = require("fs")
 const path = require("path")
+
 const { Player } = require("discord-player")
 const dotenv = require("dotenv")
 
 const { registerPlayerEvents } = require("./events/playerEvents")
+const { Db } = require("mongodb")
 
 dotenv.config()
 const TOKEN = process.env.TOKEN
 const CLIENT_ID = process.env.CLIENT_ID
+const DB_URL = process.env.DB_URL
 
 const LOAD_SLASH = process.argv[2] == "load"
 const GLOBAL = process.argv[3] == "global"
@@ -92,13 +98,30 @@ if (LOAD_SLASH) {
         const filePath = path.join(clientEventsPath, file)
         const event = require(filePath)
         if (event.once) {
-            client.once(event.name, (...args) => event.execute(client, ...args))
+            client.once(event.name, (...args) => event.execute(...args))
         } else {
-            client.on(event.name, (...args) => event.execute(client, ...args))
+            client.on(event.name, (...args) => event.execute(...args))
         }
     }
 
     //register database events
+    const DBEventsPath = path.join(__dirname, "events", "mongo")
+    const DBevents = fs
+        .readdirSync(DBEventsPath)
+        .filter((file) => file.endsWith(".js"))
+
+    for (const file of DBevents) {
+        const filePath = path.join(DBEventsPath, file)
+        const event = require(filePath)
+        if (event.once) {
+            connection.once(event.name, (...args) => event.execute(...args))
+        } else {
+            connection.on(event.name, (...args) => event.execute(...args))
+        }
+    }
 
     client.login(TOKEN)
+    ;(async () => {
+        await connect(DB_URL).catch(console.error)
+    })()
 }
