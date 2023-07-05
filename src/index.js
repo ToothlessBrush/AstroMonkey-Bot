@@ -12,7 +12,6 @@ const { Player } = require("discord-player")
 const dotenv = require("dotenv")
 
 const { registerPlayerEvents } = require("./events/playerEvents")
-const { Db } = require("mongodb")
 
 dotenv.config()
 const TOKEN = process.env.TOKEN
@@ -88,14 +87,14 @@ if (LOAD_SLASH) {
             }
         })
 } else {
-    const clientEventsPath = path.join(__dirname, "events", "clientEvents")
+    const clientPath = path.join(__dirname, "events", "client")
     const eventFiles = fs
-        .readdirSync(clientEventsPath)
+        .readdirSync(clientPath)
         .filter((file) => file.endsWith(".js"))
 
     //register discord events
     for (const file of eventFiles) {
-        const filePath = path.join(clientEventsPath, file)
+        const filePath = path.join(clientPath, file)
         const event = require(filePath)
         if (event.once) {
             client.once(event.name, (...args) => event.execute(...args))
