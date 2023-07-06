@@ -1,8 +1,20 @@
-const { Playlist } = require("discord-player")
-const { schema, model } = require("mongoose")
+const { Schema } = require("mongoose")
 
 const serverSchema = new Schema({
-    server: Object,
+    server: {
+        name: String,
+        ID: String
+    },
     djrole: String,
-    playlist: Array,
+    playlist: [{
+        name: String,
+        creater: {
+            name: String,
+            ID: String,
+        },
+        dateCreated: date.now,
+        tracks: [{
+            //track object
+        }]
+    }],
 })
