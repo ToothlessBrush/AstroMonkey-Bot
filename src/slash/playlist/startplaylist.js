@@ -7,14 +7,8 @@ const { isUrl } = require("./../../utils/isUrl")
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName("play")
-        .setDescription("plays a song from youtube or spotify")
-        .addStringOption((option) =>
-            option
-                .setName("query")
-                .setDescription("a search term, share link, or URL of the song")
-                .setRequired(true)
-        ),
+        .setName("startplaylist")
+        .setDescription("start playing a playlist"),
 
     run: async ({ client, interaction }) => {
         if (!interaction.member.voice.channel)
@@ -45,11 +39,15 @@ module.exports = {
 
         //grabs query string differently depending on which interaction type it is
         let query
+        /*
         if (interaction.isChatInputCommand()) {
             query = interaction.options.getString("query")
         } else if (interaction.isStringSelectMenu()) {
             query = interaction.values[0]
         }
+        */
+
+        query = "https://www.youtube.com/watch?v=FapBH3j6WoA"
 
         let tracks
         if (isUrl(query)) {

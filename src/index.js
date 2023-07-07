@@ -9,11 +9,10 @@ const fs = require("fs")
 const path = require("path")
 
 const { Player } = require("discord-player")
-const dotenv = require("dotenv")
+require("dotenv").config()
 
 const { registerPlayerEvents } = require("./events/playerEvents")
 
-dotenv.config()
 const TOKEN = process.env.TOKEN
 const CLIENT_ID = process.env.CLIENT_ID
 const DB_URL = process.env.DB_URL
@@ -86,44 +85,49 @@ if (LOAD_SLASH) {
                 process.exit(1)
             }
         })
-}
+} else {
 
-//want to exit after but its async so I dont know how to
 
-const clientPath = path.join(__dirname, "events", "client")
-const eventFiles = fs
-    .readdirSync(clientPath)
-    .filter((file) => file.endsWith(".js"))
 
-//register discord events
-for (const file of eventFiles) {
-    const filePath = path.join(clientPath, file)
-    const event = require(filePath)
-    if (event.once) {
-        client.once(event.name, (...args) => event.execute(...args))
-    } else {
-        client.on(event.name, (...args) => event.execute(...args))
+    //want to exit after but its async so I dont know how to
+
+    const clientPath = path.join(__dirname, "events", "client")
+    const eventFiles = fs
+        .readdirSync(clientPath)
+        .filter((file) => file.endsWith(".js"))
+
+    //register discord events
+    for (const file of eventFiles) {
+        const filePath = path.join(clientPath, file)
+        const event = require(filePath)
+        if (event.once) {
+            client.once(event.name, (...args) => event.execute(...args))
+        } else {
+            client.on(event.name, (...args) => event.execute(...args))
+        }
     }
-}
-console.log(`registered client events`)
+    console.log(`registered client events`)
 
-//register database events
-const DBEventsPath = path.join(__dirname, "events", "mongo")
-const DBevents = fs
-    .readdirSync(DBEventsPath)
-    .filter((file) => file.endsWith(".js"))
+    //register database events
+    const DBEventsPath = path.join(__dirname, "events", "mongo")
+    const DBevents = fs
+        .readdirSync(DBEventsPath)
+        .filter((file) => file.endsWith(".js"))
 
-for (const file of DBevents) {
-    const filePath = path.join(DBEventsPath, file)
-    const event = require(filePath)
-    if (event.once) {
-        connection.once(event.name, (...args) => event.execute(...args))
-    } else {
-        connection.on(event.name, (...args) => event.execute(...args))
+    for (const file of DBevents) {
+        const filePath = path.join(DBEventsPath, file)
+        const event = require(filePath)
+        if (event.once) {
+            connection.once(event.name, (...args) => event.execute(...args))
+        } else {
+            connection.on(event.name, (...args) => event.execute(...args))
+        }
     }
+    console.log(`registered database events`)
+
+    client.login(TOKEN)
+
+    connect(DB_URL).catch(console.error)
+
 }
-console.log(`registered database events`)
 
-client.login(TOKEN)
-
-connect(DB_URL).catch(console.error)
