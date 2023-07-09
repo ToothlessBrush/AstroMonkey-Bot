@@ -125,6 +125,24 @@ module.exports = {
         //console.log(tracks[0])
         await queue.addTrack(tracks) //adds track(s) from the search result
 
+        process.on("uncaughtException", async (error) => {
+            // Handle the error
+            console.error(error)
+            channel = interaction.channel
+
+            await channel.send({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(0xff0000)
+                        .setTitle(`Somthing went wrong!`)
+                        .setDescription(error.message.split("\n")[0]),
+                ],
+            })
+
+            //replay if error stopped queue
+            if (!queue.node.isPlaying()) await queue.node.play()
+        })
+
         try {
             //verify vc connection
             if (!queue.connection) {

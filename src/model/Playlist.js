@@ -7,10 +7,9 @@ const playlistSchema = new Schema({
         ID: String,
     },
     length: Number,
+    duration: Number,
     dateCreated: { type: Date, default: Date.now },
     tracks: [Schema.Types.Mixed],
 })
 
-const Playlist = model("Playlist", playlistSchema)
-
-module.exports = Playlist
+module.exports = playlistSchema

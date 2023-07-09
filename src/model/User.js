@@ -1,5 +1,13 @@
 const { Schema, model } = require("mongoose")
+const playlistSchema = require("./Playlist")
 
-const userSchema = new Schema({})
+const userSchema = new Schema({
+    name: String,
+    ID: String,
+    likes: playlistSchema,
+    playlists: [playlistSchema]
+})
 
-module.exports = model("User", userSchema)
+const User = model("User", userSchema)
+
+module.exports = User

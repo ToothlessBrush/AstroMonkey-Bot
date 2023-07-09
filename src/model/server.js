@@ -1,5 +1,5 @@
 const { Schema, model } = require("mongoose")
-const Playlist = require("./Playlist").schema
+const playlistSchema = require("./Playlist")
 
 const serverSchema = new Schema({
     server: {
@@ -7,7 +7,7 @@ const serverSchema = new Schema({
         ID: String,
     },
     djrole: String,
-    playlists: [Playlist],
+    playlists: [playlistSchema],
 })
 
 const Server = model("Server", serverSchema)

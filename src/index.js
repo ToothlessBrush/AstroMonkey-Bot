@@ -86,9 +86,6 @@ if (LOAD_SLASH) {
             }
         })
 } else {
-
-
-
     //want to exit after but its async so I dont know how to
 
     const clientPath = path.join(__dirname, "events", "client")
@@ -128,6 +125,4 @@ if (LOAD_SLASH) {
     client.login(TOKEN)
 
     connect(DB_URL).catch(console.error)
-
 }
-

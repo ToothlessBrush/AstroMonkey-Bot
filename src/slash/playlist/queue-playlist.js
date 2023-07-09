@@ -1,9 +1,7 @@
 const { SlashCommandBuilder, ButtonBuilder } = require("@discordjs/builders")
 const { EmbedBuilder, ActionRowBuilder, ButtonStyle } = require("discord.js")
-const { QueryType } = require("discord-player")
-
-const { blackList } = require("../../utils/blacklist")
-const { isUrl } = require("../../utils/isUrl")
+const Server = require("./../../model/server")
+const User = require("./../../model/User")
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -11,19 +9,7 @@ module.exports = {
         .setDescription("add the tracks from a playlist to queue")
         .addStringOption((option) =>
             option
-                .setName("type")
-                .setDescription(
-                    "private personal playlist or shared server playlist"
-                )
-                .setRequired(true)
-                .addChoices(
-                    { name: "Personal", value: "PERSONAL" },
-                    { name: "Server", value: "SERVER" }
-                )
-        )
-        .addStringOption((option) =>
-            option
-                .setName("name")
+                .setName("playlist")
                 .setDescription("the name of the playlist to add to queue")
                 .setRequired(true)
         )
@@ -35,7 +21,7 @@ module.exports = {
         ),
 
     run: async ({ client, interaction }) => {
-        if (!interaction.member.voice.channel)
+        if (!interaction.member.voice.channel) {
             return interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
@@ -43,6 +29,7 @@ module.exports = {
                         .setDescription(`**You Must be in a VC!**`),
                 ],
             })
+        }
 
         const queue = await client.player.nodes.create(interaction.guild, {
             metadata: {
@@ -56,127 +43,50 @@ module.exports = {
             leaveOnEnd: true,
         })
 
-        if (!queue.connection)
+        if (!queue.connection) {
             await queue.connect(interaction.member.voice.channel)
-
-        let embed = new EmbedBuilder() //need to change this to embed builder for v14 (done)
-
-        //grabs query string differently depending on which interaction type it is
-
-        let playlistName = interaction.options.getString("")
-
-        if (tracks.length === 0) {
-            return interaction.editReply({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor(0xff0000)
-                        .setDescription(`**No Results!**`),
-                ],
-            })
         }
 
-        //console.log(tracks)
+        let playlistName = interaction.options.getString("playlist")
 
-        //blackList(tracks, interaction)
+        const serverID = interaction.guild.id
+        const userID = interaction.user.id
 
-        if (tracks.length == 0) {
-            console.log(
-                `cannot start playing as all songs are removed or dont exist`
+        //find playlist
+        Server.findOne({ "server.ID": serverID }).then(async (server) => {
+            const playlist = server.playlists.find(
+                (playlist) => playlist.name == playlistName
             )
-            interaction.editReply({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor(0xff0000)
-                        .setTitle(
-                            `Could not start playing as all tracks were removed or don't exist`
-                        ),
-                ],
-            })
-            return
-        }
 
-        console.log(tracks[0])
-        await queue.addTrack(tracks) //adds track(s) from the search result
-
-        try {
-            //verify vc connection
-            if (!queue.connection) {
-                await queue.connect(interaction.member.voice.channel)
+            if (!playlist) {
+                return interaction.editReply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setColor(0xff0000)
+                            .setTitle("Playlist Not Found!"),
+                    ],
+                })
             }
-        } catch (error) {
-            queue.delete()
-            console.log(error)
-            return await interaction.editReply({
-                content: "could not join voice channel",
-            })
-        }
 
-        if (!queue.node.isPlaying()) await queue.node.play() //play if not already playing
-
-        //console.log(tracks)
-
-        //build embed based on info
-        if (tracks.length > 1) {
-            playlist = tracks[0].playlist
-            //console.log(tracks)
-
-            embed
-                .setColor(0xa020f0) //purple
-                .setTitle(`Queued ${tracks.length} Tracks`)
-                //.setDescription(`**[${playlist.title}](${playlist.url})**`) //doesnt work for spotify
-                .setThumbnail(tracks[0].thumbnail)
-                .setFooter({ text: `source: ${tracks[0].source}` })
-        } else {
-            if (queue.tracks.size == 0) {
-                embed
-                    .setColor(0xa020f0) //purple
-                    .setTitle(`**Playing**`)
-                    .setDescription(
-                        `**[${tracks[0].title}](${tracks[0].url})**\nBy ${tracks[0].author}`
-                    )
-                    .setThumbnail(tracks[0].thumbnail)
-                    .setFooter({
-                        text: `Duration: ${tracks[0].duration} | source: ${tracks[0].source}`,
-                    })
-            } else {
-                embed
-                    .setColor(0xa020f0) //purple
-                    .setTitle(`**Queued in Position ${queue.tracks.size}**`)
-                    .setDescription(
-                        `**[${tracks[0].title}](${tracks[0].url})**\nBy ${tracks[0].author}`
-                    )
-                    .setThumbnail(tracks[0].thumbnail)
-                    .setFooter({
-                        text: `Duration: ${tracks[0].duration} | Source: ${tracks[0].source}`,
-                    })
+            if (playlist.tracks.length == 0) {
+                console.log(
+                    `cannot start playing as all songs are removed or dont exist`
+                )
+                return interaction.editReply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setColor(0xff0000)
+                            .setTitle(
+                                `Could not start playing as all tracks were removed or don't exist`
+                            ),
+                    ],
+                })
             }
-        }
 
-        //console.log(queue.tracks.length)
+            console.log(playlist.tracks)
+            queue.addTrack(playlist.tracks)
 
-        await interaction.editReply({
-            embeds: [embed],
-            components: [
-                new ActionRowBuilder()
-                    .addComponents(
-                        new ButtonBuilder()
-                            .setCustomId(`pauseButton`)
-                            .setLabel(`Pause`)
-                            .setStyle(ButtonStyle.Secondary)
-                    )
-                    .addComponents(
-                        new ButtonBuilder()
-                            .setCustomId(`skipButton`)
-                            .setLabel(`Skip`)
-                            .setStyle(ButtonStyle.Secondary)
-                    )
-                    .addComponents(
-                        new ButtonBuilder()
-                            .setCustomId(`queueButton`)
-                            .setLabel(`Queue`)
-                            .setStyle(ButtonStyle.Secondary)
-                    ),
-            ],
+            if (!queue.node.isPlaying()) await queue.node.play()
         })
     },
 }

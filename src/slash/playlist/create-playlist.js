@@ -1,7 +1,5 @@
 const { EmbedBuilder, SlashCommandBuilder } = require("discord.js")
-const mongoose = require("mongoose")
 const Server = require("./../../model/server")
-const Playlist = require("./../../model/Playlist")
 const User = require("./../../model/User")
 
 module.exports = {
@@ -30,6 +28,8 @@ module.exports = {
         ),
 
     run: async ({ client, interaction }) => {
+        const serverType = interaction.options.getString("type") == "SERVER"
+
         const playlistData = {
             name: interaction.options.getString("name"),
             creater: {
@@ -40,24 +40,117 @@ module.exports = {
             tracks: [],
         }
 
-        const serverID = interaction.guild.id
+        if (serverType) {
+            const serverID = interaction.guild.id
 
-        Server.findOne({ "server.ID": serverID }).then((server) => {
-            if (server) {
-                console.log("found server")
-                server.playlists.push(playlistData)
-                return server.save()
-            } else {
-                console.log("Server Not Found")
-                const newServer = new Server({
-                    server: {
-                        name: interaction.guild.name,
-                        ID: interaction.guild.id,
-                    },
-                    playlists: [playlistData],
-                })
-                return newServer.save()
-            }
-        })
+            Server.findOne({ "server.ID": serverID }).then((server) => {
+                if (server) {
+                    console.log("found server")
+
+                    //checks for duplicate playlists
+                    const playlistExists = server.playlists.find(
+                        (playlist) => playlist.name == playlistData.name
+                    )
+
+                    if (playlistExists) {
+                        console.log("playlist already exists")
+                        return interaction.editReply({
+                            embeds: [
+                                new EmbedBuilder()
+                                    .setColor(0xff0000)
+                                    .setTitle("Playlist Already Exists!"),
+                            ],
+                        })
+                    }
+                    
+                    server.playlists.push(playlistData)
+                    interaction.editReply({
+                        embeds: [
+                            new EmbedBuilder()
+                                .setColor(0xa020f0)
+                                .setTitle("Created Playlist!")
+                                .setDescription(
+                                    `Created the \`${playlistData.name}\` playlist for this server!`
+                                ),
+                        ],
+                    })
+                    return server.save()
+                } else {
+                    console.log("Server Not Found")
+                    const newServer = new Server({
+                        server: {
+                            name: interaction.guild.name,
+                            ID: interaction.guild.id,
+                        },
+                        playlists: [playlistData],
+                    })
+                    interaction.editReply({
+                        embeds: [
+                            new EmbedBuilder()
+                                .setColor(0xa020f0)
+                                .setTitle("Created Playlist!")
+                                .setDescription(
+                                    `Created the \`${playlistData.name}\` playlist for this server!`
+                                ),
+                        ],
+                    })
+                    return newServer.save()
+                }
+            })
+        } else {
+            const userID = interaction.user.id
+
+            User.findOne({ ID: userID }).then((user) => {
+                if (user) {
+                    console.log("found user")
+
+                    const playlistExists = user.playlists.find(
+                        (playlist) => playlist.name == playlistData.name
+                    )
+
+                    if (playlistExists) {
+                        console.log("playlist already exists")
+                        return interaction.editReply({
+                            embeds: [
+                                new EmbedBuilder()
+                                    .setColor(0xff0000)
+                                    .setTitle("Playlist Already Exists!"),
+                            ],
+                        })
+                    } else {
+                        user.playlists.push(playlistData)
+                        interaction.editReply({
+                            embeds: [
+                                new EmbedBuilder()
+                                    .setColor(0xa020f0)
+                                    .setTitle("Created Playlist!")
+                                    .setDescription(
+                                        `Created the \`${playlistData.name}\` playlist for this server!`
+                                    ),
+                            ],
+                        })
+                        return user.save()
+                    }
+                } else {
+                    console.log("User Not Found")
+                    const newUser = new User({
+                        name: interaction.user.username,
+                        ID: interaction.user.id,
+                        playlists: [playlistData],
+                    })
+                    interaction.editReply({
+                        embeds: [
+                            new EmbedBuilder()
+                                .setColor(0xa020f0)
+                                .setTitle("Created Playlist!")
+                                .setDescription(
+                                    `Created the \`${playlistData.name}\` playlist!`
+                                ),
+                        ],
+                    })
+                    return newUser.save()
+                }
+            })
+        }
     },
 }
