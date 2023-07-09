@@ -122,7 +122,7 @@ module.exports = {
             return
         }
 
-        console.log(tracks[0])
+        //console.log(tracks[0])
         await queue.addTrack(tracks) //adds track(s) from the search result
 
         try {

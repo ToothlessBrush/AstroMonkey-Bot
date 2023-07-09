@@ -1,5 +1,5 @@
-const { Schema } = require("mongoose")
-const Playlist = require("./Playlist")
+const { Schema, model } = require("mongoose")
+const Playlist = require("./Playlist").schema
 
 const serverSchema = new Schema({
     server: {
@@ -9,6 +9,10 @@ const serverSchema = new Schema({
     djrole: String,
     playlists: [Playlist],
 })
+
+const Server = model("Server", serverSchema)
+
+module.exports = Server
 
 /*
 "servers": [

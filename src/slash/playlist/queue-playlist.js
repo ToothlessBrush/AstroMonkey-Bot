@@ -1,14 +1,38 @@
 const { SlashCommandBuilder, ButtonBuilder } = require("@discordjs/builders")
 const { EmbedBuilder, ActionRowBuilder, ButtonStyle } = require("discord.js")
-const { QueryType, SearchResult } = require("discord-player")
+const { QueryType } = require("discord-player")
 
-const { blackList } = require("./../../utils/blacklist")
-const { isUrl } = require("./../../utils/isUrl")
+const { blackList } = require("../../utils/blacklist")
+const { isUrl } = require("../../utils/isUrl")
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName("startplaylist")
-        .setDescription("start playing a playlist"),
+        .setName("queue-playlist")
+        .setDescription("add the tracks from a playlist to queue")
+        .addStringOption((option) =>
+            option
+                .setName("type")
+                .setDescription(
+                    "private personal playlist or shared server playlist"
+                )
+                .setRequired(true)
+                .addChoices(
+                    { name: "Personal", value: "PERSONAL" },
+                    { name: "Server", value: "SERVER" }
+                )
+        )
+        .addStringOption((option) =>
+            option
+                .setName("name")
+                .setDescription("the name of the playlist to add to queue")
+                .setRequired(true)
+        )
+        .addBooleanOption((option) =>
+            option
+                .setName("shuffle")
+                .setDescription("add the music to the playlist shuffled or not")
+                .setRequired(false)
+        ),
 
     run: async ({ client, interaction }) => {
         if (!interaction.member.voice.channel)
@@ -38,57 +62,8 @@ module.exports = {
         let embed = new EmbedBuilder() //need to change this to embed builder for v14 (done)
 
         //grabs query string differently depending on which interaction type it is
-        let query
-        /*
-        if (interaction.isChatInputCommand()) {
-            query = interaction.options.getString("query")
-        } else if (interaction.isStringSelectMenu()) {
-            query = interaction.values[0]
-        }
-        */
 
-        query = "https://www.youtube.com/watch?v=FapBH3j6WoA"
-
-        let tracks
-        if (isUrl(query)) {
-            //auto searches the url
-            console.log(`searching url: ${query}`)
-
-            interaction.editReply({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor(0x00cbb7)
-                        .setTitle("Searching...")
-                        .setDescription("searching URL "),
-                ],
-            })
-
-            const result_search = await client.player.search(query, {
-                requestedBy: interaction.user,
-                searchEngine: QueryType.AUTO,
-            })
-
-            tracks = result_search.tracks //add multiple tracks if playlist/album
-        } else {
-            //searches youtube if its not a url
-            console.log(`searching prompt: ${query}`)
-
-            interaction.editReply({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor(0x00cbb7)
-                        .setTitle("Searching...")
-                        .setDescription(`searching youtube for ${query}`),
-                ],
-            })
-
-            const result_search = await client.player.search(query, {
-                requestedBy: interaction.user,
-                searchEngine: QueryType.YOUTUBE_SEARCH,
-            })
-
-            tracks = [result_search.tracks[0]] //adds 1 track from search
-        }
+        let playlistName = interaction.options.getString("")
 
         if (tracks.length === 0) {
             return interaction.editReply({
