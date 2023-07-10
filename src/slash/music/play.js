@@ -38,8 +38,9 @@ module.exports = {
             leaveOnEnd: true,
         })
 
-        if (!queue.connection)
+        if (!queue.connection) {
             await queue.connect(interaction.member.voice.channel)
+        }
 
         let embed = new EmbedBuilder() //need to change this to embed builder for v14 (done)
 

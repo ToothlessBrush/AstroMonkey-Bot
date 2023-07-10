@@ -1,4 +1,5 @@
 const { queueButton } = require("../../utils/queueButton")
+const { searchPlaylist } = require("../../utils/searchPlaylist")
 
 module.exports = {
     name: "interactionCreate",
@@ -11,10 +12,19 @@ module.exports = {
             //console.log(client)
 
             const slashcmd = client.slashcommands.get(interaction.commandName)
-            if (!slashcmd) interaction.reply("Not a valid slash command")
+            if (!slashcmd) return interaction.reply("Not a valid slash command")
 
             await interaction.deferReply()
             await slashcmd.run({ client, interaction })
+        } else if (interaction.isAutocomplete()) {
+            const command = client.slashcommands.get(interaction.commandName)
+            if (!command) return interaction.reply("Not a valid slash command")
+
+            try {
+                await command.autocomplete({ client, interaction })
+            } catch (error) {
+                console.error(error)
+            }
         } else if (interaction.isButton()) {
             // console.log(interaction.customId)
 
@@ -58,6 +68,19 @@ module.exports = {
                         true
                     ) //console.log(interaction.customId.split("_")[1])
                     return
+                case "serverPlaylistButton":
+                    searchPlaylist(
+                        interaction,
+                        "server",
+                        interaction.customId.split("_")[1]
+                    )
+                    return
+                case "userPlaylistButton":
+                    searchPlaylist(
+                        interaction,
+                        "user",
+                        interaction.customId.split("_")[1]
+                    )
                 default:
                     return
             }

@@ -14,6 +14,7 @@ module.exports = {
             option
                 .setName("playlist")
                 .setDescription("name of the playlist you want to add to")
+                .setAutocomplete(true)
                 .setRequired(true)
         )
         .addStringOption((option) =>
@@ -24,6 +25,44 @@ module.exports = {
                 )
                 .setRequired(true)
         ),
+
+    autocomplete: async ({ client, interaction }) => {
+        const focusedValue = interaction.options.getFocused()
+        let choices = []
+        await Server.findOne({ "server.ID": interaction.guild.id }).then(
+            (server) => {
+                if (server.playlists) {
+                    server.playlists
+                        .map((playlist) => playlist.name)
+                        .forEach((name) => {
+                            choices.push(name)
+                        })
+                }
+            }
+        )
+        await User.findOne({ ID: interaction.user.id }).then((user) => {
+            if (user.playlists) {
+                user.playlists
+                    .map((playlist) => playlist.name)
+                    .forEach((name) => {
+                        choices.push(name)
+                    })
+            }
+        })
+
+        choices = removeDuplicates(choices)
+        function removeDuplicates(arr) {
+            return arr.filter((item, index) => arr.indexOf(item) === index)
+        }
+
+        const filtered = choices.filter((choice) =>
+            choice.startsWith(focusedValue)
+        )
+
+        await interaction.respond(
+            filtered.map((choice) => ({ name: choice, value: choice }))
+        )
+    },
 
     run: async ({ client, interaction }) => {
         const playlistName = interaction.options.getString("playlist")

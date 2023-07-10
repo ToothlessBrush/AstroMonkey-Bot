@@ -11,6 +11,7 @@ module.exports = {
             option
                 .setName("playlist")
                 .setDescription("the name of the playlist to add to queue")
+                .setAutocomplete(true)
                 .setRequired(true)
         )
         .addBooleanOption((option) =>
@@ -19,6 +20,44 @@ module.exports = {
                 .setDescription("add the music to the playlist shuffled or not")
                 .setRequired(false)
         ),
+
+    autocomplete: async ({ client, interaction }) => {
+        const focusedValue = interaction.options.getFocused()
+        let choices = []
+        await Server.findOne({ "server.ID": interaction.guild.id }).then(
+            (server) => {
+                if (server.playlists) {
+                    server.playlists
+                        .map((playlist) => playlist.name)
+                        .forEach((name) => {
+                            choices.push(name)
+                        })
+                }
+            }
+        )
+        await User.findOne({ ID: interaction.user.id }).then((user) => {
+            if (user.playlists) {
+                user.playlists
+                    .map((playlist) => playlist.name)
+                    .forEach((name) => {
+                        choices.push(name)
+                    })
+            }
+        })
+
+        choices = removeDuplicates(choices)
+        function removeDuplicates(arr) {
+            return arr.filter((item, index) => arr.indexOf(item) === index)
+        }
+
+        const filtered = choices.filter((choice) =>
+            choice.startsWith(focusedValue)
+        )
+
+        await interaction.respond(
+            filtered.map((choice) => ({ name: choice, value: choice }))
+        )
+    },
 
     run: async ({ client, interaction }) => {
         if (!interaction.member.voice.channel) {
@@ -53,40 +92,72 @@ module.exports = {
         const userID = interaction.user.id
 
         //find playlist
-        Server.findOne({ "server.ID": serverID }).then(async (server) => {
-            const playlist = server.playlists.find(
+        const serverPlaylist = await Server.findOne({
+            "server.ID": serverID,
+        }).then(async (server) => {
+            return server.playlists.find(
                 (playlist) => playlist.name == playlistName
             )
+        })
 
-            if (!playlist) {
-                return interaction.editReply({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setColor(0xff0000)
-                            .setTitle("Playlist Not Found!"),
-                    ],
-                })
-            }
+        const userPlaylist = await User.findOne({
+            ID: userID,
+        }).then(async (user) => {
+            return user.playlists.find(
+                (playlist) => playlist.name == playlistName
+            )
+        })
 
-            if (playlist.tracks.length == 0) {
-                console.log(
-                    `cannot start playing as all songs are removed or dont exist`
-                )
-                return interaction.editReply({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setColor(0xff0000)
-                            .setTitle(
-                                `Could not start playing as all tracks were removed or don't exist`
-                            ),
-                    ],
-                })
-            }
+        if (serverPlaylist && userPlaylist) {
+            return interaction.editReply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(0x00cbb7)
+                        .setTitle("Found 2 Playlists!")
+                        .setDescription(
+                            `There are 2 playlists named \`${serverPlaylist.name}\`!\n\nWould you like to play the server playlist or your personal playlist?`
+                        ),
+                ],
+                components: [
+                    new ActionRowBuilder().addComponents(
+                        new ButtonBuilder()
+                            .setCustomId(
+                                `serverPlaylistButton_${serverPlaylist.name}`
+                            )
+                            .setLabel(`Server`)
+                            .setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder()
+                            .setCustomId(
+                                `userPlaylistButton_${userPlaylist.name}`
+                            )
+                            .setLabel(`Personal`)
+                            .setStyle(ButtonStyle.Secondary)
+                    ),
+                ],
+            })
+        }
 
-            console.log(playlist.tracks)
-            queue.addTrack(playlist.tracks)
+        const playlist = serverPlaylist || userPlaylist
 
-            if (!queue.node.isPlaying()) await queue.node.play()
+        if (!playlist)
+            return interaction.editReply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(0xff0000)
+                        .setTitle(`${playlist.name} was not found!`),
+                ],
+            })
+
+        queue.addTrack(serverPlaylist.tracks)
+
+        if (!queue.node.isPlaying()) await queue.node.play()
+
+        interaction.editReply({
+            embeds: [
+                new EmbedBuilder()
+                    .setColor(0xa020f0)
+                    .setTitle(`playing the ${playlist.name} playlist!`),
+            ],
         })
     },
 }
