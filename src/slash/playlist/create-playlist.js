@@ -62,7 +62,7 @@ module.exports = {
                             ],
                         })
                     }
-                    
+
                     server.playlists.push(playlistData)
                     interaction.editReply({
                         embeds: [
@@ -76,7 +76,7 @@ module.exports = {
                     })
                     return server.save()
                 } else {
-                    console.log("Server Not Found")
+                    console.log("Creating server doc")
                     const newServer = new Server({
                         server: {
                             name: interaction.guild.name,
@@ -102,8 +102,6 @@ module.exports = {
 
             User.findOne({ ID: userID }).then((user) => {
                 if (user) {
-                    console.log("found user")
-
                     const playlistExists = user.playlists.find(
                         (playlist) => playlist.name == playlistData.name
                     )
@@ -125,14 +123,14 @@ module.exports = {
                                     .setColor(0xa020f0)
                                     .setTitle("Created Playlist!")
                                     .setDescription(
-                                        `Created the \`${playlistData.name}\` playlist for this server!`
+                                        `Created the \`${playlistData.name}\` playlist for <@${interaction.user.id}>!`
                                     ),
                             ],
                         })
                         return user.save()
                     }
                 } else {
-                    console.log("User Not Found")
+                    console.log("Creating user doc")
                     const newUser = new User({
                         name: interaction.user.username,
                         ID: interaction.user.id,

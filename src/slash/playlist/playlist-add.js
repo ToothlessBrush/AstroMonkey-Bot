@@ -1,4 +1,10 @@
-const { EmbedBuilder, SlashCommandBuilder } = require("discord.js")
+const {
+    EmbedBuilder,
+    SlashCommandBuilder,
+    ActionRowBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+} = require("discord.js")
 const { QueryType, Track } = require("discord-player")
 
 const Server = require("./../../model/server")
@@ -31,6 +37,9 @@ module.exports = {
         let choices = []
         await Server.findOne({ "server.ID": interaction.guild.id }).then(
             (server) => {
+                if (!server) {
+                    return
+                }
                 if (server.playlists) {
                     server.playlists
                         .map((playlist) => playlist.name)
@@ -41,6 +50,9 @@ module.exports = {
             }
         )
         await User.findOne({ ID: interaction.user.id }).then((user) => {
+            if (!user) {
+                return
+            }
             if (user.playlists) {
                 user.playlists
                     .map((playlist) => playlist.name)
@@ -70,36 +82,77 @@ module.exports = {
         const serverID = interaction.guild.id
         const userID = interaction.user.id
 
-        Server.findOne({ "server.ID": serverID }).then(async (server) => {
-            if (server) {
-                const playlist = server.playlists.find(
-                    (playlist) => playlist.name == playlistName
-                )
+        const server = await Server.findOne({ "server.ID": serverID })
 
-                if (!playlist) {
-                    return interaction.editReply({
-                        embeds: [
-                            new EmbedBuilder()
-                                .setColor(0xff0000)
-                                .setTitle("Playlist Not Found!"),
-                        ],
-                    })
-                }
+        let serverPL
+        if (server) {
+            serverPL = server.playlists.find(
+                (playlist) => playlist.name == playlistName
+            )
+        }
 
-                track = await searchQuery(query)
-                console.log(track)
-                playlist.tracks.push(track)
+        const user = await User.findOne({ ID: userID })
 
-                return server.save()
-            }
+        let userPL
+        if (user) {
+            userPL = user.playlists.find(
+                (playlist) => playlist.name == playlistName
+            )
+        }
 
+        if (serverPL && userPL) {
             return interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
-                        .setColor(0xff0000)
-                        .setTitle("Playlist Not Found!"),
+                        .setColor(0x00cbb7)
+                        .setTitle("Found 2 Playlists!")
+                        .setDescription(
+                            `There are 2 playlists named \`${serverPL.name}\`!\n\nWould you like to add the track to the server playlist or your personal playlist?`
+                        ),
+                ],
+                components: [
+                    new ActionRowBuilder().addComponents(
+                        new ButtonBuilder()
+                            .setCustomId(
+                                `addToServerPL_${playlistName}_${query}`
+                            )
+                            .setLabel(`Server`)
+                            .setStyle(ButtonStyle.Secondary),
+                        new ButtonBuilder()
+                            .setCustomId(`addToUserPL_${playlistName}_${query}`)
+                            .setLabel(`Personal`)
+                            .setStyle(ButtonStyle.Secondary)
+                    ),
                 ],
             })
+        }
+
+        //search for song and get track object
+        let track = await searchQuery(query)
+
+        //save to db
+        if (userPL) {
+            userPL.tracks.push(track)
+            user.save()
+        }
+
+        if (serverPL) {
+            serverPL.tracks.push(track)
+            server.save()
+        }
+
+        return interaction.editReply({
+            embeds: [
+                new EmbedBuilder()
+                    .setColor(0xa020f0)
+                    .setTitle(
+                        `Added to \`${userPL ? userPL.name : serverPL.name}\``
+                    )
+                    .setDescription(
+                        `**[${track.title}](${track.url})** \nBy ${track.author}`
+                    )
+                    .setThumbnail(track.thumbnail),
+            ],
         })
 
         //return track object
@@ -159,4 +212,5 @@ module.exports = {
             }
         }
     },
+    buttons: async (interaction, docType, playlist, query) => {},
 }

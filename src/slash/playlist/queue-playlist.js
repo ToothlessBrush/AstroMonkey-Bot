@@ -26,6 +26,9 @@ module.exports = {
         let choices = []
         await Server.findOne({ "server.ID": interaction.guild.id }).then(
             (server) => {
+                if (!server) {
+                    return
+                }
                 if (server.playlists) {
                     server.playlists
                         .map((playlist) => playlist.name)
@@ -36,6 +39,9 @@ module.exports = {
             }
         )
         await User.findOne({ ID: interaction.user.id }).then((user) => {
+            if (!user) {
+                return
+            }
             if (user.playlists) {
                 user.playlists
                     .map((playlist) => playlist.name)
@@ -95,6 +101,9 @@ module.exports = {
         const serverPlaylist = await Server.findOne({
             "server.ID": serverID,
         }).then(async (server) => {
+            if (!server) {
+                return
+            }
             return server.playlists.find(
                 (playlist) => playlist.name == playlistName
             )
@@ -103,6 +112,9 @@ module.exports = {
         const userPlaylist = await User.findOne({
             ID: userID,
         }).then(async (user) => {
+            if (!user) {
+                return
+            }
             return user.playlists.find(
                 (playlist) => playlist.name == playlistName
             )
@@ -152,12 +164,135 @@ module.exports = {
 
         if (!queue.node.isPlaying()) await queue.node.play()
 
+        process.on("uncaughtException", async (error) => {
+            // Handle the error
+            console.error(error)
+            channel = interaction.channel
+
+            await channel.send({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(0xff0000)
+                        .setTitle(`Somthing went wrong!`)
+                        .setDescription(error.message.split("\n")[0]),
+                ],
+            })
+
+            //replay if error stopped queue
+            if (!queue.node.isPlaying()) await queue.node.play()
+        })
+
+        process.on("uncaughtException", async (error) => {
+            // Handle the error
+            console.error(error)
+            channel = interaction.channel
+
+            await channel.send({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(0xff0000)
+                        .setTitle(`Somthing went wrong!`)
+                        .setDescription(error.message.split("\n")[0]),
+                ],
+            })
+
+            //replay if error stopped queue
+            if (!queue.node.isPlaying()) await queue.node.play()
+        })
+
         interaction.editReply({
             embeds: [
                 new EmbedBuilder()
                     .setColor(0xa020f0)
                     .setTitle(`playing the ${playlist.name} playlist!`),
             ],
+        })
+    },
+
+    //handle buttons on interaction
+    //buttons for case when 2 playlists found
+    buttons: async (interaction, docType, playlistName) => {
+        const queue = await interaction.client.player.nodes.create(
+            interaction.guild,
+            {
+                metadata: {
+                    channel: interaction.channel,
+                    client: interaction.guild.members.me,
+                    requestedBy: interaction.user,
+                },
+                selfDeaf: true,
+                volume: 80,
+                leaveOnEmpty: true,
+                leaveOnEnd: true,
+            }
+        )
+
+        let playlist
+
+        if (docType == "server") {
+            playlist = await Server.findOne({
+                "server.ID": interaction.guild.id,
+            }).then((server) => {
+                return server.playlists.find(
+                    (playlist) => playlist.name == playlistName
+                )
+            })
+        } else if (docType == "user") {
+            playlist = await User.findOne({ ID: interaction.user.id }).then(
+                (user) => {
+                    return user.playlists.find(
+                        (playlist) => playlist.name == playlistName
+                    )
+                }
+            )
+        }
+
+        if (playlist.tracks.length === 0) {
+            return interaction.update({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(0xff0000)
+                        .setDescription(
+                            `**There are 0 tracks in \`${playlist.name}\`**`
+                        ),
+                ],
+                components: [],
+            })
+        }
+
+        if (!queue.connection) {
+            await queue.connect(interaction.member.voice.channel)
+        }
+
+        queue.addTrack(playlist.tracks)
+
+        if (!queue.node.isPlaying()) await queue.node.play()
+
+        process.on("uncaughtException", async (error) => {
+            // Handle the error
+            console.error(error)
+            channel = interaction.channel
+
+            await channel.send({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(0xff0000)
+                        .setTitle(`Somthing went wrong!`)
+                        .setDescription(error.message.split("\n")[0]),
+                ],
+            })
+
+            //replay if error stopped queue
+            if (!queue.node.isPlaying()) await queue.node.play()
+        })
+
+        interaction.update({
+            embeds: [
+                new EmbedBuilder()
+                    .setColor(0xa020f0)
+                    .setTitle(`playing the ${playlist.name} playlist!`),
+            ],
+            components: [],
         })
     },
 }

@@ -1,5 +1,4 @@
 const { queueButton } = require("../../utils/queueButton")
-const { searchPlaylist } = require("../../utils/searchPlaylist")
 
 module.exports = {
     name: "interactionCreate",
@@ -69,18 +68,23 @@ module.exports = {
                     ) //console.log(interaction.customId.split("_")[1])
                     return
                 case "serverPlaylistButton":
-                    searchPlaylist(
-                        interaction,
-                        "server",
-                        interaction.customId.split("_")[1]
-                    )
+                    client.slashcommands
+                        .get("queue-playlist")
+                        .buttons(
+                            interaction,
+                            "server",
+                            interaction.customId.split("_")[1]
+                        )
                     return
                 case "userPlaylistButton":
-                    searchPlaylist(
-                        interaction,
-                        "user",
-                        interaction.customId.split("_")[1]
-                    )
+                    client.slashcommands
+                        .get("queue-playlist")
+                        .buttons(
+                            interaction,
+                            "user",
+                            interaction.customId.split("_")[1]
+                        )
+                    return
                 default:
                     return
             }

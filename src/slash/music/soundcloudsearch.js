@@ -127,6 +127,24 @@ module.exports = {
 
         if (!queue.node.isPlaying()) await queue.node.play() //play if not already playing
 
+        process.on("uncaughtException", async (error) => {
+            // Handle the error
+            console.error(error)
+            channel = interaction.channel
+
+            await channel.send({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(0xff0000)
+                        .setTitle(`Somthing went wrong!`)
+                        .setDescription(error.message.split("\n")[0]),
+                ],
+            })
+
+            //replay if error stopped queue
+            if (!queue.node.isPlaying()) await queue.node.play()
+        })
+
         //console.log(tracks)
 
         //build embed based on info
