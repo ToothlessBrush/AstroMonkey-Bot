@@ -39,10 +39,6 @@ module.exports = {
             skipOnNoStream: true,
         })
 
-        if (!queue.connection) {
-            await queue.connect(interaction.member.voice.channel)
-        }
-
         let embed = new EmbedBuilder() //need to change this to embed builder for v14 (done)
 
         //grabs query string differently depending on which interaction type it is
@@ -124,12 +120,10 @@ module.exports = {
             return
         }
 
-        //console.log(tracks[0])
-
         try {
             await queue.addTrack(tracks)
         } catch (error) {
-            console.log("Try/Catch", error)
+            console.error(error)
         }
         //adds track(s) from the search result
 
@@ -146,9 +140,9 @@ module.exports = {
             })
         }
 
-        if (!queue.node.isPlaying()) await queue.node.play() //play if not already playing
-
-        //console.log(tracks)
+        if (!queue.node.isPlaying()) {
+            await queue.node.play() //play if not already playing
+        }
 
         //build embed based on info
         if (tracks.length > 1) {

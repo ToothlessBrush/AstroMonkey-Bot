@@ -38,6 +38,7 @@ module.exports = {
             volume: 80,
             leaveOnEmpty: true,
             leaveOnEnd: true,
+            skipOnNoStream: true,
         })
 
         if (!queue.connection)

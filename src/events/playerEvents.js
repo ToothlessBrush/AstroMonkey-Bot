@@ -1,15 +1,33 @@
 const { EmbedBuilder } = require("discord.js")
 
 module.exports.registerPlayerEvents = (player) => {
-    player.events.on("error", (queue, error) => {
+    player.events.on("error", async (queue, error) => {
         console.log(
             `[${queue.guild.name}] Error emitted from the queue: ${error.message}`
         )
+
+        await queue.channel.send({
+            embeds: [
+                new EmbedBuilder()
+                    .setColor(0xff0000)
+                    .setTitle(`Somthing went wrong!`)
+                    .setDescription(error.message.split("\n")[0]),
+            ],
+        })
     })
-    player.events.on("playerError", (queue, error) => {
+    player.events.on("playerError", async (queue, error) => {
         console.log(
             `[${queue.guild.name}] Error emitted from the connection: ${error.message}`
         )
+
+        await queue.channel.send({
+            embeds: [
+                new EmbedBuilder()
+                    .setColor(0xff0000)
+                    .setTitle(`Somthing went wrong!`)
+                    .setDescription(error.message.split("\n")[0]),
+            ],
+        })
     })
 
     player.events.on("playerStart", (queue, track) => {
