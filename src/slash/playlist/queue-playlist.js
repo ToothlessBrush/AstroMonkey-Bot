@@ -76,19 +76,6 @@ module.exports = {
             })
         }
 
-        queue = await client.player.nodes.create(interaction.guild, {
-            metadata: {
-                channel: interaction.channel,
-                client: interaction.guild.members.me,
-                requestedBy: interaction.user,
-            },
-            selfDeaf: true,
-            volume: 80,
-            leaveOnEmpty: true,
-            leaveOnEnd: true,
-            skipOnNoStream: true,
-        })
-
         const playlistName = interaction.options.getString("playlist")
         const shuffle = interaction.options.getBoolean("shuffle") || false
 
@@ -149,79 +136,12 @@ module.exports = {
 
         const playlist = serverPlaylist || userPlaylist
 
-        if (!playlist) {
-            return interaction.editReply({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor(0xff0000)
-                        .setTitle(`${playlist.name} was not found!`),
-                ],
-            })
-        }
-
-        if (playlist.tracks.length === 0) {
-            return interaction.editReply({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor(0xff0000)
-                        .setDescription(
-                            `**There are 0 tracks in \`${playlist.name}\`**`
-                        ),
-                ],
-            })
-        }
-
-        queue.addTrack(serverPlaylist.tracks)
-
-        if (shuffle == true) {
-            await queue.tracks.shuffle()
-        }
-
-        queue.interaction = interaction
-
-        try {
-            //verify vc connection
-            if (!queue.connection) {
-                await queue.connect(interaction.member.voice.channel)
-            }
-        } catch (error) {
-            queue.delete()
-            console.log(error)
-            return await interaction.editReply({
-                content: "could not join voice channel",
-            })
-        }
-
-        if (!queue.node.isPlaying()) await queue.node.play()
-
-        interaction.editReply({
-            embeds: [
-                new EmbedBuilder()
-                    .setColor(0xa020f0)
-                    .setTitle(`Queued: \`${playlist.name}\``),
-            ],
-        })
+        return await queueTracks(interaction, playlist, shuffle)
     },
 
     //handle buttons on interaction
     //buttons for case when 2 playlists found
     buttons: async (interaction, docType, playlistName, shuffle) => {
-        const queue = await interaction.client.player.nodes.create(
-            interaction.guild,
-            {
-                metadata: {
-                    channel: interaction.channel,
-                    client: interaction.guild.members.me,
-                    requestedBy: interaction.user,
-                },
-                selfDeaf: true,
-                volume: 80,
-                leaveOnEmpty: true,
-                leaveOnEnd: true,
-                skipOnNoStream: true,
-            }
-        )
-
         let playlist
 
         if (docType == "server") {
@@ -242,50 +162,142 @@ module.exports = {
             )
         }
 
-        if (playlist.tracks.length === 0) {
-            return interaction.update({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor(0xff0000)
-                        .setDescription(
-                            `**There are 0 tracks in \`${playlist.name}\`**`
-                        ),
-                ],
-                components: [],
+        return await queueTracks(interaction, playlist, shuffle)
+    },
+}
+
+//adds tracks from queue
+async function queueTracks(interaction, playlist, shuffle) {
+    const queue = await interaction.client.player.nodes.create(
+        interaction.guild,
+        {
+            metadata: {
+                channel: interaction.channel,
+                client: interaction.guild.members.me,
+                requestedBy: interaction.user,
+            },
+            selfDeaf: true,
+            volume: 80,
+            leaveOnEmpty: true,
+            leaveOnEnd: true,
+            skipOnNoStream: true,
+        }
+    )
+
+    const buttonInteraction = interaction.isButton() //if we update or reply
+
+    if (!playlist) {
+        const noPlaylistEmbed = {
+            embeds: [
+                new EmbedBuilder()
+                    .setColor(0xff0000)
+                    .setTitle(`${playlist.name} was not found!`),
+            ],
+            components: [],
+        }
+
+        if (buttonInteraction) {
+            return await interaction.update(noPlaylistEmbed)
+        } else {
+            return await interaction.editReply(noPlaylistEmbed)
+        }
+    }
+
+    if (playlist.tracks.length === 0) {
+        const emptyPlaylistEmbed = {
+            embeds: [
+                new EmbedBuilder()
+                    .setColor(0xff0000)
+                    .setDescription(
+                        `**There are 0 tracks in \`${playlist.name}\`**`
+                    ),
+            ],
+            components: [],
+        }
+
+        if (buttonInteraction) {
+            return await interaction.update(emptyPlaylistEmbed)
+        } else {
+            return await interaction.editReply(emptyPlaylistEmbed)
+        }
+    }
+
+    let tracks = playlist.tracks
+
+    if (shuffle == true) {
+        shuffleArray(tracks)
+    }
+
+    queue.addTrack(tracks)
+
+    queue.interaction = interaction
+
+    try {
+        //verify vc connection
+        if (!queue.connection) {
+            await queue.connect(interaction.member.voice.channel)
+        }
+    } catch (error) {
+        queue.delete()
+        console.log(error)
+        if (buttonInteraction) {
+            return await interaction.update({
+                content: "could not join voice channel",
             })
-        }
-
-        queue.addTrack(playlist.tracks)
-
-        if (shuffle == "true") {
-            console.log("shuffling")
-            await queue.tracks.shuffle()
-        }
-
-        queue.interaction = interaction
-
-        try {
-            //verify vc connection
-            if (!queue.connection) {
-                await queue.connect(interaction.member.voice.channel)
-            }
-        } catch (error) {
-            queue.delete()
-            console.log(error)
+        } else {
             return await interaction.editReply({
                 content: "could not join voice channel",
             })
         }
+    }
 
-        if (!queue.node.isPlaying()) await queue.node.play()
+    if (!queue.node.isPlaying()) await queue.node.play()
 
-        interaction.update({
-            embeds: [
-                new EmbedBuilder()
-                    .setColor(0xa020f0)
-                    .setTitle(`Queued: \`${playlist.name}\``),
-            ],
-            components: [],
-        })
-    },
+    //reply with playlist info
+    const queuedPlaylistEmbed = {
+        embeds: [
+            new EmbedBuilder()
+                .setColor(0xa020f0)
+                .setTitle(`Queued: \`${playlist.name}\``)
+                .setDescription(
+                    `**Starting With**\n**[${tracks[0].title}](${tracks[0].url})**\nBy ${tracks[0].author}`
+                )
+                .setThumbnail(tracks[0].thumbnail),
+        ],
+        components: [
+            new ActionRowBuilder()
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`pauseButton`)
+                        .setLabel(`Pause`)
+                        .setStyle(ButtonStyle.Secondary)
+                )
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`skipButton`)
+                        .setLabel(`Skip`)
+                        .setStyle(ButtonStyle.Secondary)
+                )
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`queueButton`)
+                        .setLabel(`Queue`)
+                        .setStyle(ButtonStyle.Secondary)
+                ),
+        ],
+    }
+
+    if (buttonInteraction) {
+        return await interaction.update(queuedPlaylistEmbed)
+    } else {
+        return await interaction.editReply(queuedPlaylistEmbed)
+    }
+}
+
+//durstenfeld shuffle
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1))
+        ;[array[i], array[j]] = [array[j], array[i]]
+    }
 }
