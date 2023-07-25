@@ -111,6 +111,8 @@ module.exports = {
 
         await queue.addTrack(tracks) //adds track(s) from the search result
 
+        queue.interaction = interaction
+
         try {
             //verify vc connection
             if (!queue.connection) {

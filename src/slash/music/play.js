@@ -26,7 +26,7 @@ module.exports = {
                 ],
             })
 
-        const queue = await client.player.nodes.create(interaction.guild, {
+        queue = await client.player.nodes.create(interaction.guild, {
             metadata: {
                 channel: interaction.channel,
                 client: interaction.guild.members.me,
@@ -126,6 +126,8 @@ module.exports = {
             console.error(error)
         }
         //adds track(s) from the search result
+
+        queue.interaction = interaction
 
         try {
             //verify vc connection

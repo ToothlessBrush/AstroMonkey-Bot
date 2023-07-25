@@ -76,7 +76,7 @@ module.exports = {
             })
         }
 
-        const queue = await client.player.nodes.create(interaction.guild, {
+        queue = await client.player.nodes.create(interaction.guild, {
             metadata: {
                 channel: interaction.channel,
                 client: interaction.guild.members.me,
@@ -88,10 +88,6 @@ module.exports = {
             leaveOnEnd: true,
             skipOnNoStream: true,
         })
-
-        if (!queue.connection) {
-            await queue.connect(interaction.member.voice.channel)
-        }
 
         let playlistName = interaction.options.getString("playlist")
 
@@ -163,43 +159,22 @@ module.exports = {
 
         queue.addTrack(serverPlaylist.tracks)
 
+        queue.interaction = interaction
+
+        try {
+            //verify vc connection
+            if (!queue.connection) {
+                await queue.connect(interaction.member.voice.channel)
+            }
+        } catch (error) {
+            queue.delete()
+            console.log(error)
+            return await interaction.editReply({
+                content: "could not join voice channel",
+            })
+        }
+
         if (!queue.node.isPlaying()) await queue.node.play()
-
-        process.on("uncaughtException", async (error) => {
-            // Handle the error
-            console.error(error)
-            channel = interaction.channel
-
-            await channel.send({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor(0xff0000)
-                        .setTitle(`Somthing went wrong!`)
-                        .setDescription(error.message.split("\n")[0]),
-                ],
-            })
-
-            //replay if error stopped queue
-            if (!queue.node.isPlaying()) await queue.node.play()
-        })
-
-        process.on("uncaughtException", async (error) => {
-            // Handle the error
-            console.error(error)
-            channel = interaction.channel
-
-            await channel.send({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor(0xff0000)
-                        .setTitle(`Somthing went wrong!`)
-                        .setDescription(error.message.split("\n")[0]),
-                ],
-            })
-
-            //replay if error stopped queue
-            if (!queue.node.isPlaying()) await queue.node.play()
-        })
 
         interaction.editReply({
             embeds: [
@@ -225,6 +200,7 @@ module.exports = {
                 volume: 80,
                 leaveOnEmpty: true,
                 leaveOnEnd: true,
+                skipOnNoStream: true,
             }
         )
 
@@ -261,31 +237,24 @@ module.exports = {
             })
         }
 
-        if (!queue.connection) {
-            await queue.connect(interaction.member.voice.channel)
-        }
-
         queue.addTrack(playlist.tracks)
 
-        if (!queue.node.isPlaying()) await queue.node.play()
+        queue.interaction = interaction
 
-        process.on("uncaughtException", async (error) => {
-            // Handle the error
-            console.error(error)
-            channel = interaction.channel
-
-            await channel.send({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor(0xff0000)
-                        .setTitle(`Somthing went wrong!`)
-                        .setDescription(error.message.split("\n")[0]),
-                ],
+        try {
+            //verify vc connection
+            if (!queue.connection) {
+                await queue.connect(interaction.member.voice.channel)
+            }
+        } catch (error) {
+            queue.delete()
+            console.log(error)
+            return await interaction.editReply({
+                content: "could not join voice channel",
             })
+        }
 
-            //replay if error stopped queue
-            if (!queue.node.isPlaying()) await queue.node.play()
-        })
+        if (!queue.node.isPlaying()) await queue.node.play()
 
         interaction.update({
             embeds: [

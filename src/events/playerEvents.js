@@ -20,7 +20,10 @@ module.exports.registerPlayerEvents = (player) => {
             `[${queue.guild.name}] Error emitted from the connection: ${error.message}`
         )
 
-        await queue.channel.send({
+        const client = queue.player.client
+        const interaction = queue.interaction
+
+        await client.channels.cache.get(interaction.channelId).send({
             embeds: [
                 new EmbedBuilder()
                     .setColor(0xff0000)

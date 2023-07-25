@@ -85,6 +85,26 @@ module.exports = {
                             interaction.customId.split("_")[1]
                         )
                     return
+                case "addServerPL":
+                    client.slashcommands
+                        .get("playlist-add")
+                        .buttons(
+                            interaction,
+                            "server",
+                            interaction.customId.split("_")[1],
+                            interaction.customId.split("_")[2]
+                        )
+                    return
+                case "addUserPL":
+                    client.slashcommands
+                        .get("playlist-add")
+                        .buttons(
+                            interaction,
+                            "user",
+                            interaction.customId.split("_")[1],
+                            interaction.customId.split("_")[2]
+                        )
+                    return
                 default:
                     return
             }
