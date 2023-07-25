@@ -89,7 +89,8 @@ module.exports = {
             skipOnNoStream: true,
         })
 
-        let playlistName = interaction.options.getString("playlist")
+        const playlistName = interaction.options.getString("playlist")
+        const shuffle = interaction.options.getBoolean("shuffle") || false
 
         const serverID = interaction.guild.id
         const userID = interaction.user.id
@@ -131,13 +132,13 @@ module.exports = {
                     new ActionRowBuilder().addComponents(
                         new ButtonBuilder()
                             .setCustomId(
-                                `serverPlaylistButton_${serverPlaylist.name}`
+                                `serverPlaylistButton_${serverPlaylist.name}_${shuffle}`
                             )
                             .setLabel(`Server`)
                             .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
                             .setCustomId(
-                                `userPlaylistButton_${userPlaylist.name}`
+                                `userPlaylistButton_${userPlaylist.name}_${shuffle}`
                             )
                             .setLabel(`Personal`)
                             .setStyle(ButtonStyle.Secondary)
@@ -148,7 +149,7 @@ module.exports = {
 
         const playlist = serverPlaylist || userPlaylist
 
-        if (!playlist)
+        if (!playlist) {
             return interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
@@ -156,8 +157,25 @@ module.exports = {
                         .setTitle(`${playlist.name} was not found!`),
                 ],
             })
+        }
+
+        if (playlist.tracks.length === 0) {
+            return interaction.editReply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(0xff0000)
+                        .setDescription(
+                            `**There are 0 tracks in \`${playlist.name}\`**`
+                        ),
+                ],
+            })
+        }
 
         queue.addTrack(serverPlaylist.tracks)
+
+        if (shuffle == true) {
+            await queue.tracks.shuffle()
+        }
 
         queue.interaction = interaction
 
@@ -180,14 +198,14 @@ module.exports = {
             embeds: [
                 new EmbedBuilder()
                     .setColor(0xa020f0)
-                    .setTitle(`playing the ${playlist.name} playlist!`),
+                    .setTitle(`Queued: \`${playlist.name}\``),
             ],
         })
     },
 
     //handle buttons on interaction
     //buttons for case when 2 playlists found
-    buttons: async (interaction, docType, playlistName) => {
+    buttons: async (interaction, docType, playlistName, shuffle) => {
         const queue = await interaction.client.player.nodes.create(
             interaction.guild,
             {
@@ -239,6 +257,11 @@ module.exports = {
 
         queue.addTrack(playlist.tracks)
 
+        if (shuffle == "true") {
+            console.log("shuffling")
+            await queue.tracks.shuffle()
+        }
+
         queue.interaction = interaction
 
         try {
@@ -260,7 +283,7 @@ module.exports = {
             embeds: [
                 new EmbedBuilder()
                     .setColor(0xa020f0)
-                    .setTitle(`playing the ${playlist.name} playlist!`),
+                    .setTitle(`Queued: \`${playlist.name}\``),
             ],
             components: [],
         })

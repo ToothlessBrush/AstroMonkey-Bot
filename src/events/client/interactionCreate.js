@@ -73,7 +73,8 @@ module.exports = {
                         .buttons(
                             interaction,
                             "server",
-                            interaction.customId.split("_")[1]
+                            interaction.customId.split("_")[1],
+                            interaction.customId.split("_")[2]
                         )
                     return
                 case "userPlaylistButton":
@@ -82,7 +83,8 @@ module.exports = {
                         .buttons(
                             interaction,
                             "user",
-                            interaction.customId.split("_")[1]
+                            interaction.customId.split("_")[1],
+                            interaction.customId.split("_")[2]
                         )
                     return
                 case "addServerPL":
