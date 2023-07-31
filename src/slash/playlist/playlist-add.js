@@ -5,7 +5,7 @@ const {
     ButtonBuilder,
     ButtonStyle,
 } = require("discord.js")
-const { QueryType, Track } = require("discord-player")
+const { QueryType } = require("discord-player")
 
 const Server = require("./../../model/server")
 const User = require("./../../model/User")
