@@ -107,6 +107,24 @@ module.exports = {
                             interaction.customId.split("_")[2]
                         )
                     return
+                case "showServerPL":
+                    client.slashcommands
+                        .get("view-playlist")
+                        .buttons(
+                            interaction,
+                            "server",
+                            interaction.customId.split("_")[1]
+                        )
+                    return
+                case "showUserPL":
+                    client.slashcommands
+                        .get("view-playlist")
+                        .buttons(
+                            interaction,
+                            "user",
+                            interaction.customId.split("_")[1]
+                        )
+                    return
                 default:
                     return
             }

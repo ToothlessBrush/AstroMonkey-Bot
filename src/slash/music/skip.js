@@ -27,7 +27,7 @@ module.exports = {
                 new EmbedBuilder()
                     .setColor(0xa020f0)
                     .setDescription(
-                        `**Skipped** [${currentSong}](${currentSong.url})`
+                        `**Skipped** [${currentSong.title}](${currentSong.url})`
                     ),
             ],
         })

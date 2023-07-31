@@ -57,9 +57,7 @@ module.exports.registerPlayerEvents = (player) => {
 
     player.events.on("audioTracksAdd", (queue, track) => {})
     player.events.on("disconnect", (queue) => {
-        console.log(
-            `bot disconnected from ${queue.channel.name} | ${queue.guild.name}`
-        )
+        console.log(`bot disconnected`)
     })
     player.events.on("emptyChannel", (queue) => {
         console.log(`leaving due to empty channel`)
