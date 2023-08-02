@@ -24,6 +24,7 @@ module.exports = {
 
     autocomplete: async ({ client, interaction }) => {
         const focusedValue = interaction.options.getFocused()
+
         let choices = []
         await Server.findOne({ "server.ID": interaction.guild.id }).then(
             (server) => {

@@ -55,12 +55,8 @@ module.exports = {
             }
 
             return playlists
-                .map((playlists, i) => {
-                    return `**${i + 1}.** **${
-                        playlists.name
-                    }** \n**Tracks:** \`${
-                        playlists.tracks.length
-                    }\` **Created by: <@${playlists.creater.ID}>**`
+                .map((playlists) => {
+                    return `**-** **${playlists.name}** Tracks: \`${playlists.tracks.length}\` Created by: <@${playlists.creater.ID}>`
                 })
                 .join("\n")
         }
