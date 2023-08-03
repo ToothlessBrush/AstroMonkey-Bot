@@ -1,4 +1,8 @@
-//tests a string to see if its a url
+/**
+ *
+ * @param {String} urlString url to test
+ * @returns {boolean} if url or not
+ */
 
 function isUrl(urlString) {
     try {

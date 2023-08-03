@@ -145,6 +145,13 @@ module.exports = {
     },
 }
 
+/** respond to interaction with list of tracks in playlist
+ * 
+ * @param {object} interaction discord interaction object
+ * @param {object} playlist playlist object which contains tracks and playlist info
+ * @returns nothing
+ */
+
 async function showTracks(interaction, playlist) {
     const buttonInteraction = interaction.isButton()
 

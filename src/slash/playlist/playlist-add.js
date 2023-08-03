@@ -126,8 +126,14 @@ module.exports = {
             })
         }
 
+        if (!userPL && !serverPL) {
+            return interaction.editReply({
+                embeds: [new EmbedBuilder().setColor(0xff0000).setTitle()],
+            })
+        }
+
         //search for song and get track object
-        let track = await searchQuery(query, interaction, false)
+        let track = await searchQuery(query, interaction)
 
         //save to db
         if (userPL) {
@@ -160,7 +166,7 @@ module.exports = {
         const serverID = interaction.guild.id
         const userID = interaction.user.id
 
-        const track = await searchQuery(query, interaction, true)
+        const track = await searchQuery(query, interaction)
 
         if (docType == "user") {
             User.findOne({ ID: userID }).then((user) => {
@@ -195,9 +201,17 @@ module.exports = {
     },
 }
 
-//return track object
-async function searchQuery(query, interaction, update) {
+/** search youtube, spotify, or soundcloud for a track and returns it as an object
+ *
+ * @param {String} query query to search for
+ * @param {object} interaction discord interaction object
+ * @returns {object} track object to add to db
+ */
+async function searchQuery(query, interaction) {
+    const buttonInteraction = interaction.isButton()
+
     const client = interaction.client
+    let result_search
     if (isUrl(query)) {
         console.log(`searching url: ${query}`)
 
@@ -206,7 +220,7 @@ async function searchQuery(query, interaction, update) {
             .setTitle("Searching...")
             .setDescription("searching URL ")
 
-        if (update) {
+        if (buttonInteraction) {
             await interaction.update({
                 embeds: [URLembed],
             })
@@ -216,19 +230,10 @@ async function searchQuery(query, interaction, update) {
             })
         }
 
-        const result_search = await client.player.search(query, {
+        result_search = await client.player.search(query, {
             requestedBy: interaction.user,
             searchEngine: QueryType.AUTO,
         })
-
-        //remove circular and unneeded properties
-        delete result_search.tracks[0].playlist
-        delete result_search.tracks[0].extractors
-        delete result_search.tracks[0].client
-        delete result_search.tracks[0].player
-        delete result_search.tracks[0].voiceUtils
-
-        return result_search.tracks[0]
     } else {
         //searches youtube if its not a url
         console.log(`searching prompt: ${query}`)
@@ -238,7 +243,7 @@ async function searchQuery(query, interaction, update) {
             .setTitle("Searching...")
             .setDescription(`searching youtube for ${query}`)
 
-        if (update) {
+        if (buttonInteraction) {
             await interaction.update({
                 embeds: [YTembed],
             })
@@ -248,19 +253,19 @@ async function searchQuery(query, interaction, update) {
             })
         }
 
-        const result_search = await client.player.search(query, {
+        result_search = await client.player.search(query, {
             requestedBy: interaction.user,
             searchEngine: QueryType.YOUTUBE_SEARCH,
         })
-
-        //remove circular and unneeded properties
-        delete result_search.tracks[0].playlist
-        delete result_search.tracks[0].extractors
-        delete result_search.tracks[0].extractor
-        delete result_search.tracks[0].client
-        delete result_search.tracks[0].player
-        delete result_search.tracks[0].voiceUtils
-
-        return result_search.tracks[0] //adds 1 track from search
     }
+
+    //remove circular and unneeded properties
+    delete result_search.tracks[0].playlist
+    delete result_search.tracks[0].extractors
+    delete result_search.tracks[0].extractor
+    delete result_search.tracks[0].client
+    delete result_search.tracks[0].player
+    delete result_search.tracks[0].voiceUtils
+
+    return result_search.tracks[0] //adds 1 track from search
 }

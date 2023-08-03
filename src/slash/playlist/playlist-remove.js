@@ -4,6 +4,8 @@ const {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
+    Embed,
+    ButtonInteraction,
 } = require("discord.js")
 
 const Server = require("./../../model/server")
@@ -129,21 +131,15 @@ module.exports = {
         const serverID = interaction.guild.id
         const userID = interaction.user.id
 
-        let serverPL
-        if (server) {
-            serverPL = server.playlists.find(
-                (playlist) => playlist.name == playlistName
-            )
-        }
+        const server = await Server.findOne({ "server.ID": serverID })
+        let serverPL = server.playlists.find(
+            (playlist) => playlist.name == playlistName
+        )
 
         const user = await User.findOne({ ID: userID })
-
-        let userPL
-        if (user) {
-            userPL = user.playlists.find(
-                (playlist) => playlist.name == playlistName
-            )
-        }
+        let userPL = user.playlists.find(
+            (playlist) => playlist.name == playlistName
+        )
 
         if (serverPL && userPL) {
             return interaction.editReply({
@@ -173,7 +169,124 @@ module.exports = {
                 ],
             })
         }
+
+        if (!serverPL && !userPL) {
+            return interaction.editReply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(0xff0000)
+                        .setTitle(`Playlist: ${playlistName} Not Found!`),
+                ],
+            })
+        }
+
+        if (serverPL) {
+            removeTrack(interaction, serverPL, query)
+            server.save()
+        }
+
+        if (userPL) {
+            removeTrack(interaction, userPL, query)
+            user.save()
+        }
+    },
+
+    buttons: async (interaction, docType, playlistName, query) => {
+        if (docType == "server") {
+            await Server.findOne({ "server.ID": interaction.guild.id }).then(
+                async (server) => {
+                    if (!server) {
+                        return await interaction.update({
+                            content: "Server Data not found!",
+                        })
+                    }
+
+                    let playlist = server.playlists.find(
+                        (playlist) => playlist.name == playlistName
+                    )
+
+                    if (!playlist) {
+                        return await interaction.update({
+                            content: "Playlist Data Not Found!",
+                        })
+                    }
+
+                    removeTrack(interaction, playlist, query)
+
+                    server.save()
+                }
+            )
+        } else if (docType == "user") {
+            await User.findOne({ ID: interaction.user.id }).then(
+                async (user) => {
+                    if (!user) {
+                        return await interaction.update({
+                            content: "User Data not found!",
+                        })
+                    }
+
+                    let playlist = user.playlists.find(
+                        (playlist) => playlist.name == playlistName
+                    )
+
+                    if (!playlist) {
+                        return await interaction.update({
+                            content: "Playlist Data Not Found!",
+                        })
+                    }
+
+                    removeTrack(interaction, playlist, query)
+
+                    user.save()
+                }
+            )
+        }
     },
 }
 
-async function removeTrack(interaction, query) {}
+/** searches and removes track from a playlist (doesnt save db)
+ *
+ * @param {object} interaction discordjs interaction
+ * @param {object} playlist the playlist object to remove track from
+ * @param {String} query the name of track to remove
+ * @returns {void} points to playlist array
+ */
+async function removeTrack(interaction, playlist, query) {
+    const buttonInteraction = interaction.isButton()
+
+    const trackIndex = playlist.tracks.findIndex(
+        (track) => track.title == query
+    )
+
+    if (trackIndex == -1) {
+        const noTrackFoundEmbed = {
+            embeds: [
+                new EmbedBuilder()
+                    .setColor(0xff0000)
+                    .setTitle(`\`${query}\` was not found!`),
+            ],
+            components: [],
+        }
+        if (buttonInteraction) {
+            return await interaction.update(noTrackFoundEmbed)
+        } else {
+            return await interaction.editReply(noTrackFoundEmbed)
+        }
+    }
+
+    playlist.tracks.splice(trackIndex, 1)
+
+    const removedTrackEmbed = {
+        embeds: [
+            new EmbedBuilder()
+                .setColor(0xa020f0)
+                .setTitle(`Removed: ${query} From ${playlist.name}`),
+        ],
+        components: [],
+    }
+    if (buttonInteraction) {
+        return await interaction.update(removedTrackEmbed)
+    } else {
+        return await interaction.editReply(removedTrackEmbed)
+    }
+}

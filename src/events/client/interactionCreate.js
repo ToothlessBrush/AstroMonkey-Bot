@@ -125,6 +125,26 @@ module.exports = {
                             interaction.customId.split("_")[1]
                         )
                     return
+                case "removeUserPL":
+                    client.slashcommands
+                        .get("playlist-remove")
+                        .buttons(
+                            interaction,
+                            "user",
+                            interaction.customId.split("_")[1],
+                            interaction.customId.split("_")[2]
+                        )
+                    return
+                case "removeServerPL":
+                    client.slashcommands
+                        .get("playlist-remove")
+                        .buttons(
+                            interaction,
+                            "server",
+                            interaction.customId.split("_")[1],
+                            interaction.customId.split("_")[2]
+                        )
+                    return
                 default:
                     return
             }

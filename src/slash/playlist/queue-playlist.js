@@ -166,7 +166,14 @@ module.exports = {
     },
 }
 
-//adds tracks from queue
+
+/** queues tracks from playlist 
+ * 
+ * @param {object} interaction discord interaction object
+ * @param {object} playlist playlist object which contains tracks
+ * @param {boolean} shuffle whether to shuffle queue or not before adding
+ * @returns nothing
+ */
 async function queueTracks(interaction, playlist, shuffle) {
     const queue = await interaction.client.player.nodes.create(
         interaction.guild,
