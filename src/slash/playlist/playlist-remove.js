@@ -11,6 +11,7 @@ const {
 const Server = require("./../../model/server")
 const User = require("./../../model/User")
 const { trusted } = require("mongoose")
+const { query } = require("../../model/Playlist")
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -132,16 +133,26 @@ module.exports = {
         const userID = interaction.user.id
 
         const server = await Server.findOne({ "server.ID": serverID })
-        let serverPL = server.playlists.find(
-            (playlist) => playlist.name == playlistName
-        )
+        let serverPL
+        if (server) {
+            serverPL = server.playlists.find(
+                (playlist) => playlist.name == playlistName
+            )
+        }
 
         const user = await User.findOne({ ID: userID })
-        let userPL = user.playlists.find(
-            (playlist) => playlist.name == playlistName
-        )
+        let userPL
+        if (user) {
+            userPL = user.playlists.find(
+                (playlist) => playlist.name == playlistName
+            )
+        }
 
         if (serverPL && userPL) {
+            const trackId =
+                serverPL?.tracks.find((track) => track.title == query)?.id ||
+                userPL?.tracks.find((track) => track.title == query)?.id
+
             return interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
@@ -155,13 +166,13 @@ module.exports = {
                     new ActionRowBuilder().addComponents(
                         new ButtonBuilder()
                             .setCustomId(
-                                `removeServerPL_${playlistName}_${query}`
+                                `removeServerPL_${serverPL._id.toString()}_${trackId}`
                             )
                             .setLabel(`Server`)
                             .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
                             .setCustomId(
-                                `removeUserPL_${playlistName}_${query}`
+                                `removeUserPL_${userPL._id.toString()}_${tracmId}`
                             )
                             .setLabel(`Personal`)
                             .setStyle(ButtonStyle.Secondary)
@@ -191,23 +202,27 @@ module.exports = {
         }
     },
 
-    buttons: async (interaction, docType, playlistName, query) => {
+    buttons: async (interaction, docType, playlistId, query) => {
         if (docType == "server") {
             await Server.findOne({ "server.ID": interaction.guild.id }).then(
                 async (server) => {
                     if (!server) {
                         return await interaction.update({
                             content: "Server Data not found!",
+                            embeds: [],
+                            components: [],
                         })
                     }
 
                     let playlist = server.playlists.find(
-                        (playlist) => playlist.name == playlistName
+                        (playlist) => playlist._id.toString() == playlistId
                     )
 
                     if (!playlist) {
                         return await interaction.update({
                             content: "Playlist Data Not Found!",
+                            embeds: [],
+                            components: [],
                         })
                     }
 
@@ -222,16 +237,20 @@ module.exports = {
                     if (!user) {
                         return await interaction.update({
                             content: "User Data not found!",
+                            embeds: [],
+                            components: [],
                         })
                     }
 
                     let playlist = user.playlists.find(
-                        (playlist) => playlist.name == playlistName
+                        (playlist) => playlist._id.toString() == playlistId
                     )
 
                     if (!playlist) {
                         return await interaction.update({
                             content: "Playlist Data Not Found!",
+                            embeds: [],
+                            components: [],
                         })
                     }
 
@@ -280,7 +299,7 @@ async function removeTrack(interaction, playlist, query) {
         embeds: [
             new EmbedBuilder()
                 .setColor(0xa020f0)
-                .setTitle(`Removed: ${query} From ${playlist.name}`),
+                .setTitle(`Removed: \`${query}\` From \`${playlist.name}\``),
         ],
         components: [],
     }

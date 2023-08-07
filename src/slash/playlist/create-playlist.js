@@ -25,6 +25,7 @@ module.exports = {
                 .setName("name")
                 .setDescription("name of the playlist you want to create")
                 .setRequired(true)
+                .setMaxLength(100)
         ),
 
     run: async ({ client, interaction }) => {

@@ -119,13 +119,13 @@ module.exports = {
                     new ActionRowBuilder().addComponents(
                         new ButtonBuilder()
                             .setCustomId(
-                                `serverPlaylistButton_${serverPlaylist.name}_${shuffle}`
+                                `serverPlaylistButton_${serverPlaylist._id.toString()}_${shuffle}`
                             )
                             .setLabel(`Server`)
                             .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
                             .setCustomId(
-                                `userPlaylistButton_${userPlaylist.name}_${shuffle}`
+                                `userPlaylistButton_${userPlaylist._id.toString()}_${shuffle}`
                             )
                             .setLabel(`Personal`)
                             .setStyle(ButtonStyle.Secondary)
@@ -141,7 +141,7 @@ module.exports = {
 
     //handle buttons on interaction
     //buttons for case when 2 playlists found
-    buttons: async (interaction, docType, playlistName, shuffle) => {
+    buttons: async (interaction, docType, playlistId, shuffle) => {
         let playlist
 
         if (docType == "server") {
@@ -149,14 +149,14 @@ module.exports = {
                 "server.ID": interaction.guild.id,
             }).then((server) => {
                 return server.playlists.find(
-                    (playlist) => playlist.name == playlistName
+                    (playlist) => playlist._id.toString() == playlistId
                 )
             })
         } else if (docType == "user") {
             playlist = await User.findOne({ ID: interaction.user.id }).then(
                 (user) => {
                     return user.playlists.find(
-                        (playlist) => playlist.name == playlistName
+                        (playlist) => playlist._id.toString() == playlistId
                     )
                 }
             )
@@ -166,9 +166,8 @@ module.exports = {
     },
 }
 
-
-/** queues tracks from playlist 
- * 
+/** queues tracks from playlist
+ *
  * @param {object} interaction discord interaction object
  * @param {object} playlist playlist object which contains tracks
  * @param {boolean} shuffle whether to shuffle queue or not before adding

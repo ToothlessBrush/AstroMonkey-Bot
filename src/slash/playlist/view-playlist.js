@@ -103,11 +103,13 @@ module.exports = {
                 components: [
                     new ActionRowBuilder().addComponents(
                         new ButtonBuilder()
-                            .setCustomId(`showServerPL_${playlistName}`)
+                            .setCustomId(
+                                `showServerPL_${serverPL._id.toString()}`
+                            )
                             .setLabel(`Server`)
                             .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
-                            .setCustomId(`showUserPL_${playlistName}`)
+                            .setCustomId(`showUserPL_${userPL._id.toString()}`)
                             .setLabel(`Personal`)
                             .setStyle(ButtonStyle.Secondary)
                     ),
@@ -120,7 +122,7 @@ module.exports = {
         await showTracks(interaction, playlist)
     },
 
-    buttons: async (interaction, docType, playlistName) => {
+    buttons: async (interaction, docType, playlistId) => {
         let playlist
 
         if (docType == "server") {
@@ -128,14 +130,14 @@ module.exports = {
                 "server.ID": interaction.guild.id,
             }).then((server) => {
                 return server.playlists.find(
-                    (playlist) => playlist.name == playlistName
+                    (playlist) => playlist._id.toString() == playlistId
                 )
             })
         } else if (docType == "user") {
             playlist = await User.findOne({ ID: interaction.user.id }).then(
                 (user) => {
                     return user.playlists.find(
-                        (playlist) => playlist.name == playlistName
+                        (playlist) => playlist._id.toString() == playlistId
                     )
                 }
             )
@@ -146,7 +148,7 @@ module.exports = {
 }
 
 /** respond to interaction with list of tracks in playlist
- * 
+ *
  * @param {object} interaction discord interaction object
  * @param {object} playlist playlist object which contains tracks and playlist info
  * @returns nothing

@@ -101,7 +101,42 @@ module.exports = {
             )
         }
 
+        if (!userPL && !serverPL) {
+            return interaction.editReply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(0xff0000)
+                        .setTitle(
+                            `Could Not Find Playlist With Name: \`${playlistName}\``
+                        ),
+                ],
+            })
+        }
+
+        let track = await searchQuery(query, interaction)
+
+        if (!track) {
+            interaction.editReply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(0xff0000)
+                        .setTitle("No Results!"),
+                ],
+            })
+        }
+
         if (serverPL && userPL) {
+            //customId of button under 100 characters
+            let customIdTrack
+            if (track.url.length > 60) {
+                customIdTrack = track.title
+            } else {
+                customIdTrack = track.url
+            }
+
+            const serverCustomId = `addServerPL_${serverPL._id.toString()}_${customIdTrack}`
+            const userCustomId = `addUserPL_${userPL._id.toString()}_${customIdTrack}`
+
             return interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
@@ -114,26 +149,17 @@ module.exports = {
                 components: [
                     new ActionRowBuilder().addComponents(
                         new ButtonBuilder()
-                            .setCustomId(`addServerPL_${playlistName}_${query}`)
+                            .setCustomId(serverCustomId)
                             .setLabel(`Server`)
                             .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
-                            .setCustomId(`addUserPL_${playlistName}_${query}`)
+                            .setCustomId(userCustomId)
                             .setLabel(`Personal`)
                             .setStyle(ButtonStyle.Secondary)
                     ),
                 ],
             })
         }
-
-        if (!userPL && !serverPL) {
-            return interaction.editReply({
-                embeds: [new EmbedBuilder().setColor(0xff0000).setTitle()],
-            })
-        }
-
-        //search for song and get track object
-        let track = await searchQuery(query, interaction)
 
         //save to db
         if (userPL) {
@@ -161,47 +187,90 @@ module.exports = {
         })
     },
 
-    buttons: async (interaction, docType, playlist, query) => {
-        const playlistName = playlist
+    buttons: async (interaction, docType, playlistID, query) => {
         const serverID = interaction.guild.id
         const userID = interaction.user.id
 
         const track = await searchQuery(query, interaction)
 
+        let playlistName
+
         if (docType == "user") {
             User.findOne({ ID: userID }).then((user) => {
+                if (!user) {
+                    return interaction.editReply({
+                        content: "User Data Not Found!",
+                        embeds: [],
+                        components: [],
+                    })
+                }
+                //find playlist based on doc id
                 let userPL = user.playlists.find(
-                    (playlist) => playlist.name == playlistName
+                    (playlist) => playlist._id.toString() == playlistID
                 )
+
+                if (!userPL) {
+                    return interaction.editReply({
+                        content: "Playlist Data Not Found!",
+                        embeds: [],
+                        components: [],
+                    })
+                }
+
                 userPL.tracks.push(track)
                 user.save()
+
+                return trackAddedReply(interaction, userPL.name, track)
             })
         } else if (docType == "server") {
             Server.findOne({ "server.ID": serverID }).then((server) => {
+                if (!server) {
+                    return interaction.editReply({
+                        content: "Server Data Not Found!",
+                        embeds: [],
+                        components: [],
+                    })
+                }
+                //find playlist based on doc id
                 let serverPL = server.playlists.find(
-                    (playlist) => playlist.name == playlistName
+                    (playlist) => playlist._id.toString() == playlistID
                 )
+
+                if (!serverPL) {
+                    return interaction.editReply({
+                        content: "Playlist Data Not Found!",
+                        embeds: [],
+                        components: [],
+                    })
+                }
+
                 serverPL.tracks.push(track)
                 server.save()
+
+                return trackAddedReply(interaction, serverPL.name, track)
             })
         }
 
-        return interaction.editReply({
-            embeds: [
-                new EmbedBuilder()
-                    .setColor(0xa020f0)
-                    .setTitle(`Added to \`${playlist}\``)
-                    .setDescription(
-                        `**[${track.title}](${track.url})** \nBy ${track.author}`
-                    )
-                    .setThumbnail(track.thumbnail),
-            ],
-            components: [],
-        })
+        async function trackAddedReply(interaction, playlistName, track) {
+            return await interaction.editReply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(0xa020f0)
+                        .setTitle(`Added to \`${playlistName}\``)
+                        .setDescription(
+                            `**[${track.title}](${track.url})** \nBy ${track.author}`
+                        )
+                        .setThumbnail(track.thumbnail),
+                ],
+                components: [],
+            })
+        }
     },
 }
 
 /** search youtube, spotify, or soundcloud for a track and returns it as an object
+ *
+ * Note: updates button interaction
  *
  * @param {String} query query to search for
  * @param {object} interaction discord interaction object
@@ -257,6 +326,10 @@ async function searchQuery(query, interaction) {
             requestedBy: interaction.user,
             searchEngine: QueryType.YOUTUBE_SEARCH,
         })
+    }
+
+    if (!result_search) {
+        return
     }
 
     //remove circular and unneeded properties
