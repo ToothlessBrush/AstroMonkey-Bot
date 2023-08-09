@@ -4,8 +4,8 @@ const playlistSchema = require("./Playlist")
 const userSchema = new Schema({
     name: String,
     ID: String,
-    likes: playlistSchema,
-    playlists: [playlistSchema]
+    likes: [Schema.Types.Mixed],
+    playlists: [playlistSchema],
 })
 
 const User = model("User", userSchema)

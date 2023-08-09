@@ -23,7 +23,7 @@ module.exports = {
 
     autocomplete: async ({ client, interaction }) => {
         const focusedValue = interaction.options.getFocused()
-        let choices = []
+        let choices = ["Likes"]
         await Server.findOne({ "server.ID": interaction.guild.id }).then(
             (server) => {
                 if (!server) {
@@ -81,6 +81,28 @@ module.exports = {
 
         const serverID = interaction.guild.id
         const userID = interaction.user.id
+
+        if (playlistName == "Likes") {
+            const likedTracks = await User.findOne({
+                ID: interaction.user.id,
+            }).then((user) => {
+                if (!user) {
+                    return
+                }
+                return user.likes
+            })
+            //build fake playlist object for function
+            const playlist = {
+                name: "Likes",
+                creater: {
+                    name: interaction.user.username,
+                    ID: interaction.user.id
+                },
+                tracks: likedTracks
+            }
+
+            return queueTracks(interaction, playlist, shuffle)
+        }
 
         //find playlist
         const serverPlaylist = await Server.findOne({

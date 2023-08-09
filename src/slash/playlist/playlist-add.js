@@ -35,7 +35,7 @@ module.exports = {
 
     autocomplete: async ({ client, interaction }) => {
         const focusedValue = interaction.options.getFocused()
-        let choices = []
+        let choices = ["Likes"]
         await Server.findOne({ "server.ID": interaction.guild.id }).then(
             (server) => {
                 if (!server) {
@@ -83,6 +83,12 @@ module.exports = {
         const serverID = interaction.guild.id
         const userID = interaction.user.id
 
+        if (playlistName == "Likes") {
+            return client.slashcommands
+                .get("like")
+                .likeFromAdd(interaction, query)
+        }
+
         const server = await Server.findOne({ "server.ID": serverID })
 
         let serverPL
@@ -116,7 +122,7 @@ module.exports = {
         let track = await searchQuery(query, interaction)
 
         if (!track) {
-            interaction.editReply({
+            return interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
@@ -134,8 +140,8 @@ module.exports = {
                 customIdTrack = track.url
             }
 
-            const serverCustomId = `addServerPL_${serverPL._id.toString()}_${customIdTrack}`
-            const userCustomId = `addUserPL_${userPL._id.toString()}_${customIdTrack}`
+            const serverCustomId = `addServerPL~${serverPL._id.toString()}~${customIdTrack}`
+            const userCustomId = `addUserPL~${userPL._id.toString()}~${customIdTrack}`
 
             return interaction.editReply({
                 embeds: [
@@ -180,9 +186,14 @@ module.exports = {
                         `Added to \`${userPL ? userPL.name : serverPL.name}\``
                     )
                     .setDescription(
-                        `**[${track.title}](${track.url})** \nBy ${track.author}`
+                        `**[${track.title}](${track.url})** \n*By ${track.author}* | ${track.duration}`
                     )
-                    .setThumbnail(track.thumbnail),
+                    .setThumbnail(track.thumbnail)
+                    .setFooter({
+                        text: `${interaction.user.username}`,
+                        iconURL: interaction.user.avatarURL(),
+                    })
+                    .setTimestamp(),
             ],
         })
     },
@@ -258,9 +269,14 @@ module.exports = {
                         .setColor(0xa020f0)
                         .setTitle(`Added to \`${playlistName}\``)
                         .setDescription(
-                            `**[${track.title}](${track.url})** \nBy ${track.author}`
+                            `**[${track.title}](${track.url})** \n*By ${track.author}* | ${track.duration}`
                         )
-                        .setThumbnail(track.thumbnail),
+                        .setThumbnail(track.thumbnail)
+                        .setFooter({
+                            text: `${interaction.user.username}`,
+                            iconURL: interaction.user.avatarURL(),
+                        })
+                        .setTimestamp(),
                 ],
                 components: [],
             })

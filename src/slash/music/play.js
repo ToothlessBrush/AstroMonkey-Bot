@@ -156,30 +156,38 @@ module.exports = {
                 .setTitle(`Queued ${tracks.length} Tracks`)
                 //.setDescription(`**[${playlist.title}](${playlist.url})**`) //doesnt work for spotify
                 .setThumbnail(tracks[0].thumbnail)
-                .setFooter({ text: `source: ${tracks[0].source}` })
+                .setFooter({
+                    text: `${interaction.user.username}`,
+                    iconURL: interaction.user.avatarURL(),
+                })
+                .setTimestamp()
         } else {
             if (queue.tracks.size == 0) {
                 embed
                     .setColor(0xa020f0) //purple
                     .setTitle(`**Playing**`)
                     .setDescription(
-                        `**[${tracks[0].title}](${tracks[0].url})**\nBy ${tracks[0].author}`
+                        `**[${tracks[0].title}](${tracks[0].url})**\n*By ${tracks[0].author}* | ${tracks[0].duration}`
                     )
                     .setThumbnail(tracks[0].thumbnail)
                     .setFooter({
-                        text: `Duration: ${tracks[0].duration} | source: ${tracks[0].source}`,
+                        text: `${interaction.user.username}`,
+                        iconURL: interaction.user.avatarURL(),
                     })
+                    .setTimestamp()
             } else {
                 embed
                     .setColor(0xa020f0) //purple
                     .setTitle(`**Queued in Position ${queue.tracks.size}**`)
                     .setDescription(
-                        `**[${tracks[0].title}](${tracks[0].url})**\nBy ${tracks[0].author}`
+                        `**[${tracks[0].title}](${tracks[0].url})**\n*By ${tracks[0].author}* | ${tracks[0].duration}`
                     )
                     .setThumbnail(tracks[0].thumbnail)
                     .setFooter({
-                        text: `Duration: ${tracks[0].duration} | Source: ${tracks[0].source}`,
+                        text: `${interaction.user.username}`,
+                        iconURL: interaction.user.avatarURL(),
                     })
+                    .setTimestamp()
             }
         }
 
@@ -206,6 +214,12 @@ module.exports = {
                             .setCustomId(`queueButton`)
                             .setLabel(`Queue`)
                             .setStyle(ButtonStyle.Secondary)
+                    )
+                    .addComponents(
+                        new ButtonBuilder()
+                            .setCustomId(`like~${tracks[0].url}`)
+                            .setLabel("Like")
+                            .setStyle(ButtonStyle.Primary)
                     ),
             ],
         })

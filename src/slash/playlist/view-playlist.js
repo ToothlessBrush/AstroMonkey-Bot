@@ -25,7 +25,7 @@ module.exports = {
     autocomplete: async ({ client, interaction }) => {
         const focusedValue = interaction.options.getFocused()
 
-        let choices = []
+        let choices = ["Likes"]
         await Server.findOne({ "server.ID": interaction.guild.id }).then(
             (server) => {
                 if (!server) {
@@ -72,6 +72,27 @@ module.exports = {
         const userID = interaction.user.id
         const playlistName = interaction.options.getString("playlist")
 
+        if (playlistName == "Likes") {
+            likedTracks = await User.findOne({ ID: userID }).then((user) => {
+                if (!user) {
+                    return
+                }
+
+                return user.likes
+            })
+
+            const playlist = {
+                name: "Likes",
+                creater: {
+                    name: interaction.user.username,
+                    ID: interaction.user.id,
+                },
+                tracks: likedTracks,
+            }
+
+            showTracks(interaction, playlist)
+        }
+
         const server = await Server.findOne({ "server.ID": serverID })
 
         let serverPL
@@ -104,12 +125,12 @@ module.exports = {
                     new ActionRowBuilder().addComponents(
                         new ButtonBuilder()
                             .setCustomId(
-                                `showServerPL_${serverPL._id.toString()}`
+                                `showServerPL~${serverPL._id.toString()}`
                             )
                             .setLabel(`Server`)
                             .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
-                            .setCustomId(`showUserPL_${userPL._id.toString()}`)
+                            .setCustomId(`showUserPL~${userPL._id.toString()}`)
                             .setLabel(`Personal`)
                             .setStyle(ButtonStyle.Secondary)
                     ),

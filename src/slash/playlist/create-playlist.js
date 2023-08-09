@@ -31,6 +31,16 @@ module.exports = {
     run: async ({ client, interaction }) => {
         const serverType = interaction.options.getString("type") == "SERVER"
 
+        if (interaction.options.getString("name") == "Likes") {
+            return interaction.editReply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(0xff0000)
+                        .setTitle("Cannot Create Playlist Called Likes"),
+                ],
+            })
+        }
+
         const playlistData = {
             name: interaction.options.getString("name"),
             creater: {
@@ -135,6 +145,7 @@ module.exports = {
                     const newUser = new User({
                         name: interaction.user.username,
                         ID: interaction.user.id,
+                        likes: [],
                         playlists: [playlistData],
                     })
                     interaction.editReply({

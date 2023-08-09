@@ -95,7 +95,7 @@ module.exports = {
             components: [
                 new ActionRowBuilder().addComponents(
                     new ButtonBuilder()
-                        .setCustomId(`prevPageButton_${prevPage}`)
+                        .setCustomId(`prevPageButton~${prevPage}`)
                         .setLabel(`<`)
                         .setStyle(ButtonStyle.Secondary),
                     new ButtonBuilder()
@@ -103,7 +103,7 @@ module.exports = {
                         .setLabel("↻")
                         .setStyle(ButtonStyle.Secondary),
                     new ButtonBuilder()
-                        .setCustomId(`nextPageButton_${nextPage}`)
+                        .setCustomId(`nextPageButton~${nextPage}`)
                         .setLabel(`>`)
                         .setStyle(ButtonStyle.Secondary)
                 ),

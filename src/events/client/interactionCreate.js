@@ -29,7 +29,7 @@ module.exports = {
 
             //await interaction.deferReply()
 
-            const customId = interaction.customId.split("_")[0]
+            const customId = interaction.customId.split("~")[0]
             console.log(`Button: ${customId}`)
             let command
 
@@ -51,10 +51,10 @@ module.exports = {
                     queueButton(
                         client,
                         interaction,
-                        parseInt(interaction.customId.split("_")[1]),
+                        parseInt(interaction.customId.split("~")[1]),
                         true
                     )
-                    //console.log(interaction.customId.split("_")[1])
+                    //console.log(interaction.customId.split("~")[1])
                     return
                 case "refreshQueue":
                     queueButton(client, interaction, 0, true)
@@ -63,9 +63,9 @@ module.exports = {
                     queueButton(
                         client,
                         interaction,
-                        parseInt(interaction.customId.split("_")[1]),
+                        parseInt(interaction.customId.split("~")[1]),
                         true
-                    ) //console.log(interaction.customId.split("_")[1])
+                    ) //console.log(interaction.customId.split("~")[1])
                     return
                 case "serverPlaylistButton":
                     client.slashcommands
@@ -73,8 +73,8 @@ module.exports = {
                         .buttons(
                             interaction,
                             "server",
-                            interaction.customId.split("_")[1],
-                            interaction.customId.split("_")[2]
+                            interaction.customId.split("~")[1],
+                            interaction.customId.split("~")[2]
                         )
                     return
                 case "userPlaylistButton":
@@ -83,8 +83,8 @@ module.exports = {
                         .buttons(
                             interaction,
                             "user",
-                            interaction.customId.split("_")[1],
-                            interaction.customId.split("_")[2]
+                            interaction.customId.split("~")[1],
+                            interaction.customId.split("~")[2]
                         )
                     return
                 case "addServerPL":
@@ -93,8 +93,8 @@ module.exports = {
                         .buttons(
                             interaction,
                             "server",
-                            interaction.customId.split("_")[1],
-                            interaction.customId.split("_")[2]
+                            interaction.customId.split("~")[1],
+                            interaction.customId.split("~")[2]
                         )
                     return
                 case "addUserPL":
@@ -103,8 +103,8 @@ module.exports = {
                         .buttons(
                             interaction,
                             "user",
-                            interaction.customId.split("_")[1],
-                            interaction.customId.split("_")[2]
+                            interaction.customId.split("~")[1],
+                            interaction.customId.split("~")[2]
                         )
                     return
                 case "showServerPL":
@@ -113,7 +113,7 @@ module.exports = {
                         .buttons(
                             interaction,
                             "server",
-                            interaction.customId.split("_")[1]
+                            interaction.customId.split("~")[1]
                         )
                     return
                 case "showUserPL":
@@ -122,7 +122,7 @@ module.exports = {
                         .buttons(
                             interaction,
                             "user",
-                            interaction.customId.split("_")[1]
+                            interaction.customId.split("~")[1]
                         )
                     return
                 case "removeUserPL":
@@ -131,8 +131,8 @@ module.exports = {
                         .buttons(
                             interaction,
                             "user",
-                            interaction.customId.split("_")[1],
-                            interaction.customId.split("_")[2]
+                            interaction.customId.split("~")[1],
+                            interaction.customId.split("~")[2]
                         )
                     return
                 case "removeServerPL":
@@ -141,8 +141,8 @@ module.exports = {
                         .buttons(
                             interaction,
                             "server",
-                            interaction.customId.split("_")[1],
-                            interaction.customId.split("_")[2]
+                            interaction.customId.split("~")[1],
+                            interaction.customId.split("~")[2]
                         )
                     return
                 case "deleteServerPL":
@@ -151,7 +151,7 @@ module.exports = {
                         .duplicateButton(
                             interaction,
                             "server",
-                            interaction.customId.split("_")[1]
+                            interaction.customId.split("~")[1]
                         )
                     return
                 case "deleteUserPL":
@@ -160,7 +160,7 @@ module.exports = {
                         .duplicateButton(
                             interaction,
                             "user",
-                            interaction.customId.split("_")[1]
+                            interaction.customId.split("~")[1]
                         )
                     return
                 case "DeletePL":
@@ -168,8 +168,13 @@ module.exports = {
                         .get("delete-playlist")
                         .deleteButton(
                             interaction,
-                            interaction.customId.split("_")[1]
+                            interaction.customId.split("~")[1]
                         )
+                case "like":
+                    await interaction.deferReply()
+                    client.slashcommands
+                        .get("like")
+                        .run({ client, interaction })
                 default:
                     return
             }

@@ -104,13 +104,13 @@ module.exports = {
                     new ActionRowBuilder().addComponents(
                         new ButtonBuilder()
                             .setCustomId(
-                                `deleteServerPL_${serverPL._id.toString()}`
+                                `deleteServerPL~${serverPL._id.toString()}`
                             )
                             .setLabel(`Server`)
                             .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
                             .setCustomId(
-                                `deleteUserPL_${userPL._id.toString()}`
+                                `deleteUserPL~${userPL._id.toString()}`
                             )
                             .setLabel(`Personal`)
                             .setStyle(ButtonStyle.Secondary)
@@ -319,7 +319,7 @@ async function askConfirmDelete(interaction, playlistID, playlistName) {
         components: [
             new ActionRowBuilder().addComponents(
                 new ButtonBuilder()
-                    .setCustomId(`DeletePL_${playlistID}`)
+                    .setCustomId(`DeletePL~${playlistID}`)
                     .setLabel(`Delete`)
                     .setStyle(ButtonStyle.Danger)
             ),

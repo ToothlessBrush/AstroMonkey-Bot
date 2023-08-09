@@ -37,6 +37,7 @@ module.exports = {
 
         let choices = []
         if (focusedOption.name == "playlist") {
+            choices.push("Likes")
             await Server.findOne({ "server.ID": interaction.guild.id }).then(
                 (server) => {
                     if (!server) {
@@ -67,6 +68,17 @@ module.exports = {
 
         if (focusedOption.name == "track") {
             const playlistName = interaction.options._hoistedOptions[0].value
+
+            if (playlistName == "Likes") {
+                User.findOne({ ID: interaction.user.id }).then((user) => {
+                    if (!user) {
+                        return
+                    }
+                    user.likes
+                        .map((track) => track.title)
+                        .forEach((trackName) => choices.push(trackName))
+                })
+            }
 
             await Server.findOne({ "server.ID": interaction.guild.id }).then(
                 (server) => {
@@ -132,6 +144,47 @@ module.exports = {
         const serverID = interaction.guild.id
         const userID = interaction.user.id
 
+        if (playlistName == "Likes") {
+            User.findOne({ ID: userID }).then((user) => {
+                if (!user) {
+                    return interaction.editReply({
+                        embeds: [
+                            new EmbedBuilder()
+                                .setColor(0xff0000)
+                                .setTitle("Your Likes Playlist Is Empty!"),
+                        ],
+                    })
+                }
+                const trackIndex = user.likes.findIndex(
+                    (track) => track.title == query
+                )
+
+                if (trackIndex == -1) {
+                    console.log("here")
+                    return interaction.editReply({
+                        embeds: [
+                            new EmbedBuilder()
+                                .setColor(0xff0000)
+                                .setTitle(`\`${query}\` was not found!`),
+                        ],
+                    })
+                }
+
+                user.likes.splice(trackIndex, 1)
+
+                user.save()
+
+                return interaction.editReply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setColor(0xa020f0)
+                            .setTitle(`Removed: \`${query}\` From Your Likes`),
+                    ],
+                })
+            })
+            return
+        }
+
         const server = await Server.findOne({ "server.ID": serverID })
         let serverPL
         if (server) {
@@ -166,13 +219,13 @@ module.exports = {
                     new ActionRowBuilder().addComponents(
                         new ButtonBuilder()
                             .setCustomId(
-                                `removeServerPL_${serverPL._id.toString()}_${trackId}`
+                                `removeServerPL~${serverPL._id.toString()}~${trackId}`
                             )
                             .setLabel(`Server`)
                             .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
                             .setCustomId(
-                                `removeUserPL_${userPL._id.toString()}_${tracmId}`
+                                `removeUserPL~${userPL._id.toString()}~${tracmId}`
                             )
                             .setLabel(`Personal`)
                             .setStyle(ButtonStyle.Secondary)
