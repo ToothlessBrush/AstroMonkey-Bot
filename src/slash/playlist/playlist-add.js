@@ -7,8 +7,9 @@ const {
 } = require("discord.js")
 const { QueryType } = require("discord-player")
 
-const Server = require("./../../model/server")
-const User = require("./../../model/User")
+const path = require("path")
+const Server = require(path.join(__dirname, "./../../model/Server.js"))
+const User = require(path.join(__dirname, "./../../model/User.js"))
 
 const { isUrl } = require("./../../utils/isUrl")
 const playlistSchema = require("../../model/Playlist")
@@ -114,6 +115,9 @@ module.exports = {
                         .setColor(0xff0000)
                         .setTitle(
                             `Could Not Find Playlist With Name: \`${playlistName}\``
+                        )
+                        .setDescription(
+                            `Create a playlist with </create-playlist:1138955261441224825>`
                         ),
                 ],
             })

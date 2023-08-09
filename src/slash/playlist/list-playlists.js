@@ -7,8 +7,9 @@ const {
 } = require("discord.js")
 const { QueryType } = require("discord-player")
 
-const Server = require("./../../model/server")
-const User = require("./../../model/User")
+const path = require("path")
+const Server = require(path.join(__dirname, "./../../model/Server.js"))
+const User = require(path.join(__dirname, "./../../model/User.js"))
 
 module.exports = {
     data: new SlashCommandBuilder()

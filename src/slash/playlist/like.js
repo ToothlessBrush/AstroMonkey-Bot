@@ -2,9 +2,8 @@ const { EmbedBuilder, SlashCommandBuilder } = require("discord.js")
 
 const { QueryType } = require("discord-player")
 const { isUrl } = require("./../../utils/isUrl")
-const User = require("./../../model/User")
-const { query } = require("../../model/Playlist")
-
+const path = require("path")
+const User = require(path.join(__dirname, "./../../model/User.js"))
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("like")
@@ -29,7 +28,7 @@ module.exports = {
 
     likeFromAdd: (interaction, query) => {
         return addLikedTrack(interaction, query)
-    }
+    },
 }
 
 async function addLikedTrack(interaction, query) {

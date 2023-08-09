@@ -1,6 +1,7 @@
 const { EmbedBuilder, SlashCommandBuilder } = require("discord.js")
-const Server = require("./../../model/server")
-const User = require("./../../model/User")
+const path = require("path")
+const Server = require(path.join(__dirname, "./../../model/Server.js"))
+const User = require(path.join(__dirname, "./../../model/User.js"))
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -81,7 +82,7 @@ module.exports = {
                                 .setColor(0xa020f0)
                                 .setTitle("Created Playlist!")
                                 .setDescription(
-                                    `Created the \`${playlistData.name}\` playlist for this server!`
+                                    `Created the \`${playlistData.name}\` playlist for this server! \n\nAdd Tracks with </playlist-add:1138955261441224829>`
                                 ),
                         ],
                     })
@@ -101,7 +102,7 @@ module.exports = {
                                 .setColor(0xa020f0)
                                 .setTitle("Created Playlist!")
                                 .setDescription(
-                                    `Created the \`${playlistData.name}\` playlist for this server!`
+                                    `Created the \`${playlistData.name}\` playlist for this server! \n\nAdd Tracks with </playlist-add:1138955261441224829>`
                                 ),
                         ],
                     })
@@ -134,7 +135,7 @@ module.exports = {
                                     .setColor(0xa020f0)
                                     .setTitle("Created Playlist!")
                                     .setDescription(
-                                        `Created the \`${playlistData.name}\` playlist for <@${interaction.user.id}>!`
+                                        `Created the \`${playlistData.name}\` playlist for <@${interaction.user.id}>! \n\nAdd Tracks with </playlist-add:1138955261441224829>`
                                     ),
                             ],
                         })
@@ -154,7 +155,7 @@ module.exports = {
                                 .setColor(0xa020f0)
                                 .setTitle("Created Playlist!")
                                 .setDescription(
-                                    `Created the \`${playlistData.name}\` playlist!`
+                                    `Created the \`${playlistData.name}\` playlist for @${interaction.user.id}>! \n\nAdd Tracks with </playlist-add:1138955261441224829>`
                                 ),
                         ],
                     })

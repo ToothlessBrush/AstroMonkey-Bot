@@ -8,8 +8,9 @@ const {
 } = require("discord.js")
 
 const mongoose = require("mongoose")
-const Server = require("./../../model/server")
-const User = require("./../../model/User")
+const path = require("path")
+const Server = require(path.join(__dirname, "./../../model/Server.js"))
+const User = require(path.join(__dirname, "./../../model/User.js"))
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -224,7 +225,7 @@ module.exports = {
         })
 
         /** checks the server document for the playlist and deletes it if found and the creater is the one who tries to
-         * 
+         *
          * @param {object} interaction discord interaction object
          */
         async function checkServer(interaction) {

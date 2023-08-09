@@ -170,11 +170,13 @@ module.exports = {
                             interaction,
                             interaction.customId.split("~")[1]
                         )
+                    return
                 case "like":
                     await interaction.deferReply()
                     client.slashcommands
                         .get("like")
                         .run({ client, interaction })
+                    return
                 default:
                     return
             }

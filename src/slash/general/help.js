@@ -15,6 +15,7 @@ module.exports = {
         **Music Commands**
         </play:1046623522757296131> - Play a song or playlist from Youtube or Spotify
         </spotifysearch:1103280072074461274> - searches spotify for a prompt and adds first result to queue
+        </soundcloudsearch:1118343525143162921> - searches soundcloud for a prompt and adds first result to queue
         </searchresults:1104006453498478724> - get the search results of a prompt and choose which to play
         </skip:1046623522757296135> - Skips the currently playing song
         </pause:1046623522757296130> - Pause the current song
@@ -26,6 +27,18 @@ module.exports = {
         </shuffle:1057540181177147392> - shuffles the queue
         </playlast:1057495639887462441> - Play the previously played song
         </quit:1046623522757296133> - Deletes queue and disconnects bot
+
+        **Playlist Commands**
+        **Playlists** let you save a list of songs to easily play later. everybody has a **Likes** playlist and everyone can create a **user** or **server** playlist. **user** playlists can only be modified by yourself while **server** playlists are shared with everybody in a server.
+        
+        </create-playlist:1138955261441224825> - create a playlist for yourself or everyone.
+        </playlist-add:1138955261441224829> - add a track to a playlist
+        </playlist-remove:1138955261441224830> - remove a track from a playlist
+        </like:1138955261441224827> - add a track to your likes playlist you can also do playlist-add likes
+        </queue-playlist:1138955261441224831> - add the playlist tracks to the queue with an option to shuffle
+        </list-playlists:1138955261441224828> - list all your playlist as well as the server playlist
+        </view-playlist:1138955261441224832> - view the tracks within a playlist
+        </delete-playlist:1138955261441224826> - delete a playlist *only the owner of a playlist can delete it
         `
 
         await interaction.editReply({

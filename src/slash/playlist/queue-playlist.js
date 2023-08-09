@@ -1,7 +1,8 @@
 const { SlashCommandBuilder, ButtonBuilder } = require("@discordjs/builders")
 const { EmbedBuilder, ActionRowBuilder, ButtonStyle } = require("discord.js")
-const Server = require("./../../model/server")
-const User = require("./../../model/User")
+const path = require("path")
+const Server = require(path.join(__dirname, "./../../model/Server.js"))
+const User = require(path.join(__dirname, "./../../model/User.js"))
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -96,9 +97,9 @@ module.exports = {
                 name: "Likes",
                 creater: {
                     name: interaction.user.username,
-                    ID: interaction.user.id
+                    ID: interaction.user.id,
                 },
-                tracks: likedTracks
+                tracks: likedTracks,
             }
 
             return queueTracks(interaction, playlist, shuffle)
