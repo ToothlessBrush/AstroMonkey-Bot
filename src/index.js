@@ -9,9 +9,15 @@ const fs = require("fs")
 const path = require("path")
 
 const { Player } = require("discord-player")
-require("dotenv").config()
 
 const { registerPlayerEvents } = require("./events/playerEvents")
+
+const ENVIORNMENT = process.env.NODE_ENV || "dev"
+
+//get env file based on enviornment
+require("dotenv").config({
+    path: path.join(__dirname, `./../.env.${ENVIORNMENT}`),
+})
 
 const TOKEN = process.env.TOKEN
 const CLIENT_ID = process.env.CLIENT_ID
