@@ -155,7 +155,7 @@ module.exports = {
                                 .setColor(0xa020f0)
                                 .setTitle("Created Playlist!")
                                 .setDescription(
-                                    `Created the \`${playlistData.name}\` playlist for @${interaction.user.id}>! \n\nAdd Tracks with </playlist-add:1138955261441224829>`
+                                    `Created the \`${playlistData.name}\` playlist for <@${interaction.user.id}>! \n\nAdd Tracks with </playlist-add:1138955261441224829>`
                                 ),
                         ],
                     })

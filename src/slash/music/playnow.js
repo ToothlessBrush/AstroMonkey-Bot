@@ -7,8 +7,10 @@ const { isUrl } = require("./../../utils/isUrl")
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName("play")
-        .setDescription("plays a song from youtube or spotify")
+        .setName("playnow")
+        .setDescription(
+            "skips current queue and plays a track from youtube or spotify"
+        )
         .addStringOption((option) =>
             option
                 .setName("query")
@@ -121,7 +123,11 @@ module.exports = {
         }
 
         try {
+            const QUEUE_SIZE = queue.tracks.size
+
             await queue.addTrack(tracks)
+
+            queue.node.skipTo(QUEUE_SIZE)
         } catch (error) {
             console.error(error)
         }
@@ -153,7 +159,8 @@ module.exports = {
 
             embed
                 .setColor(0xa020f0) //purple
-                .setTitle(`Queued ${tracks.length} Tracks`)
+                .setTitle(`Playling ${tracks.length} Tracks Now`)
+                //.setDescription(`**[${playlist.title}](${playlist.url})**`) //doesnt work for spotify
                 .setDescription(
                     `**Starting With**\n**[${tracks[0].title}](${tracks[0].url})**\nBy ${tracks[0].author}`
                 )
@@ -180,7 +187,7 @@ module.exports = {
             } else {
                 embed
                     .setColor(0xa020f0) //purple
-                    .setTitle(`**Queued in Position ${queue.tracks.size}**`)
+                    .setTitle(`**Playling**`)
                     .setDescription(
                         `**[${tracks[0].title}](${tracks[0].url})**\n*By ${tracks[0].author}* | ${tracks[0].duration}`
                     )

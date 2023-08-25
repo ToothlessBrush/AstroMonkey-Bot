@@ -17,6 +17,7 @@ module.exports = {
         </spotifysearch:1103280072074461274> - searches spotify for a prompt and adds first result to queue
         </soundcloudsearch:1118343525143162921> - searches soundcloud for a prompt and adds first result to queue
         </searchresults:1104006453498478724> - get the search results of a prompt and choose which to play
+        </playnow:1144360988448145541> - skips queue to play a track instantly
         </skip:1046623522757296135> - Skips the currently playing song
         </pause:1046623522757296130> - Pause the current song
         </resume:1046623522757296134> - Resume the current song
@@ -39,6 +40,7 @@ module.exports = {
         </list-playlists:1138955261441224828> - list all your playlist as well as the server playlist
         </view-playlist:1138955261441224832> - view the tracks within a playlist
         </delete-playlist:1138955261441224826> - delete a playlist *only the owner of a playlist can delete it
+        </playlist-now:1144360988448145542> - skips current queue to play a playlist instantly
         `
 
         await interaction.editReply({
