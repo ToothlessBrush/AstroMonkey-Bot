@@ -19,8 +19,16 @@ module.exports = {
 
     autocomplete: async ({ client, interaction }) => {
         const focusedValue = interaction.options.getFocused()
+
+        //search platforms for the query
         let result_search
+
+        let choices = []
         if (focusedValue) {
+            choices.push({
+                name: focusedValue.slice(0, 100),
+                value: focusedValue.slice(0, 100),
+            })
             if (isUrl(focusedValue)) {
                 result_search = await client.player.search(focusedValue, {
                     searchEngine: QueryType.AUTO,
@@ -32,21 +40,19 @@ module.exports = {
             }
         }
 
-        let choices
-
+        //set choices for autocomplete
         if (result_search?.playlist) {
-            choices = [
-                {
-                    name: result_search.playlist.title,
-                    value: result_search.playlist.url,
-                },
-            ]
+            choices.push({
+                name: result_search.playlist.title.slice(0, 100),
+                value: result_search.playlist.url.slice(0, 100),
+            })
         } else {
-            choices =
-                result_search?.tracks?.map((track) => ({
-                    name: track.title,
-                    value: track.url,
-                })) || []
+            result_search?.tracks?.forEach((track) =>
+                choices.push({
+                    name: track.title.slice(0, 100),
+                    value: track.url.slice(0, 100),
+                })
+            )
         }
 
         return await interaction.respond(choices.slice(0, 5))
@@ -85,6 +91,8 @@ module.exports = {
             query = interaction.values[0]
         }
 
+        let result_search
+
         let tracks
         if (isUrl(query)) {
             //auto searches the url
@@ -99,7 +107,7 @@ module.exports = {
                 ],
             })
 
-            const result_search = await client.player.search(query, {
+            result_search = await client.player.search(query, {
                 requestedBy: interaction.user,
                 searchEngine: QueryType.AUTO,
             })
@@ -118,7 +126,7 @@ module.exports = {
                 ],
             })
 
-            const result_search = await client.player.search(query, {
+            result_search = await client.player.search(query, {
                 requestedBy: interaction.user,
                 searchEngine: QueryType.YOUTUBE_SEARCH,
             })
@@ -140,21 +148,21 @@ module.exports = {
 
         //blackList(tracks, interaction)
 
-        if (tracks.length == 0) {
-            console.log(
-                `cannot start playing as all songs are removed or dont exist`
-            )
-            interaction.editReply({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor(0xff0000)
-                        .setTitle(
-                            `Could not start playing as all tracks were removed or don't exist`
-                        ),
-                ],
-            })
-            return
-        }
+        // if (tracks.length == 0) {
+        //     console.log(
+        //         `cannot start playing as all songs are removed or dont exist`
+        //     )
+        //     interaction.editReply({
+        //         embeds: [
+        //             new EmbedBuilder()
+        //                 .setColor(0xff0000)
+        //                 .setTitle(
+        //                     `Could not start playing as all tracks were removed or don't exist`
+        //                 ),
+        //         ],
+        //     })
+        //     return
+        // }
 
         try {
             await queue.addTrack(tracks)
@@ -189,7 +197,9 @@ module.exports = {
 
             embed
                 .setColor(0xa020f0) //purple
-                .setTitle(`Queued ${tracks.length} Tracks`)
+                .setTitle(
+                    `Queued ${tracks.length} Tracks From \`${result_search.playlist?.title}\``
+                )
                 .setDescription(
                     `**Starting With**\n**[${tracks[0].title}](${tracks[0].url})**\nBy ${tracks[0].author}`
                 )

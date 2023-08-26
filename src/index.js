@@ -16,23 +16,23 @@ const ENVIORNMENT = process.env.NODE_ENV || "dev"
 
 //get env file based on enviornment
 require("dotenv").config({
-    path: path.join(__dirname, `./../.env.${ENVIORNMENT}`),
+    path: path.join(__dirname, `..`, `.env.${ENVIORNMENT}`),
 })
 
 const CONFIG = JSON.parse(
     fs.readFileSync(path.join(__dirname, `..`, `config.${ENVIORNMENT}.json`))
 )
 
+//get env variables 
 const TOKEN = process.env.TOKEN
 const DB_URL = process.env.DB_URL
 
+//get config variables
 const CLIENT_ID = CONFIG.CLIENT_ID
+const GUILD_ID = CONFIG.GUILD_ID
 
 const LOAD_SLASH = process.argv[2] == "load"
 const GLOBAL = process.argv[3] == "global"
-
-//const CLIENT_ID = "892848741860638781"
-const GUILD_ID = "892850656002600960" //test server
 
 const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],

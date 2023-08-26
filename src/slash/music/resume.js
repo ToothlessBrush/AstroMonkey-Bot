@@ -28,7 +28,12 @@ module.exports = {
                     .setTitle(`Resumed`)
                     .setDescription(
                         `Press Pause or use /pause to pause the queue`
-                    ),
+                    )
+                    .setFooter({
+                        text: `${interaction.user.username}`,
+                        iconURL: interaction.user.avatarURL(),
+                    })
+                    .setTimestamp(),
             ],
             components: [
                 new ActionRowBuilder().addComponents(

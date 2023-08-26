@@ -28,7 +28,12 @@ module.exports = {
                     .setColor(0xa020f0)
                     .setDescription(
                         `**Skipped** [${currentSong.title}](${currentSong.url})`
-                    ),
+                    )
+                    .setFooter({
+                        text: `${interaction.user.username}`,
+                        iconURL: interaction.user.avatarURL(),
+                    })
+                    .setTimestamp(),
             ],
         })
     },

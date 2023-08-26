@@ -31,7 +31,12 @@ module.exports = {
                     .setTitle(`Paused`)
                     .setDescription(
                         `Click Resume or use /resume to resume the queue`
-                    ),
+                    )
+                    .setFooter({
+                        text: `${interaction.user.username}`,
+                        iconURL: interaction.user.avatarURL(),
+                    })
+                    .setTimestamp(),
             ],
             components: [
                 new ActionRowBuilder().addComponents(

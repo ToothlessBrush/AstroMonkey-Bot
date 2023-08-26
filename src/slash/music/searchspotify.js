@@ -16,7 +16,39 @@ module.exports = {
                 .setName("query")
                 .setDescription("search term for spotify (use /play for url)")
                 .setRequired(true)
+                .setAutocomplete(true)
         ),
+
+    autocomplete: async ({ client, interaction }) => {
+        const focusedValue = interaction.options.getFocused()
+
+        let result_search
+
+        let choices = []
+
+        if (focusedValue) {
+            choices.push({ name: focusedValue, value: focusedValue })
+            result_search = await client.player.search(focusedValue, {
+                searchEngine: QueryType.SPOTIFY_SEARCH,
+            })
+        }
+
+        if (result_search?.playlist) {
+            choices.push({
+                name: result_search.playlist.title,
+                value: result_search.playlist.title,
+            })
+        } else {
+            result_search?.tracks?.forEach((track) => {
+                choices.push({
+                    name: track.title.slice(0, 100),
+                    value: track.title.slice(0, 100),
+                })
+            })
+        }
+
+        return await interaction.respond(choices.slice(0, 6))
+    },
 
     run: async ({ client, interaction }) => {
         if (!interaction.member.voice.channel)
@@ -40,9 +72,6 @@ module.exports = {
             leaveOnEnd: true,
             skipOnNoStream: true,
         })
-
-        if (!queue.connection)
-            await queue.connect(interaction.member.voice.channel)
 
         let embed = new EmbedBuilder() //need to change this to embed builder for v14 (done)
 
@@ -79,7 +108,7 @@ module.exports = {
 
         tracks.push(result_search.tracks[0]) //adds first result
 
-        if (tracks.length === 0) {
+        if (!tracks[0]) {
             return interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
@@ -91,23 +120,21 @@ module.exports = {
 
         //console.log(tracks)
 
-        blackList(tracks, interaction)
-
-        if (tracks.length == 0) {
-            console.log(
-                `cannot start playing as all songs are removed or dont exist`
-            )
-            interaction.editReply({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor(0xff0000)
-                        .setTitle(
-                            `Could not start playing as all tracks were removed or don't exist`
-                        ),
-                ],
-            })
-            return
-        }
+        // if (tracks.length == 0) {
+        //     console.log(
+        //         `cannot start playing as all songs are removed or dont exist`
+        //     )
+        //     interaction.editReply({
+        //         embeds: [
+        //             new EmbedBuilder()
+        //                 .setColor(0xff0000)
+        //                 .setTitle(
+        //                     `Could not start playing as all tracks were removed or don't exist`
+        //                 ),
+        //         ],
+        //     })
+        //     return
+        // }
 
         await queue.addTrack(tracks) //adds track(s) from the search result
 
@@ -127,24 +154,6 @@ module.exports = {
         }
 
         if (!queue.node.isPlaying()) await queue.node.play() //play if not already playing
-
-        process.on("uncaughtException", async (error) => {
-            // Handle the error
-            console.error(error)
-            channel = interaction.channel
-
-            await channel.send({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor(0xff0000)
-                        .setTitle(`Somthing went wrong!`)
-                        .setDescription(error.message.split("\n")[0]),
-                ],
-            })
-
-            //replay if error stopped queue
-            if (!queue.node.isPlaying()) await queue.node.play()
-        })
 
         //console.log(tracks)
 
