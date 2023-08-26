@@ -19,9 +19,14 @@ require("dotenv").config({
     path: path.join(__dirname, `./../.env.${ENVIORNMENT}`),
 })
 
+const CONFIG = JSON.parse(
+    fs.readFileSync(path.join(__dirname, `..`, `config.${ENVIORNMENT}.json`))
+)
+
 const TOKEN = process.env.TOKEN
-const CLIENT_ID = process.env.CLIENT_ID
 const DB_URL = process.env.DB_URL
+
+const CLIENT_ID = CONFIG.CLIENT_ID
 
 const LOAD_SLASH = process.argv[2] == "load"
 const GLOBAL = process.argv[3] == "global"

@@ -14,7 +14,43 @@ module.exports = {
                 .setName("query")
                 .setDescription("a search term, share link, or URL of the song")
                 .setRequired(true)
+                .setAutocomplete(true)
         ),
+
+    autocomplete: async ({ client, interaction }) => {
+        const focusedValue = interaction.options.getFocused()
+        let result_search
+        if (focusedValue) {
+            if (isUrl(focusedValue)) {
+                result_search = await client.player.search(focusedValue, {
+                    searchEngine: QueryType.AUTO,
+                })
+            } else {
+                result_search = await client.player.search(focusedValue, {
+                    searchEngine: QueryType.YOUTUBE_SEARCH,
+                })
+            }
+        }
+
+        let choices
+
+        if (result_search?.playlist) {
+            choices = [
+                {
+                    name: result_search.playlist.title,
+                    value: result_search.playlist.url,
+                },
+            ]
+        } else {
+            choices =
+                result_search?.tracks?.map((track) => ({
+                    name: track.title,
+                    value: track.url,
+                })) || []
+        }
+
+        return await interaction.respond(choices.slice(0, 5))
+    },
 
     run: async ({ client, interaction }) => {
         if (!interaction.member.voice.channel)
