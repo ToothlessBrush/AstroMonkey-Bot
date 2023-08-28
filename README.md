@@ -1,27 +1,45 @@
 # AstroMonkey V2
 
-this is the second version on the astromonkey discord bot
+Easy to use Music and Playlist Bot for YouTube, Spotify, and SoundCloud!
+
+## Invite Link
+
+https://discord.com/api/oauth2/authorize?client_id=1046617120408080475&permissions=277062471232&scope=bot%20applications.commands
 
 ## Commands
 
-/play  
+/help
+/ping
+/djrole \*WIP
+
+/play
+/spotifysearch
+/soundcloud search
+/searchresults
+/playnow
+/info
+/volume
+/loop
+/shuffle
+/playlast
 /pause  
 /resume  
 /queue  
 /skip  
 /quit
 
-## Invite Link
+/create-playlist
+/playlist-add
+/playlist-remove
+/like
+/queue-playlist
+/list-playlist
+/view-playlist
+/delete-playlist
+/playlist-now
 
-https://discord.com/api/oauth2/authorize?client_id=1046617120408080475&permissions=1067336584256&scope=bot
+## core Libraries
 
-todo
--add black listed songs to settings file that you can update without redeploying (json)
--add server side settings -- learn json
--djrole -- restrict using the music bot to this role
--playonjoin -- play a song whenever someone joins a voice channel (requested by robert)
--playlists
--add songs to a playlist that saves between round
--create playlist
--add song
--play playlist
+Discord.js
+Discord-Player
+mongoose

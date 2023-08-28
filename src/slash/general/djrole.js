@@ -16,10 +16,11 @@ module.exports = {
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
     run: async ({ client, interaction }) => {
         const role = interaction.options.getRole("role")
-        console.log(role)
         return interaction.editReply({
             embeds: [
-                new EmbedBuilder().setColor(0xff0000).setDescription(`${role}`),
+                new EmbedBuilder()
+                    .setColor(0xff0000)
+                    .setDescription(`djrole is currently WIP`),
             ],
         })
     },
