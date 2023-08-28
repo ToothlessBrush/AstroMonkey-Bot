@@ -8,38 +8,38 @@ https://discord.com/api/oauth2/authorize?client_id=1046617120408080475&permissio
 
 ## Commands
 
-/help
-/ping
-/djrole \*WIP
+/help\
+/ping\
+/djrole \*WIP\
 
-/play
-/spotifysearch
-/soundcloud search
-/searchresults
-/playnow
-/info
-/volume
-/loop
-/shuffle
-/playlast
-/pause  
-/resume  
-/queue  
-/skip  
-/quit
+/play\
+/spotifysearch\
+/soundcloud search\
+/searchresults\
+/playnow\
+/info\
+/volume\
+/loop\
+/shuffle\
+/playlast\
+/pause\
+/resume\
+/queue\
+/skip\
+/quit\
 
-/create-playlist
-/playlist-add
-/playlist-remove
-/like
-/queue-playlist
-/list-playlist
-/view-playlist
-/delete-playlist
+/create-playlist\
+/playlist-add\
+/playlist-remove\
+/like\
+/queue-playlist\
+/list-playlist\
+/view-playlist\
+/delete-playlist\
 /playlist-now
 
 ## core Libraries
 
-Discord.js
-Discord-Player
+Discord.js\
+Discord-Player\
 mongoose
