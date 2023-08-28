@@ -10,7 +10,7 @@ https://discord.com/api/oauth2/authorize?client_id=1046617120408080475&permissio
 
 /help\
 /ping\
-/djrole \*WIP\
+/djrole \*WIP
 
 /play\
 /spotifysearch\
@@ -26,7 +26,7 @@ https://discord.com/api/oauth2/authorize?client_id=1046617120408080475&permissio
 /resume\
 /queue\
 /skip\
-/quit\
+/quit
 
 /create-playlist\
 /playlist-add\
