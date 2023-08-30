@@ -145,13 +145,13 @@ module.exports = {
                     new ActionRowBuilder().addComponents(
                         new ButtonBuilder()
                             .setCustomId(
-                                `serverPlaylistButton_${serverPlaylist._id.toString()}_${shuffle}`
+                                `serverPlaylistButton~${serverPlaylist._id.toString()}~${shuffle}`
                             )
                             .setLabel(`Server`)
                             .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
                             .setCustomId(
-                                `userPlaylistButton_${userPlaylist._id.toString()}_${shuffle}`
+                                `userPlaylistButton~${userPlaylist._id.toString()}~${shuffle}`
                             )
                             .setLabel(`Personal`)
                             .setStyle(ButtonStyle.Secondary)
@@ -167,6 +167,8 @@ module.exports = {
 
     //handle buttons on interaction
     //buttons for case when 2 playlists found
+
+    //need to switch to collector
     buttons: async (interaction, docType, playlistId, shuffle) => {
         let playlist
 

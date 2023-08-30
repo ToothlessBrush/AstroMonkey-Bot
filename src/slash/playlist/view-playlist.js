@@ -144,6 +144,7 @@ module.exports = {
         await showTracks(interaction, playlist)
     },
 
+    //need to switch to collector
     buttons: async (interaction, docType, playlistId) => {
         let playlist
 

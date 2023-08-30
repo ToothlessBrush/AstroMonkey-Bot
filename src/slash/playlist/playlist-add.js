@@ -202,6 +202,7 @@ module.exports = {
         })
     },
 
+    //need to switch to collector
     buttons: async (interaction, docType, playlistID, query) => {
         const serverID = interaction.guild.id
         const userID = interaction.user.id

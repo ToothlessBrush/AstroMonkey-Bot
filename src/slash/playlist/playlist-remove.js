@@ -255,6 +255,7 @@ module.exports = {
         }
     },
 
+    //need to switch to collector
     buttons: async (interaction, docType, playlistId, query) => {
         if (docType == "server") {
             await Server.findOne({ "server.ID": interaction.guild.id }).then(

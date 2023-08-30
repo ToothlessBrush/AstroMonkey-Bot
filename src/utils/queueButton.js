@@ -86,7 +86,7 @@ async function queueButton(client, interaction, pageNumber, updateMessage) {
 
     let component = new ActionRowBuilder().addComponents(
         new ButtonBuilder()
-            .setCustomId(`prevPageButton_${prevPage}`)
+            .setCustomId(`prevPageButton~${prevPage}`)
             .setLabel(`<`)
             .setStyle(ButtonStyle.Secondary),
         new ButtonBuilder()
@@ -94,7 +94,7 @@ async function queueButton(client, interaction, pageNumber, updateMessage) {
             .setLabel("↻")
             .setStyle(ButtonStyle.Secondary),
         new ButtonBuilder()
-            .setCustomId(`nextPageButton_${nextPage}`)
+            .setCustomId(`nextPageButton~${nextPage}`)
             .setLabel(`>`)
             .setStyle(ButtonStyle.Secondary)
     )

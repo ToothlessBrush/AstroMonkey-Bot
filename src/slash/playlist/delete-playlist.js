@@ -147,6 +147,7 @@ module.exports = {
         }
     },
 
+    //need to switch to collector
     duplicateButton: async (interaction, docType, playlistID) => {
         const serverID = interaction.guild.id
         const userID = interaction.user.id

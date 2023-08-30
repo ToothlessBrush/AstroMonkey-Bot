@@ -54,7 +54,7 @@ module.exports = {
 
         const currentSong = queue.currentTrack
 
-        let bar = queue.node.createProgressBar({
+        let bar = await queue.node.createProgressBar({
             queue: false,
             length: 19,
         })
