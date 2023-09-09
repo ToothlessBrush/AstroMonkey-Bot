@@ -23,7 +23,7 @@ const CONFIG = JSON.parse(
     fs.readFileSync(path.join(__dirname, `..`, `config.${ENVIORNMENT}.json`))
 )
 
-//get env variables 
+//get env variables
 const TOKEN = process.env.TOKEN
 const DB_URL = process.env.DB_URL
 
@@ -46,7 +46,7 @@ client.player = new Player(client, {
     },
 })
 
-//register extractor
+//register extractors for youtube, spotify, and soundcloud
 client.player.extractors.loadDefault()
 
 registerPlayerEvents(client.player) //register player events
