@@ -6,14 +6,33 @@ module.exports.registerPlayerEvents = (player) => {
             `[${queue.guild.name}] Error emitted from the queue: ${error.message}`
         )
 
-        await queue.channel.send({
-            embeds: [
-                new EmbedBuilder()
-                    .setColor(0xff0000)
-                    .setTitle(`Somthing went wrong!`)
-                    .setDescription(error.message.split("\n")[0]),
-            ],
-        })
+        const client = queue.player.client
+        const interaction = queue.interaction
+
+        try {
+            await client.channels.cache.get(interaction.channelId).send({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(0xff0000)
+                        .setTitle(`Somthing went wrong!`)
+                        .setDescription(error.message.split("\n")[0]),
+                ],
+            })
+        } catch (err) {
+            console.error(err, "trying voice channel chat")
+            try {
+                await queue.channel.send({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setColor(0xff0000)
+                            .setTitle(`Somthing went wrong!`)
+                            .setDescription(error.message.split("\n")[0]),
+                    ],
+                })
+            } catch (voiceTextErr) {
+                console.err(voiceTextErr)
+            }
+        }
     })
     player.events.on("playerError", async (queue, error) => {
         console.log(
@@ -23,14 +42,30 @@ module.exports.registerPlayerEvents = (player) => {
         const client = queue.player.client
         const interaction = queue.interaction
 
-        await client.channels.cache.get(interaction.channelId).send({
-            embeds: [
-                new EmbedBuilder()
-                    .setColor(0xff0000)
-                    .setTitle(`Somthing went wrong!`)
-                    .setDescription(error.message.split("\n")[0]),
-            ],
-        })
+        try {
+            await client.channels.cache.get(interaction.channelId).send({
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(0xff0000)
+                        .setTitle(`Somthing went wrong!`)
+                        .setDescription(error.message.split("\n")[0]),
+                ],
+            })
+        } catch (err) {
+            console.error(err, "trying voice channel chat")
+            try {
+                await queue.channel.send({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setColor(0xff0000)
+                            .setTitle(`Somthing went wrong!`)
+                            .setDescription(error.message.split("\n")[0]),
+                    ],
+                })
+            } catch (voiceTextErr) {
+                console.err(voiceTextErr)
+            }
+        }
     })
 
     player.events.on("playerStart", (queue, track) => {

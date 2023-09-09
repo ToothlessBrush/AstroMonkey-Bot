@@ -1,5 +1,10 @@
 const { SlashCommandBuilder, ButtonBuilder } = require("@discordjs/builders")
-const { EmbedBuilder, ActionRowBuilder, ButtonStyle } = require("discord.js")
+const {
+    EmbedBuilder,
+    ActionRowBuilder,
+    ButtonStyle,
+    PermissionsBitField,
+} = require("discord.js")
 const path = require("path")
 const Server = require(path.join(__dirname, "./../../model/Server.js"))
 const User = require(path.join(__dirname, "./../../model/User.js"))
@@ -75,6 +80,28 @@ module.exports = {
                     new EmbedBuilder()
                         .setColor(0xff0000)
                         .setDescription(`**You Must be in a VC!**`),
+                ],
+            })
+        }
+
+        //verify permission to connect
+        voiceChannelPermissions =
+            interaction.member.voice.channel.permissionsFor(
+                interaction.guild.members.me
+            )
+
+        if (
+            !voiceChannelPermissions.has(PermissionsBitField.Flags.Connect) ||
+            !voiceChannelPermissions.has(PermissionsBitField.Flags.Speak)
+        ) {
+            console.log("no connect/speak permission")
+            return await interaction.editReply({
+                embeds: [
+                    new EmbedBuilder()
+                        .setDescription(
+                            "**I don't have permission to connect and speak in that voice channel**"
+                        )
+                        .setColor(0xff0000),
                 ],
             })
         }
