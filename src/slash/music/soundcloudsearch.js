@@ -7,7 +7,6 @@ const {
 } = require("discord.js")
 const { QueryType, Playlist } = require("discord-player")
 
-const { blackList } = require("../../utils/blacklist")
 const { isUrl } = require("../../utils/isUrl")
 
 module.exports = {
@@ -234,27 +233,53 @@ module.exports = {
                 new ActionRowBuilder()
                     .addComponents(
                         new ButtonBuilder()
-                            .setCustomId(`pauseButton`)
-                            .setLabel(`Pause`)
+                            .setCustomId("pauseButton")
+                            //.setLabel("Pause")
                             .setStyle(ButtonStyle.Secondary)
+                            .setEmoji({
+                                name: "Pause",
+                                id: "1150516067983171755",
+                            }) // Set emoji here using setEmoji
                     )
                     .addComponents(
                         new ButtonBuilder()
                             .setCustomId(`skipButton`)
-                            .setLabel(`Skip`)
+                            //.setLabel(`Skip`)
                             .setStyle(ButtonStyle.Secondary)
+                            .setEmoji({
+                                name: "Next",
+                                id: "1150516100824571965",
+                            })
+                    )
+                    .addComponents(
+                        new ButtonBuilder()
+                            .setCustomId("shuffleButton")
+                            //.setLabel(`Shuffle`)
+                            .setStyle(ButtonStyle.Secondary)
+                            .setEmoji({
+                                name: "Shuffle",
+                                id: "1150515970432053249",
+                            })
                     )
                     .addComponents(
                         new ButtonBuilder()
                             .setCustomId(`queueButton`)
                             .setLabel(`Queue`)
                             .setStyle(ButtonStyle.Secondary)
+                            .setEmoji({
+                                name: "Queue",
+                                id: "1150521944828039269",
+                            })
                     )
                     .addComponents(
                         new ButtonBuilder()
                             .setCustomId(`like~${tracks[0].url}`)
                             .setLabel("Like")
                             .setStyle(ButtonStyle.Primary)
+                            .setEmoji({
+                                name: "Heart",
+                                id: "1150523515250942025",
+                            })
                     ),
             ],
         })

@@ -43,7 +43,11 @@ module.exports = {
                     new ButtonBuilder()
                         .setCustomId(`resumeButton`)
                         .setLabel(`Resume`)
-                        .setStyle(ButtonStyle.Primary)
+                        .setStyle(ButtonStyle.Secondary)
+                        .setEmoji({
+                            name: "Play",
+                            id: "1150516009778823289",
+                        })
                 ),
             ],
         }) //("Paused! Use /resume to resume")

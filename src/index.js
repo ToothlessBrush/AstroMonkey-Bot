@@ -1,5 +1,5 @@
 //const Discord = require("discord.js")
-const { Client, GatewayIntentBits, Collection } = require("discord.js")
+const { Client, GatewayIntentBits, Collection, Options } = require("discord.js")
 const { REST } = require("@discordjs/rest")
 const { Routes } = require("discord-api-types/v9")
 
@@ -9,6 +9,7 @@ const fs = require("fs")
 const path = require("path")
 
 const { Player } = require("discord-player")
+const tough = require("tough-cookie")
 
 const { registerPlayerEvents } = require("./events/playerEvents")
 
@@ -36,6 +37,15 @@ const GLOBAL = process.argv[3] == "global"
 
 const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
+    //lower cache limit to hopefully decrease memory usage
+    makeCache: Options.cacheWithLimits({
+        ...Options.DefaultMakeCacheSettings,
+        ReactionManager: 0,
+        GuildMemberManager: {
+            maxSize: 150, //default 200
+            keepOverLimit: (member) => member.id === client.user.id,
+        },
+    }),
 })
 
 client.slashcommands = new Collection()
@@ -43,6 +53,11 @@ client.player = new Player(client, {
     ytdlOptions: {
         quality: "highestaudio",
         highWaterMark: 1 << 25,
+        requestOptions: {
+            headers: {
+                cookie: process.env.YT_COOKIES || "",
+            },
+        },
     },
 })
 

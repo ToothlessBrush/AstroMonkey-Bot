@@ -17,6 +17,7 @@
         "@discordjs/opus": "github:discordjs/opus",
         "@discordjs/rest": "^1.7.1",
         "@discordjs/voice": "^0.16.0",
+        "@distube/ytdl-core": "^4.13.0",
         "chalk": "^4.1.2",
         "discord-api-types": "^0.37.56",
         "discord-player": "^6.6.3",
@@ -25,6 +26,6 @@
         "ffmpeg-static": "^5.2.0",
         "mongodb": "^5.8.0",
         "mongoose": "^7.5.0",
-        "youtube-ext": "^1.1.12"
+        "tough-cookie": "^4.1.3"
     }
 }

@@ -7,7 +7,6 @@ const {
 } = require("discord.js")
 const { QueryType } = require("discord-player")
 
-const { blackList } = require("./../../utils/blacklist")
 const { isUrl } = require("./../../utils/isUrl")
 
 module.exports = {
@@ -129,8 +128,6 @@ module.exports = {
         }
 
         //console.log(tracks)
-
-        blackList(tracks, interaction)
 
         if (tracks.length == 0) {
             console.log(

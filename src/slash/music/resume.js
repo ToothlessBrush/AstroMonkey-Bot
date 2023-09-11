@@ -40,7 +40,11 @@ module.exports = {
                     new ButtonBuilder()
                         .setCustomId(`pauseButton`)
                         .setLabel(`Pause`)
-                        .setStyle(ButtonStyle.Primary)
+                        .setStyle(ButtonStyle.Secondary)
+                        .setEmoji({
+                            name: "Pause",
+                            id: "1150516067983171755",
+                        })
                 ),
             ],
         })

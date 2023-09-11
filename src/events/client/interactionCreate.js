@@ -1,12 +1,12 @@
-const { queueButton } = require("../../utils/queueButton")
-
 module.exports = {
     name: "interactionCreate",
     async execute(interaction) {
         const client = interaction.client
 
         if (interaction.isChatInputCommand()) {
-            console.log(`Interaction: ${interaction.commandName}`)
+            console.log(
+                `Interaction: ${interaction.commandName} | ${interaction.guild}`
+            )
             //console.log(interaction.client)
             //console.log(client)
 
@@ -30,7 +30,7 @@ module.exports = {
             //await interaction.deferReply()
 
             const customId = interaction.customId.split("~")[0]
-            console.log(`Button: ${customId}`)
+            console.log(`Button: ${customId} | ${interaction.guild}`)
             let command
 
             switch (customId) {
@@ -42,30 +42,41 @@ module.exports = {
                     break
                 case "queueButton":
                     await interaction.deferReply()
-                    queueButton(client, interaction, 0, false)
+                    client.slashcommands
+                        .get("queue")
+                        .button(client, interaction, 0, false)
                     return
                 case "skipButton":
                     command = "skip"
                     break
+                case "shuffleButton":
+                    command = "shuffle"
+                    break
                 case "nextPageButton":
-                    queueButton(
-                        client,
-                        interaction,
-                        parseInt(interaction.customId.split("~")[1]),
-                        true
-                    )
+                    client.slashcommands
+                        .get("queue")
+                        .button(
+                            client,
+                            interaction,
+                            parseInt(interaction.customId.split("~")[1]),
+                            true
+                        )
                     //console.log(interaction.customId.split("~")[1])
                     return
                 case "refreshQueue":
-                    queueButton(client, interaction, 0, true)
+                    client.slashcommands
+                        .get("queue")
+                        .button(client, interaction, 0, true)
                     return
                 case "prevPageButton":
-                    queueButton(
-                        client,
-                        interaction,
-                        parseInt(interaction.customId.split("~")[1]),
-                        true
-                    ) //console.log(interaction.customId.split("~")[1])
+                    client.slashcommands
+                        .get("queue")
+                        .button(
+                            client,
+                            interaction,
+                            parseInt(interaction.customId.split("~")[1]),
+                            true
+                        ) //console.log(interaction.customId.split("~")[1])
                     return
                 case "serverPlaylistButton":
                     client.slashcommands
