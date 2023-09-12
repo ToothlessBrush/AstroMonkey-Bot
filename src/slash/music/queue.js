@@ -15,13 +15,8 @@ module.exports = {
         return await displayQueue(client, interaction, page, false)
     },
 
-    button: async (client, interaction, pageNumber, updateMessage) => {
-        return await displayQueue(
-            client,
-            interaction,
-            pageNumber,
-            updateMessage
-        )
+    button: async (interaction, pageNumber, updateMessage) => {
+        return await displayQueue(interaction, pageNumber, updateMessage)
     },
 }
 
@@ -33,7 +28,8 @@ module.exports = {
  * @param {boolean} updateMessage whether to update message or create new message
  * @returns void
  */
-async function displayQueue(client, interaction, page, updateMessage) {
+async function displayQueue(interaction, page, updateMessage) {
+    const client = interaction.client
     const queue = client.player.nodes.get(interaction.guildId)
 
     if (!queue || !queue.node.isPlaying()) {
@@ -80,8 +76,10 @@ async function displayQueue(client, interaction, page, updateMessage) {
 
     let bar = queue.node.createProgressBar({
         queue: false,
-        length: 19,
-        indicator: "<:Purple_Dot:1150900149258813440>",
+        length: 15,
+        indicator: "<:Purple_Dot:1150934035913248849>",
+        leftChar: "<:Purple_Bar:1150934930394718298>",
+        rightChar: "<:White_Bar:1150934768075149412>",
     })
 
     //let progressBar = `${queue.getPlayerTimestamp().current} **|**${bar}**|** ${queue.getPlayerTimestamp().end}`
@@ -107,7 +105,9 @@ async function displayQueue(client, interaction, page, updateMessage) {
                 (currentSong
                     ? `[${currentSong.title}](${currentSong.url})\n${bar}\n**Requested by: <@${currentSong.requestedBy.id}>**`
                     : "None") +
-                `\n\n**Queue**\n${queueString}`
+                (queue.tracks.data.length > 0
+                    ? `\n\n**Queue**\n${queueString}`
+                    : `\n\n**Queue Is Empty!**`)
         )
         .setFooter({
             text: `Page ${page + 1} of ${totalPages}`,

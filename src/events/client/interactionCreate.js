@@ -44,7 +44,7 @@ module.exports = {
                     await interaction.deferReply()
                     client.slashcommands
                         .get("queue")
-                        .button(client, interaction, 0, false)
+                        .button(interaction, 0, false)
                     return
                 case "skipButton":
                     command = "skip"
@@ -56,7 +56,6 @@ module.exports = {
                     client.slashcommands
                         .get("queue")
                         .button(
-                            client,
                             interaction,
                             parseInt(interaction.customId.split("~")[1]),
                             true
@@ -66,13 +65,12 @@ module.exports = {
                 case "refreshQueue":
                     client.slashcommands
                         .get("queue")
-                        .button(client, interaction, 0, true)
+                        .button(interaction, 0, true)
                     return
                 case "prevPageButton":
                     client.slashcommands
                         .get("queue")
                         .button(
-                            client,
                             interaction,
                             parseInt(interaction.customId.split("~")[1]),
                             true
