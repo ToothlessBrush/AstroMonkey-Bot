@@ -25,7 +25,7 @@ module.exports = {
  * @param {object} client client object
  * @param {object} interaction interaction object
  * @param {int} pageNumber page number
- * @param {boolean} updateMessage whether to update message or create new message
+ * @param {bool} updateMessage whether to update message or create new message
  * @returns void
  */
 async function displayQueue(interaction, page, updateMessage) {
@@ -68,7 +68,9 @@ async function displayQueue(interaction, page, updateMessage) {
         .map((song, i) => {
             return `**${page * 10 + i + 1}.** \`[${song.duration}]\` [${
                 song.title
-            }](${song.url})\n**Requested By: <@${song.requestedBy.id}>**`
+            }](${song.url})\n**Requested By: <@${
+                song.requestedBy?.id ?? song.requestedBy
+            }>**`
         })
         .join("\n")
 
@@ -76,10 +78,10 @@ async function displayQueue(interaction, page, updateMessage) {
 
     let bar = queue.node.createProgressBar({
         queue: false,
-        length: 15,
-        indicator: "<:Purple_Dot:1150934035913248849>",
-        leftChar: "<:Purple_Bar:1150934930394718298>",
-        rightChar: "<:White_Bar:1150934768075149412>",
+        length: 12,
+        indicator: "<:Purple_Dot_small:1151261471142060073>",
+        leftChar: "<:Purple_Bar_small:1151261449105186857>",
+        rightChar: "<:White_Bar_small:1151261505912840382>",
     })
 
     //let progressBar = `${queue.getPlayerTimestamp().current} **|**${bar}**|** ${queue.getPlayerTimestamp().end}`
@@ -103,7 +105,11 @@ async function displayQueue(interaction, page, updateMessage) {
         .setDescription(
             `**Currently Playing**\n` +
                 (currentSong
-                    ? `[${currentSong.title}](${currentSong.url})\n${bar}\n**Requested by: <@${currentSong.requestedBy.id}>**`
+                    ? `[${currentSong.title}](${
+                          currentSong.url
+                      })\n${bar}\n**Requested by: <@${
+                          currentSong.requestedBy?.id ?? currentSong.requestedBy //different for added via trackJSON
+                      }>**`
                     : "None") +
                 (queue.tracks.data.length > 0
                     ? `\n\n**Queue**\n${queueString}`

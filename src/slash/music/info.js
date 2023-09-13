@@ -23,7 +23,10 @@ module.exports = {
 
         let bar = queue.node.createProgressBar({
             queue: false,
-            length: 19,
+            length: 12,
+            indicator: "<:Purple_Dot_small:1151261471142060073>",
+            leftChar: "<:Purple_Bar_small:1151261449105186857>",
+            rightChar: "<:White_Bar_small:1151261505912840382>",
         })
 
         //let progressBar = `${queue.getPlayerTimestamp().current} **|**${bar}**|** ${queue.getPlayerTimestamp().end}`
@@ -35,7 +38,7 @@ module.exports = {
                     .setTitle(`Currently Playing`)
                     .setDescription(
                         currentSong
-                            ? `[${currentSong.title}](${currentSong.url})\n${bar}\n**Requested by: <@${currentSong.requestedBy.id}>**`
+                            ? `[${currentSong.title}](${currentSong.url})\n${bar}\n**Requested by: <@${currentSong.requestedBy?.id ?? currentSong.requestedBy}>**`
                             : "None"
                     ),
             ],

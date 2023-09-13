@@ -44,14 +44,14 @@ async function addLikedTrack(interaction, query) {
 
     User.findOne({ ID: interaction.user.id }).then(async (user) => {
         if (user) {
-            user.likes.push(track)
+            user.likes.push(track.toJSON(true))
             user.save()
         } else {
             console.log("Creating new user")
             const newUser = new User({
                 name: interaction.user.username,
                 ID: interaction.user.id,
-                likes: [track],
+                likes: [track.toJSON(true)],
                 playlists: [],
             })
             newUser.save()
@@ -132,13 +132,14 @@ async function searchQuery(query, interaction) {
         return
     }
 
-    //remove circular and unneeded properties
-    delete result_search.tracks[0].playlist
-    delete result_search.tracks[0].extractors
-    delete result_search.tracks[0].extractor
-    delete result_search.tracks[0].client
-    delete result_search.tracks[0].player
-    delete result_search.tracks[0].voiceUtils
+    //stupid way of doing it
+    //remove circular and unneeded properties 
+    // delete result_search.tracks[0].playlist
+    // delete result_search.tracks[0].extractors
+    // delete result_search.tracks[0].extractor
+    // delete result_search.tracks[0].client
+    // delete result_search.tracks[0].player
+    // delete result_search.tracks[0].voiceUtils
 
     return result_search.tracks[0] //adds 1 track from search
 }

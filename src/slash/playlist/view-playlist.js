@@ -220,7 +220,7 @@ async function showTracks(interaction, playlist) {
         .map((track, i) => {
             return `**${i + 1}.** \`[${track.duration}]\` [${track.title}](${
                 track.url
-            })\n**Added By: <@${track.requestedBy.id}>**`
+            })\n**Added By: <@${track.requestedBy}>**`
         })
         .join("\n")
 

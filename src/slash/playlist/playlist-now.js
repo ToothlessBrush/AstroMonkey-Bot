@@ -283,14 +283,13 @@ async function playTracks(interaction, playlist, shuffle) {
         }
     }
 
-    let tracks = playlist.tracks
+    let tracksJSON = playlist.tracks
 
     if (shuffle == true) {
-        shuffleArray(tracks)
+        shuffleArray(tracksJSON)
     }
 
-    //get the position of the playlist to skip to
-    const QUEUE_SIZE = queue.tracks.size
+    const tracks = tracksJSON.map((track) => new Track(player, track)) //convert track data to track objects
 
     await queue.addTrack(tracks)
 
@@ -326,9 +325,14 @@ async function playTracks(interaction, playlist, shuffle) {
                 .setColor(0xa020f0)
                 .setTitle(`Playing: \`${playlist.name}\` Now!`)
                 .setDescription(
-                    `**Starting With**\n**[${tracks[0].title}](${tracks[0].url})**\nBy ${tracks[0].author}`
+                    `**Starting With**\n**[${tracks[0].title}](${tracks[0].url})**\nBy ${tracks[0].author} | ${tracks[0].duration}`
                 )
-                .setThumbnail(tracks[0].thumbnail),
+                .setThumbnail(tracks[0].thumbnail)
+                .setFooter({
+                    text: `${interaction.user.username}`,
+                    iconURL: interaction.user.avatarURL(),
+                })
+                .setTimestamp(),
         ],
         components: [
             new ActionRowBuilder()

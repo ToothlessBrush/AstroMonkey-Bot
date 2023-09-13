@@ -170,6 +170,8 @@ module.exports = {
             })
         }
 
+        console.log(tracks)
+        
         try {
             await queue.addTrack(tracks)
         } catch (error) {
@@ -197,7 +199,7 @@ module.exports = {
         }
 
         //build embed based on info
-        if (tracks.length > 1) {
+        if (tracks.length > 1) { //added playlist
             playlist = tracks[0].playlist
             //console.log(tracks)
 
@@ -216,7 +218,7 @@ module.exports = {
                 })
                 .setTimestamp()
         } else {
-            if (queue.tracks.size == 0) {
+            if (queue.tracks.size == 0) { //added 1 track and no tracks in queue
                 embed
                     .setColor(0xa020f0) //purple
                     .setTitle(`**Playing**`)
@@ -229,7 +231,7 @@ module.exports = {
                         iconURL: interaction.user.avatarURL(),
                     })
                     .setTimestamp()
-            } else {
+            } else { //added 1 track and other tracks in queue
                 embed
                     .setColor(0xa020f0) //purple
                     .setTitle(`**Queued in Position ${queue.tracks.size}**`)

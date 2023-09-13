@@ -8,11 +8,11 @@ const {
 const { QueryType } = require("discord-player")
 
 const path = require("path")
+
 const Server = require(path.join(__dirname, "./../../model/Server.js"))
 const User = require(path.join(__dirname, "./../../model/User.js"))
 
 const { isUrl } = require("./../../utils/isUrl")
-const playlistSchema = require("../../model/Playlist")
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -173,12 +173,12 @@ module.exports = {
 
         //save to db
         if (userPL) {
-            userPL.tracks.push(track)
+            userPL.tracks.push(track.toJSON(true))
             user.save()
         }
 
         if (serverPL) {
-            serverPL.tracks.push(track)
+            serverPL.tracks.push(track.toJSON(true))
             server.save()
         }
 
@@ -233,7 +233,7 @@ module.exports = {
                     })
                 }
 
-                userPL.tracks.push(track)
+                userPL.tracks.push(track.toJSON(true))
                 user.save()
 
                 return trackAddedReply(interaction, userPL.name, track)
@@ -260,7 +260,7 @@ module.exports = {
                     })
                 }
 
-                serverPL.tracks.push(track)
+                serverPL.tracks.push(track.toJSON(true))
                 server.save()
 
                 return trackAddedReply(interaction, serverPL.name, track)
@@ -353,13 +353,14 @@ async function searchQuery(query, interaction) {
         return
     }
 
+    //stupid way of doing it
     //remove circular and unneeded properties
-    delete result_search.tracks[0].playlist
-    delete result_search.tracks[0].extractors
-    delete result_search.tracks[0].extractor
-    delete result_search.tracks[0].client
-    delete result_search.tracks[0].player
-    delete result_search.tracks[0].voiceUtils
+    // delete result_search.tracks[0].playlist
+    // delete result_search.tracks[0].extractors
+    // delete result_search.tracks[0].extractor
+    // delete result_search.tracks[0].client
+    // delete result_search.tracks[0].player
+    // delete result_search.tracks[0].voiceUtils
 
-    return result_search.tracks[0] //adds 1 track from search
+    return result_search.tracks[0]
 }

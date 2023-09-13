@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, ButtonBuilder } = require("@discordjs/builders")
+const { Track } = require("discord-player")
 const {
     EmbedBuilder,
     ActionRowBuilder,
@@ -226,21 +227,20 @@ module.exports = {
  * @returns nothing
  */
 async function queueTracks(interaction, playlist, shuffle) {
-    const queue = await interaction.client.player.nodes.create(
-        interaction.guild,
-        {
-            metadata: {
-                channel: interaction.channel,
-                client: interaction.guild.members.me,
-                requestedBy: interaction.user,
-            },
-            selfDeaf: true,
-            volume: 80,
-            leaveOnEmpty: true,
-            leaveOnEnd: true,
-            skipOnNoStream: true,
-        }
-    )
+    const player = interaction.client.player
+
+    const queue = await player.nodes.create(interaction.guild, {
+        metadata: {
+            channel: interaction.channel,
+            client: interaction.guild.members.me,
+            requestedBy: interaction.user,
+        },
+        selfDeaf: true,
+        volume: 80,
+        leaveOnEmpty: true,
+        leaveOnEnd: true,
+        skipOnNoStream: true,
+    })
 
     const buttonInteraction = interaction.isButton() //if we update or reply
 
@@ -280,13 +280,15 @@ async function queueTracks(interaction, playlist, shuffle) {
         }
     }
 
-    let tracks = playlist.tracks
+    let tracksJSON = playlist.tracks
 
     if (shuffle == true) {
-        shuffleArray(tracks)
+        shuffleArray(tracksJSON)
     }
 
-    queue.addTrack(tracks)
+    const tracks = tracksJSON.map((track) => new Track(player, track)) //convert track data to track objects
+
+    await queue.addTrack(tracks)
 
     queue.interaction = interaction
 
@@ -318,9 +320,14 @@ async function queueTracks(interaction, playlist, shuffle) {
                 .setColor(0xa020f0)
                 .setTitle(`Queued: \`${playlist.name}\``)
                 .setDescription(
-                    `**Starting With**\n**[${tracks[0].title}](${tracks[0].url})**\nBy ${tracks[0].author}`
+                    `**Starting With**\n**[${tracks[0].title}](${tracks[0].url})**\nBy ${tracks[0].author} | ${tracks[0].duration}`
                 )
-                .setThumbnail(tracks[0].thumbnail),
+                .setThumbnail(tracks[0].thumbnail)
+                .setFooter({
+                    text: `${interaction.user.username}`,
+                    iconURL: interaction.user.avatarURL(),
+                })
+                .setTimestamp(),
         ],
         components: [
             new ActionRowBuilder()
