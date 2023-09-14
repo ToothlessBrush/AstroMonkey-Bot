@@ -23,7 +23,7 @@ module.exports = {
                 .setRequired(true)
         ),
 
-    autocomplete: async ({ client, interaction }) => {
+    autocomplete: async ({ interaction }) => {
         const focusedValue = interaction.options.getFocused()
 
         let choices = ["Likes"]
@@ -68,7 +68,7 @@ module.exports = {
         )
     },
 
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
         const serverID = interaction.guild.id
         const userID = interaction.user.id
         const playlistName = interaction.options.getString("playlist")

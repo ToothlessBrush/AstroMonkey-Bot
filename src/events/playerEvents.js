@@ -7,7 +7,7 @@ module.exports.registerPlayerEvents = (player) => {
         )
 
         const client = queue.player.client
-        const interaction = queue.interaction
+        const interaction = queue.metadata.interaction
 
         try {
             await client.channels.cache.get(interaction.channelId).send({
@@ -40,7 +40,7 @@ module.exports.registerPlayerEvents = (player) => {
         )
 
         const client = queue.player.client
-        const interaction = queue.interaction
+        const interaction = queue.metadata.interaction
 
         try {
             await client.channels.cache.get(interaction.channelId).send({
@@ -72,25 +72,11 @@ module.exports.registerPlayerEvents = (player) => {
         console.log(
             `started: \"${track.title}\" in \"${queue.channel.name}\" | ${queue.guild.name}`
         )
-
-        // process.on("uncaughtException", async (error) => {
-        //     console.log("here2", error)
-        //     await queue.channel.send({
-        //         embeds: [
-        //             new EmbedBuilder()
-        //                 .setColor(0xff0000)
-        //                 .setTitle(`Somthing went wrong!`)
-        //                 .setDescription(error.message.split("\n")[0]),
-        //         ],
-        //     })
-
-        //     if (!queue.node.isPlaying() && queue.tracks.size >= 1) {
-        //         await queue.node.play()
-        //     }
-        // })
     })
 
-    player.events.on("audioTracksAdd", (queue, track) => {})
+    player.events.on("audioTracksAdd", (queue, track) => {
+        console.log(`${track} Added to Queue`)
+    })
     player.events.on("disconnect", (queue) => {
         console.log(`bot disconnected`)
     })

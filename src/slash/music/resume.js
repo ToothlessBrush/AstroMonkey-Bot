@@ -6,7 +6,8 @@ module.exports = {
         .setName("resume")
         .setDescription("resumes the music queue"),
 
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
+        const client = interaction.client
         const queue = client.player.nodes.get(interaction.guildId)
 
         if (!queue) {

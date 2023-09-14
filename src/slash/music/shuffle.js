@@ -6,8 +6,10 @@ module.exports = {
         .setName("shuffle")
         .setDescription("shuffles the music queue"),
 
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
+        const client = interaction.client
         const queue = client.player.nodes.get(interaction.guildId)
+
         if (!queue) {
             return await interaction.editReply({
                 embeds: [

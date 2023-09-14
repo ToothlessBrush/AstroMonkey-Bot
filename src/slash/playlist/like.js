@@ -15,7 +15,7 @@ module.exports = {
                 .setRequired(true)
         ),
 
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
         let query
         if (interaction.isChatInputCommand()) {
             query = interaction.options.getString("query")
@@ -133,7 +133,7 @@ async function searchQuery(query, interaction) {
     }
 
     //stupid way of doing it
-    //remove circular and unneeded properties 
+    //remove circular and unneeded properties
     // delete result_search.tracks[0].playlist
     // delete result_search.tracks[0].extractors
     // delete result_search.tracks[0].extractor

@@ -6,7 +6,7 @@ module.exports = {
         .setName("help")
         .setDescription("show the bot commands"),
 
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
         const description = `
         **General Commands**
         </help:1103275724183453708> - Displays the bot commands (what this is)

@@ -18,7 +18,8 @@ module.exports = {
                 )
         ),
 
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
+        const client = queue.client
         const queue = client.player.nodes.get(interaction.guildId)
 
         if (!queue) {

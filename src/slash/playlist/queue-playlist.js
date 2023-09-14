@@ -28,7 +28,7 @@ module.exports = {
                 .setRequired(false)
         ),
 
-    autocomplete: async ({ client, interaction }) => {
+    autocomplete: async ({ interaction }) => {
         const focusedValue = interaction.options.getFocused()
         let choices = ["Likes"]
         await Server.findOne({ "server.ID": interaction.guild.id }).then(
@@ -72,7 +72,7 @@ module.exports = {
         )
     },
 
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
         if (!interaction.member.voice.channel) {
             return interaction.editReply({
                 embeds: [

@@ -16,7 +16,8 @@ module.exports = {
                 .setMaxValue(100)
         ),
 
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
+        const client = interaction.client
         const queue = client.player.nodes.get(interaction.guildId)
 
         if (!queue) {

@@ -73,7 +73,7 @@ module.exports = {
         )
     },
 
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
         if (!interaction.member.voice.channel) {
             return interaction.editReply({
                 embeds: [

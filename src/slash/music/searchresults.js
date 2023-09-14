@@ -33,7 +33,9 @@ module.exports = {
                 .setRequired(true)
         ),
 
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
+        const client = interaction.client
+        
         if (!interaction.member.voice.channel)
             return interaction.editReply({
                 embeds: [

@@ -32,7 +32,7 @@ module.exports = {
                 .setRequired(true)
         ),
 
-    autocomplete: async ({ client, interaction }) => {
+    autocomplete: async ({ interaction }) => {
         const focusedOption = interaction.options.getFocused(true)
 
         let choices = []

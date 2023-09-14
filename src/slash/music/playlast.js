@@ -6,7 +6,8 @@ module.exports = {
         .setName("playlast")
         .setDescription("Plays the Previously Played Song"),
 
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
+        const client = interaction.client
         const queue = client.player.nodes.get(interaction.guildId)
 
         if (!queue) {

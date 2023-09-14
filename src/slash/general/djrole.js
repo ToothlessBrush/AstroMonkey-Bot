@@ -14,7 +14,7 @@ module.exports = {
                 .setRequired(true)
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
         const role = interaction.options.getRole("role")
         return interaction.editReply({
             embeds: [

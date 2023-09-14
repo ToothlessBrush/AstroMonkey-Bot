@@ -9,7 +9,6 @@ const fs = require("fs")
 const path = require("path")
 
 const { Player } = require("discord-player")
-const tough = require("tough-cookie")
 
 const { registerPlayerEvents } = require("./events/playerEvents")
 

@@ -6,7 +6,8 @@ module.exports = {
         .setName("skip")
         .setDescription("skips the current song"),
 
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
+        const client = interaction.client
         const queue = client.player.nodes.get(interaction.guildId)
 
         if (!queue)

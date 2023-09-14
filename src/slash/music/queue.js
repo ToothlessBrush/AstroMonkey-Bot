@@ -9,10 +9,10 @@ module.exports = {
             option.setName("page").setDescription("page number").setMinValue(1)
         ),
 
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
         const page = (interaction.options.getNumber("page") || 1) - 1
 
-        return await displayQueue(client, interaction, page, false)
+        return await displayQueue(interaction, page, false)
     },
 
     button: async (interaction, pageNumber, updateMessage) => {

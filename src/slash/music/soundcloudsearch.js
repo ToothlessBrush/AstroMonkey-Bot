@@ -25,7 +25,8 @@ module.exports = {
                 .setAutocomplete(true)
         ),
 
-    autocomplete: async ({ client, interaction }) => {
+    autocomplete: async ({ interaction }) => {
+        const client = interaction.client
         const focusedValue = interaction.options.getFocused()
 
         let result_search
@@ -56,7 +57,9 @@ module.exports = {
         return await interaction.respond(choices.slice(0, 6))
     },
 
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
+        const client = interaction.client
+        
         if (!interaction.member.voice.channel)
             return interaction.editReply({
                 embeds: [
@@ -90,6 +93,7 @@ module.exports = {
 
         const queue = await client.player.nodes.create(interaction.guild, {
             metadata: {
+                interaction: interaction,
                 channel: interaction.channel,
                 client: interaction.guild.members.me,
                 requestedBy: interaction.user,
@@ -162,8 +166,6 @@ module.exports = {
         // }
 
         await queue.addTrack(tracks) //adds track(s) from the search result
-
-        queue.interaction = interaction
 
         try {
             //verify vc connection

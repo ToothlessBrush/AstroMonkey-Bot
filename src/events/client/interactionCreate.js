@@ -5,7 +5,7 @@ module.exports = {
 
         if (interaction.isChatInputCommand()) {
             console.log(
-                `Interaction: ${interaction.commandName} | ${interaction.guild}`
+                `{/} Interaction: ${interaction.commandName} | ${interaction.guild}`
             )
             //console.log(interaction.client)
             //console.log(client)
@@ -14,13 +14,13 @@ module.exports = {
             if (!slashcmd) return interaction.reply("Not a valid slash command")
 
             await interaction.deferReply()
-            await slashcmd.run({ client, interaction })
+            await slashcmd.run({ interaction })
         } else if (interaction.isAutocomplete()) {
             const command = client.slashcommands.get(interaction.commandName)
             if (!command) return interaction.reply("Not a valid slash command")
 
             try {
-                await command.autocomplete({ client, interaction })
+                await command.autocomplete({ interaction })
             } catch (error) {
                 console.error(error)
             }
@@ -182,25 +182,21 @@ module.exports = {
                     return
                 case "like":
                     await interaction.deferReply()
-                    client.slashcommands
-                        .get("like")
-                        .run({ client, interaction })
+                    client.slashcommands.get("like").run({ interaction })
                     return
                 default:
                     return
             }
 
             await interaction.deferReply()
-            await client.slashcommands.get(command).run({ client, interaction })
+            await client.slashcommands.get(command).run({ interaction })
         } else if (interaction.isStringSelectMenu()) {
             const optionValue = interaction.values[0]
             const optionID = interaction.customId
             console.log(`option: ${optionID} value: ${optionValue}`)
             if (optionID == "select") {
                 await interaction.deferReply()
-                await client.slashcommands
-                    .get("play")
-                    .run({ client, interaction })
+                await client.slashcommands.get("play").run({ interaction })
             }
         } else {
             return

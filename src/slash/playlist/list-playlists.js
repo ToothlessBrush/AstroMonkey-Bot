@@ -16,7 +16,7 @@ module.exports = {
         .setName("list-playlists")
         .setDescription("lists your playlists and server playlists"),
 
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
         const serverID = interaction.guild.id
         const userID = interaction.user.id
 

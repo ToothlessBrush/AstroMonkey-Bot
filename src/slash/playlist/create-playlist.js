@@ -29,7 +29,7 @@ module.exports = {
                 .setMaxLength(100)
         ),
 
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
         const serverType = interaction.options.getString("type") == "SERVER"
 
         if (interaction.options.getString("name") == "Likes") {

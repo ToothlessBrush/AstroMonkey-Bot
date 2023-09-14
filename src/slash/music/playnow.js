@@ -22,7 +22,9 @@ module.exports = {
                 .setRequired(true)
         ),
 
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
+        const client = interaction.client
+
         if (!interaction.member.voice.channel)
             return interaction.editReply({
                 embeds: [
@@ -56,6 +58,7 @@ module.exports = {
 
         queue = await client.player.nodes.create(interaction.guild, {
             metadata: {
+                interaction: interaction,
                 channel: interaction.channel,
                 client: interaction.guild.members.me,
                 requestedBy: interaction.user,

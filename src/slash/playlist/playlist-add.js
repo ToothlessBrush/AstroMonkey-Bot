@@ -34,7 +34,7 @@ module.exports = {
                 .setRequired(true)
         ),
 
-    autocomplete: async ({ client, interaction }) => {
+    autocomplete: async ({ interaction }) => {
         const focusedValue = interaction.options.getFocused()
         let choices = ["Likes"]
         await Server.findOne({ "server.ID": interaction.guild.id }).then(
@@ -78,7 +78,8 @@ module.exports = {
         )
     },
 
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
+        const client = interaction.client
         const playlistName = interaction.options.getString("playlist")
         const query = interaction.options.getString("query")
         const serverID = interaction.guild.id

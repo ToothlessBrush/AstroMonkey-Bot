@@ -6,7 +6,9 @@ module.exports = {
         .setName("ping")
         .setDescription("replies with the latency of the bot"),
 
-    run: async ({ client, interaction }) => {
+    run: async ({ interaction }) => {
+        const client = interaction.client
+        
         const mesg = await interaction.editReply({
             embeds: [new EmbedBuilder().setColor(0xa020f0).setTitle(`Pong!`)],
             fetchReply: true,
