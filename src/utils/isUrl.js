@@ -1,13 +1,13 @@
 /**
  *
  * @param {String} urlString url to test
- * @returns {boolean} if url or not
+ * @returns {boolean} if url with Http protocol or not
  */
 
 function isUrl(urlString) {
     try {
-        new URL(urlString)
-        return true
+        const testURL = new URL(urlString)
+        return testURL.protocol === `http:` || testURL.protocol === `https:`
     } catch (e) {
         return false
     }

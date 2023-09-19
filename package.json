@@ -12,7 +12,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@discord-player/extractor": "^4.4.2",
+        "@discord-player/extractor": "^4.4.4",
         "@discordjs/builders": "^1.6.5",
         "@discordjs/opus": "github:discordjs/opus",
         "@discordjs/rest": "^1.7.1",

@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, ButtonBuilder } = require("@discordjs/builders")
+const { Track } = require("discord-player")
 const {
     EmbedBuilder,
     ActionRowBuilder,
@@ -229,21 +230,20 @@ module.exports = {
  * @returns nothing
  */
 async function playTracks(interaction, playlist, shuffle) {
-    const queue = await interaction.client.player.nodes.create(
-        interaction.guild,
-        {
-            metadata: {
-                channel: interaction.channel,
-                client: interaction.guild.members.me,
-                requestedBy: interaction.user,
-            },
-            selfDeaf: true,
-            volume: 80,
-            leaveOnEmpty: true,
-            leaveOnEnd: true,
-            skipOnNoStream: true,
-        }
-    )
+    const player = interaction.client.player
+
+    const queue = await player.nodes.create(interaction.guild, {
+        metadata: {
+            channel: interaction.channel,
+            client: interaction.guild.members.me,
+            requestedBy: interaction.user,
+        },
+        selfDeaf: true,
+        volume: 80,
+        leaveOnEmpty: true,
+        leaveOnEnd: true,
+        skipOnNoStream: true,
+    })
 
     const buttonInteraction = interaction.isButton() //if we update or reply
 
@@ -291,6 +291,8 @@ async function playTracks(interaction, playlist, shuffle) {
 
     const tracks = tracksJSON.map((track) => new Track(player, track)) //convert track data to track objects
 
+    const QUEUE_SIZE = queue.tracks.size
+    
     await queue.addTrack(tracks)
 
     queue.node.skipTo(QUEUE_SIZE)
