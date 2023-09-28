@@ -30,7 +30,7 @@ module.exports.registerPlayerEvents = (player) => {
                     ],
                 })
             } catch (voiceTextErr) {
-                console.err(voiceTextErr)
+                console.error(voiceTextErr)
             }
         }
     })
@@ -63,7 +63,7 @@ module.exports.registerPlayerEvents = (player) => {
                     ],
                 })
             } catch (voiceTextErr) {
-                console.err(voiceTextErr)
+                console.error(voiceTextErr)
             }
         }
     })
