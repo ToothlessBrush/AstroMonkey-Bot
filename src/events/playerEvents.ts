@@ -11,7 +11,7 @@ module.exports.registerPlayerEvents = (player: Player) => {
         const interaction = queue.metadata.interaction
 
         try {
-            await client.channels.cache.get(interaction.channelId).send({
+            await client.channels.cache.get(interaction.channelId)?.send({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
@@ -22,7 +22,7 @@ module.exports.registerPlayerEvents = (player: Player) => {
         } catch (err) {
             console.error(err, "trying voice channel chat")
             try {
-                await queue.channel.send({
+                await queue.channel?.send({
                     embeds: [
                         new EmbedBuilder()
                             .setColor(0xff0000)
