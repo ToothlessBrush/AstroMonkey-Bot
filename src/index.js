@@ -41,7 +41,7 @@ const client = new Client({
         ...Options.DefaultMakeCacheSettings,
         ReactionManager: 0,
         GuildMemberManager: {
-            maxSize: 150, //default 200
+            maxSize: 100, //default 200
             keepOverLimit: (member) => member.id === client.user.id,
         },
     }),
