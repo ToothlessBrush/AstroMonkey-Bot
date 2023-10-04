@@ -22,7 +22,6 @@ module.exports = {
 
 /**
  *
- * @param {object} client client object
  * @param {object} interaction interaction object
  * @param {int} pageNumber page number
  * @param {bool} updateMessage whether to update message or create new message
