@@ -1,6 +1,7 @@
-const { EmbedBuilder } = require("discord.js")
+import { Player } from "discord-player"
+import { EmbedBuilder } from "discord.js"
 
-module.exports.registerPlayerEvents = (player) => {
+module.exports.registerPlayerEvents = (player: Player) => {
     player.events.on("error", async (queue, error) => {
         console.log(
             `[${queue.guild.name}] Error emitted from the queue: ${error.message}`
@@ -10,7 +11,7 @@ module.exports.registerPlayerEvents = (player) => {
         const interaction = queue.metadata.interaction
 
         try {
-            await client.channels.cache.get(interaction.channelId).send({
+            await client.channels.cache.get(interaction.channelId)?.send({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
@@ -21,7 +22,7 @@ module.exports.registerPlayerEvents = (player) => {
         } catch (err) {
             console.error(err, "trying voice channel chat")
             try {
-                await queue.channel.send({
+                await queue.channel?.send({
                     embeds: [
                         new EmbedBuilder()
                             .setColor(0xff0000)

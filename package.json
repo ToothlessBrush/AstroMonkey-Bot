@@ -6,7 +6,7 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "start": "set NODE_ENV=prod&& node ./src/index.js",
-        "dev": "set NODE_ENV=dev&& nodemon ./src/index.js"
+        "dev": "set NODE_ENV=dev&& ts-node-dev src/index.ts"
     },
     "keywords": [],
     "author": "",
@@ -25,6 +25,9 @@
         "ffmpeg-static": "^5.2.0",
         "mongodb": "^5.8.0",
         "mongoose": "^7.5.0",
+        "ts-node": "^10.9.1",
+        "ts-node-dev": "^2.0.0",
+        "typescript": "^5.2.2",
         "youtube-ext": "^1.1.14"
     }
 }

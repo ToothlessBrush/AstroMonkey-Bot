@@ -1,14 +1,14 @@
-const {
+import {
     EmbedBuilder,
     SlashCommandBuilder,
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
     InteractionType,
-} = require("discord.js")
+} from "discord.js"
 
-const mongoose = require("mongoose")
-const path = require("path")
+import mongoose from "mongoose"
+import path from "path"
 const Server = require(path.join(__dirname, "./../../model/Server.js"))
 const User = require(path.join(__dirname, "./../../model/User.js"))
 
