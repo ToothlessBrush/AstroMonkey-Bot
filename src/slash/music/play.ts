@@ -52,7 +52,7 @@ module.exports = {
                 value: result_search.playlist.url.slice(0, 100),
             })
         } else {
-            result_search?.tracks?.forEach((track) =>
+            result_search?.tracks?.forEach((track: any) =>
                 choices.push({
                     name: track.title.slice(0, 100),
                     value: track.url.slice(0, 100),
@@ -76,7 +76,7 @@ module.exports = {
             })
 
         //verify permission to connect
-        voiceChannelPermissions =
+        const voiceChannelPermissions =
             interaction.member.voice.channel.permissionsFor(
                 interaction.guild.members.me
             )
@@ -97,7 +97,7 @@ module.exports = {
             })
         }
 
-        queue = await client.player.nodes.create(interaction.guild, {
+        const queue = await client.player.nodes.create(interaction.guild, {
             metadata: {
                 interaction: interaction,
                 channel: interaction.channel,
@@ -199,10 +199,6 @@ module.exports = {
 
         //build embed based on info
         if (tracks.length > 1) {
-            //added playlist
-            playlist = tracks[0].playlist
-            //console.log(tracks)
-
             embed
                 .setColor(0xa020f0) //purple
                 .setTitle(

@@ -1,6 +1,7 @@
-const { EmbedBuilder } = require("discord.js")
+import { Player } from "discord-player"
+import { EmbedBuilder } from "discord.js"
 
-module.exports.registerPlayerEvents = (player) => {
+module.exports.registerPlayerEvents = (player: Player) => {
     player.events.on("error", async (queue, error) => {
         console.log(
             `[${queue.guild.name}] Error emitted from the queue: ${error.message}`

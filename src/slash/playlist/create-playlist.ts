@@ -1,5 +1,5 @@
-const { EmbedBuilder, SlashCommandBuilder } = require("discord.js")
-const path = require("path")
+import { EmbedBuilder, SlashCommandBuilder } from "discord.js"
+import path from "path"
 const Server = require(path.join(__dirname, "./../../model/Server.js"))
 const User = require(path.join(__dirname, "./../../model/User.js"))
 

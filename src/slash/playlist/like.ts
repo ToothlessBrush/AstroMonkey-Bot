@@ -1,8 +1,8 @@
-const { EmbedBuilder, SlashCommandBuilder } = require("discord.js")
+import { EmbedBuilder, SlashCommandBuilder } from "discord.js"
 
-const { QueryType } = require("discord-player")
-const { isUrl } = require("./../../utils/isUrl")
-const path = require("path")
+import { QueryType } from "discord-player"
+import { isUrl } from "./../../utils/isUrl"
+import path from "path"
 const User = require(path.join(__dirname, "./../../model/User.js"))
 module.exports = {
     data: new SlashCommandBuilder()
