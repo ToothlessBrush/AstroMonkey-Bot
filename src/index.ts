@@ -26,7 +26,10 @@ require("dotenv").config({
 })
 
 const CONFIG = JSON.parse(
-    fs.readFileSync(path.join(__dirname, `..`, `config.${ENVIORNMENT}.json`))
+    fs.readFileSync(
+        path.join(__dirname, `..`, `config.${ENVIORNMENT}.json`),
+        "utf-8"
+    )
 )
 
 //get env variables
@@ -99,9 +102,9 @@ for (const dir of subDir) {
 if (LOAD_SLASH) {
     const rest = new REST({ version: "9" }).setToken(TOKEN)
     console.log("Deploying slash commands")
-    const route = GLOBAL
-        ? Routes.applicationCommands(CLIENT_ID)
-        : Routes.applicationCommands(CLIENT_ID, GUILD_ID)
+    const route = GLOBAL //input sting manually (replaces applicationCommands(applicationId: string): `/applications/${string}/commands`) for typescript 
+        ? (`/applications/${CLIENT_ID}/commands` as `/${string}`)
+        : (`/applications/${CLIENT_ID}/guilds/${GUILD_ID}/commands` as `/${string}`)
     rest.put(route, { body: commands })
         .then(() => {
             console.log(

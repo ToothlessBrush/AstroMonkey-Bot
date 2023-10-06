@@ -6,7 +6,7 @@
         "target": "ESNext",
         "rootDir": "./src",
         "strict": true,
-        "esModuleInterop": true
+        "esModuleInterop": true,
     },
     "include": ["./src/**/*.ts"],
     "exclude": ["node_modules"]

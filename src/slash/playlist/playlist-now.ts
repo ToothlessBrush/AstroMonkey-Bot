@@ -1,3 +1,5 @@
+import { ButtonInteraction } from "discord.js"
+
 const { SlashCommandBuilder, ButtonBuilder } = require("@discordjs/builders")
 const { Track } = require("discord-player")
 const {
@@ -197,7 +199,7 @@ module.exports = {
     //buttons for case when 2 playlists found
 
     //need to switch to collector
-    buttons: async (interaction, docType, playlistId, shuffle) => {
+    buttons: async (interaction: ButtonInteraction, docType: String, playlistId: String, shuffle: boolean) => {
         let playlist
 
         if (docType == "server") {
