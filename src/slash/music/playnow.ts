@@ -1,15 +1,18 @@
-const { SlashCommandBuilder, ButtonBuilder } = require("@discordjs/builders")
-const {
+import { SlashCommandBuilder, ButtonBuilder } from "@discordjs/builders"
+import {
     EmbedBuilder,
     ActionRowBuilder,
     ButtonStyle,
     PermissionsBitField,
-} = require("discord.js")
-const { QueryType, SearchResult } = require("discord-player")
+    CommandInteraction,
+    GuildMember,
+    StringSelectMenuInteraction,
+} from "discord.js"
+import { QueryType, SearchResult, useMainPlayer } from "discord-player"
 
-const { isUrl } = require("./../../utils/isUrl")
+import isUrl from "./../../utils/isUrl"
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName("playnow")
         .setDescription(
@@ -22,10 +25,14 @@ module.exports = {
                 .setRequired(true)
         ),
 
-    run: async ({ interaction }) => {
-        const client = interaction.client
+    run: async (interaction: CommandInteraction) => {
 
-        if (!interaction.member.voice.channel)
+        //error checking
+        if (!(interaction.member instanceof GuildMember)) {
+            return
+        }
+
+        if (!interaction.member?.voice?.channel) {
             return interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
@@ -33,9 +40,14 @@ module.exports = {
                         .setDescription(`**You Must be in a VC!**`),
                 ],
             })
+        }
 
+        if (!interaction.guild?.members.me) {
+            return
+        }
+        
         //verify permission to connect
-        voiceChannelPermissions =
+        const voiceChannelPermissions =
             interaction.member.voice.channel.permissionsFor(
                 interaction.guild.members.me
             )
@@ -56,7 +68,15 @@ module.exports = {
             })
         }
 
-        queue = await client.player.nodes.create(interaction.guild, {
+        const player = useMainPlayer()
+
+        if (!player) {
+            return
+        }
+
+        
+
+        const queue = player.nodes.create(interaction.guild, {
             metadata: {
                 interaction: interaction,
                 channel: interaction.channel,
@@ -77,7 +97,13 @@ module.exports = {
         if (interaction.isChatInputCommand()) {
             query = interaction.options.getString("query")
         } else if (interaction.isStringSelectMenu()) {
-            query = interaction.values[0]
+            const stringSelectMenuInteraction =
+                interaction as StringSelectMenuInteraction //switch to stringselect menu interaction to get value
+            query = stringSelectMenuInteraction.values[0]
+        }
+
+        if (!query) {
+            return
         }
 
         let tracks
@@ -94,7 +120,7 @@ module.exports = {
                 ],
             })
 
-            const result_search = await client.player.search(query, {
+            const result_search = await player.search(query, {
                 requestedBy: interaction.user,
                 searchEngine: QueryType.AUTO,
             })
@@ -113,7 +139,7 @@ module.exports = {
                 ],
             })
 
-            const result_search = await client.player.search(query, {
+            const result_search = await player.search(query, {
                 requestedBy: interaction.user,
                 searchEngine: QueryType.YOUTUBE_SEARCH,
             })
@@ -162,8 +188,6 @@ module.exports = {
         }
         //adds track(s) from the search result
 
-        queue.interaction = interaction
-
         try {
             //verify vc connection
             if (!queue.connection) {
@@ -183,7 +207,7 @@ module.exports = {
 
         //build embed based on info
         if (tracks.length > 1) {
-            playlist = tracks[0].playlist
+            const playlist = tracks[0].playlist
             //console.log(tracks)
 
             embed
@@ -196,7 +220,7 @@ module.exports = {
                 .setThumbnail(tracks[0].thumbnail)
                 .setFooter({
                     text: `${interaction.user.username}`,
-                    iconURL: interaction.user.avatarURL(),
+                    iconURL: interaction.user.avatarURL() || undefined,
                 })
                 .setTimestamp()
         } else {
@@ -210,7 +234,7 @@ module.exports = {
                     .setThumbnail(tracks[0].thumbnail)
                     .setFooter({
                         text: `${interaction.user.username}`,
-                        iconURL: interaction.user.avatarURL(),
+                        iconURL: interaction.user.avatarURL() || undefined,
                     })
                     .setTimestamp()
             } else {
@@ -223,7 +247,7 @@ module.exports = {
                     .setThumbnail(tracks[0].thumbnail)
                     .setFooter({
                         text: `${interaction.user.username}`,
-                        iconURL: interaction.user.avatarURL(),
+                        iconURL: interaction.user.avatarURL() || undefined,
                     })
                     .setTimestamp()
             }
@@ -234,7 +258,7 @@ module.exports = {
         await interaction.editReply({
             embeds: [embed],
             components: [
-                new ActionRowBuilder()
+                new ActionRowBuilder<ButtonBuilder>()
                     .addComponents(
                         new ButtonBuilder()
                             .setCustomId("pauseButton")

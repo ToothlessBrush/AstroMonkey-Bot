@@ -4,13 +4,13 @@ import {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
-    InteractionType,
+    CommandInteraction,
+    AutocompleteInteraction,
+    ButtonInteraction,
 } from "discord.js"
 
-import mongoose from "mongoose"
-import path from "path"
-const Server = require(path.join(__dirname, "./../../model/Server.js"))
-const User = require(path.join(__dirname, "./../../model/User.js"))
+import { Server } from "./../../model/Server.js"
+import { User } from "./../../model/User.js"
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -23,9 +23,13 @@ module.exports = {
                 .setAutocomplete(true)
                 .setRequired(true)
         ),
-    autocomplete: async ({ interaction }) => {
+    autocomplete: async (interaction: AutocompleteInteraction) => {
         const focusedValue = interaction.options.getFocused()
-        let choices = []
+        let choices: string[] = []
+
+        if (!interaction.guild?.id) {
+            return
+        }
         await Server.findOne({ "server.ID": interaction.guild.id }).then(
             (server) => {
                 if (!server) {
@@ -54,7 +58,7 @@ module.exports = {
         })
 
         choices = removeDuplicates(choices)
-        function removeDuplicates(arr) {
+        function removeDuplicates<T>(arr: T[]): T[] {
             return arr.filter((item, index) => arr.indexOf(item) === index)
         }
 
@@ -67,8 +71,13 @@ module.exports = {
         )
     },
 
-    run: async ({ client, interaction }) => {
-        const playlistQuery = interaction.options.getString("playlist")
+    run: async (interaction: CommandInteraction) => {
+        const playlistQuery = interaction.options.get("playlist")
+            ?.value as string
+
+        if (!interaction.guild?.id) {
+            return
+        }
         const serverID = interaction.guild.id
         const userID = interaction.user.id
 
@@ -102,7 +111,7 @@ module.exports = {
                         ),
                 ],
                 components: [
-                    new ActionRowBuilder().addComponents(
+                    new ActionRowBuilder<ButtonBuilder>().addComponents(
                         new ButtonBuilder()
                             .setCustomId(
                                 `deleteServerPL~${serverPL._id.toString()}`
@@ -125,7 +134,7 @@ module.exports = {
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
-                        .setTitle(`Playlist: \`${playlistName}\` Not Found!`),
+                        .setTitle(`Playlist: \`${playlistQuery}\` Not Found!`),
                 ],
             })
         }
@@ -148,35 +157,39 @@ module.exports = {
     },
 
     //need to switch to collector
-    duplicateButton: async (interaction, docType, playlistID) => {
-        const serverID = interaction.guild.id
+    duplicateButton: async (
+        interaction: ButtonInteraction,
+        docType: string,
+        playlistID: string
+    ) => {
+        const serverID = interaction.guild?.id
         const userID = interaction.user.id
 
         let playlist
         //get PlaylistName
         if (docType == "user") {
-            playlist = await User.findOne({ ID: userID }).then((user) => {
-                if (!user) {
-                    return interaction.update({
-                        content: "User Data Not Found!",
-                    })
-                }
-                return user.playlists.find(
-                    (playlist) => playlist._id.toString() == playlistID
-                )
-            })
+            const user = await User.findOne({ ID: userID })
+
+            if (!user) {
+                return interaction.update({
+                    content: "User Data Not Found!",
+                })
+            }
+
+            playlist = user.playlists.find(
+                (playlist) => playlist._id.toString() == playlistID
+            )
         } else if (docType == "server") {
-            playlist = await Server.findOne({ "server.ID": serverID }).then(
-                (server) => {
-                    if (!server) {
-                        return interaction.update({
-                            content: "Server Data Not Found!",
-                        })
-                    }
-                    return server.playlists.find(
-                        (playlist) => playlist._id.toString() == playlistID
-                    )
-                }
+            const server = await Server.findOne({ "server.ID": serverID })
+
+            if (!server) {
+                return interaction.update({
+                    content: "Server Data Not Found!",
+                })
+            }
+
+            playlist = server.playlists.find(
+                (playlist) => playlist._id.toString() == playlistID
             )
         }
 
@@ -192,7 +205,10 @@ module.exports = {
     },
 
     //search through both User and Server and delete the playlist with playlistID also check if interaction and playlist creater is the same
-    deleteButton: async (interaction, playlistID) => {
+    deleteButton: async (
+        interaction: ButtonInteraction,
+        playlistID: string
+    ) => {
         const userID = interaction.user.id
 
         await User.findOne({ ID: userID }).then(async (user) => {
@@ -229,8 +245,8 @@ module.exports = {
          *
          * @param {object} interaction discord interaction object
          */
-        async function checkServer(interaction) {
-            const serverID = interaction.guild.id
+        async function checkServer(interaction: ButtonInteraction) {
+            const serverID = interaction.guild?.id
 
             await Server.findOne({ "server.ID": serverID }).then(
                 async (server) => {
@@ -306,7 +322,11 @@ module.exports = {
  * @param {String} playlistName name of playlist to delete
  * @returns
  */
-async function askConfirmDelete(interaction, playlistID, playlistName) {
+async function askConfirmDelete(
+    interaction: CommandInteraction | ButtonInteraction,
+    playlistID: string,
+    playlistName: string
+) {
     const buttonInteraction = interaction.isButton()
 
     const askToConfirmEmbed = {
@@ -319,7 +339,7 @@ async function askConfirmDelete(interaction, playlistID, playlistName) {
                 ),
         ],
         components: [
-            new ActionRowBuilder().addComponents(
+            new ActionRowBuilder<ButtonBuilder>().addComponents(
                 new ButtonBuilder()
                     .setCustomId(`DeletePL~${playlistID}`)
                     .setLabel(`Delete`)

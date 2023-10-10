@@ -1,7 +1,11 @@
-const { SlashCommandBuilder, ActionRowBuilder } = require("@discordjs/builders")
-const { EmbedBuilder, ButtonBuilder, ButtonStyle } = require("discord.js")
+import { ButtonInteraction, CommandInteraction } from "discord.js"
 
-module.exports = {
+import { SlashCommandBuilder, ActionRowBuilder } from "@discordjs/builders"
+import { EmbedBuilder, ButtonBuilder, ButtonStyle } from "discord.js"
+
+import { useQueue } from "discord-player"
+
+export default {
     data: new SlashCommandBuilder()
         .setName("queue")
         .setDescription("display the current songs in queue")
@@ -9,13 +13,18 @@ module.exports = {
             option.setName("page").setDescription("page number").setMinValue(1)
         ),
 
-    run: async ({ interaction }) => {
-        const page = (interaction.options.getNumber("page") || 1) - 1
+    run: async (interaction: CommandInteraction) => {
+        const page =
+            ((interaction.options.get("page")?.value as number) || 1) - 1
 
         return await displayQueue(interaction, page, false)
     },
 
-    button: async (interaction, pageNumber, updateMessage) => {
+    button: async (
+        interaction: ButtonInteraction,
+        pageNumber: number,
+        updateMessage: boolean
+    ) => {
         return await displayQueue(interaction, pageNumber, updateMessage)
     },
 }
@@ -28,15 +37,27 @@ module.exports = {
  * @param {bool} updateMessage whether to update message or create new message
  * @returns void
  */
-async function displayQueue(interaction, page, updateMessage) {
-    const client = interaction.client
-    const queue = client.player.nodes.get(interaction.guildId)
+async function displayQueue(
+    interaction: CommandInteraction | ButtonInteraction,
+    page: number,
+    updateMessage: boolean
+) {
+    if (!interaction.guild) {
+        return
+    }
+
+    const queue = useQueue(interaction.guild)
+
+    const button = interaction.isButton()
 
     if (!queue || !queue.node.isPlaying()) {
         const musicEmbed = new EmbedBuilder()
             .setColor(0xff0000)
             .setDescription(`**No Music in Queue!**`)
         if (updateMessage) {
+            if (!button) {
+                return
+            }
             return await interaction.update({ embeds: [musicEmbed] })
         } else {
             return await interaction.editReply({ embeds: [musicEmbed] })
@@ -49,19 +70,7 @@ async function displayQueue(interaction, page, updateMessage) {
         totalPages = 1
     }
 
-    if (page >= totalPages) {
-        page = totalPages - 1
-
-        // const pageEmbed = new EmbedBuilder()
-        //     .setColor(0xff0000)
-        //     .setTitle(`Invalid Page!`)
-        //     .setDescription(`there are only ${totalPages} pages`)
-        // if (updateMessage) {
-        //     return await interaction.update({ embeds: [pageEmbed] })
-        // } else {
-        //     return await interaction.editReply({ embeds: [pageEmbed] })
-        // }
-    }
+    page = totalPages - 1
 
     const queueString = queue.tracks.data
         .slice(page * 10, page * 10 + 10)
@@ -118,9 +127,9 @@ async function displayQueue(interaction, page, updateMessage) {
         .setFooter({
             text: `Page ${page + 1} of ${totalPages}`,
         })
-        .setThumbnail(currentSong.thumbnail)
+        .setThumbnail(currentSong?.thumbnail || null)
 
-    let components = new ActionRowBuilder()
+    let components = new ActionRowBuilder<ButtonBuilder>()
     if (page != 0) {
         components.addComponents(
             new ButtonBuilder()
@@ -146,6 +155,9 @@ async function displayQueue(interaction, page, updateMessage) {
         )
 
     if (updateMessage) {
+        if (!button) {
+            return
+        }
         return await interaction.update({
             embeds: [embed],
             components: [components],

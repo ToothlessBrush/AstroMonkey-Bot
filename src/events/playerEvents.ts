@@ -1,17 +1,27 @@
-import { Player } from "discord-player"
-import { EmbedBuilder } from "discord.js"
+import { GuildQueue, Player, useMetadata } from "discord-player"
+import { EmbedBuilder, Interaction } from "discord.js"
 
 export const registerPlayerEvents = (player: Player) => {
-    player.events.on("error", async (queue, error) => {
+    player.events.on("error", async (queue: GuildQueue, error: Error) => {
         console.log(
             `[${queue.guild.name}] Error emitted from the queue: ${error.message}`
         )
 
-        const client = queue.player.client
-        const interaction = queue.metadata.interaction
+        type metaDataType = {
+            interaction: Interaction
+        }
+
+        const [getMetadata] = useMetadata<metaDataType>(queue)
+        const metadata = getMetadata()
+        const interaction = metadata?.interaction
+
+        if (interaction.isAutocomplete()) {
+            //shouldnt be autocomplete but to be safe
+            return
+        }
 
         try {
-            await client.channels.cache.get(interaction.channelId)?.send({
+            await interaction.reply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
@@ -35,27 +45,28 @@ export const registerPlayerEvents = (player: Player) => {
             }
         }
     })
-    player.events.on("playerError", async (queue, error) => {
-        console.log(
-            `[${queue.guild.name}] Error emitted from the connection: ${error.message}`
-        )
+    player.events.on(
+        "playerError",
+        async (queue: GuildQueue<unknown>, error) => {
+            console.log(
+                `[${queue.guild.name}] Error emitted from the connection: ${error.message}`
+            )
 
-        const client = queue.player.client
-        const interaction = queue.metadata.interaction
+            type metaDataType = {
+                interaction: Interaction
+            }
+    
+            const [getMetadata] = useMetadata<metaDataType>(queue)
+            const metadata = getMetadata()
+            const interaction = metadata?.interaction
 
-        try {
-            await client.channels.cache.get(interaction.channelId)?.send({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor(0xff0000)
-                        .setTitle(`Somthing went wrong!`)
-                        .setDescription(error.message.split("\n")[0]),
-                ],
-            })
-        } catch (err) {
-            console.error(err, "trying voice channel chat")
+            if (interaction.isAutocomplete()) {
+                //shouldnt be autocomplete but to be safe
+                return
+            }
+
             try {
-                await queue.channel.send({
+                await interaction.reply({
                     embeds: [
                         new EmbedBuilder()
                             .setColor(0xff0000)
@@ -63,15 +74,27 @@ export const registerPlayerEvents = (player: Player) => {
                             .setDescription(error.message.split("\n")[0]),
                     ],
                 })
-            } catch (voiceTextErr) {
-                console.error(voiceTextErr)
+            } catch (err) {
+                console.error(err, "trying voice channel chat")
+                try {
+                    await queue.channel?.send({
+                        embeds: [
+                            new EmbedBuilder()
+                                .setColor(0xff0000)
+                                .setTitle(`Somthing went wrong!`)
+                                .setDescription(error.message.split("\n")[0]),
+                        ],
+                    })
+                } catch (voiceTextErr) {
+                    console.error(voiceTextErr)
+                }
             }
         }
-    })
+    )
 
     player.events.on("playerStart", (queue, track) => {
         console.log(
-            `started: \"${track.title}\" in \"${queue.channel.name}\" | ${queue.guild.name}`
+            `started: \"${track.title}\" in \"${queue.channel?.name}\" | ${queue.guild.name}`
         )
     })
 

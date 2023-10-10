@@ -1,15 +1,21 @@
-const { SlashCommandBuilder, ButtonBuilder } = require("@discordjs/builders")
-const {
+import {
+    GuildMember,
+    CommandInteraction,
+    AutocompleteInteraction,
+} from "discord.js"
+
+import { SlashCommandBuilder, ButtonBuilder } from "@discordjs/builders"
+import {
     EmbedBuilder,
     ActionRowBuilder,
     ButtonStyle,
     PermissionsBitField,
-} = require("discord.js")
-const { QueryType, Playlist } = require("discord-player")
+} from "discord.js"
+import { QueryType, Track, useMainPlayer } from "discord-player"
 
-const { isUrl } = require("./../../utils/isUrl")
+import isUrl from "./../../utils/isUrl"
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName("spotifysearch")
         .setDescription(
@@ -23,8 +29,12 @@ module.exports = {
                 .setAutocomplete(true)
         ),
 
-    autocomplete: async ({ interaction }) => {
-        const client = interaction.client
+    autocomplete: async (interaction: AutocompleteInteraction) => {
+        const player = useMainPlayer()
+
+        if (!player) {
+            return
+        }
 
         const focusedValue = interaction.options.getFocused()
 
@@ -34,7 +44,7 @@ module.exports = {
 
         if (focusedValue) {
             choices.push({ name: focusedValue, value: focusedValue })
-            result_search = await client.player.search(focusedValue, {
+            result_search = await player.search(focusedValue, {
                 searchEngine: QueryType.SPOTIFY_SEARCH,
             })
         }
@@ -45,7 +55,7 @@ module.exports = {
                 value: result_search.playlist.title,
             })
         } else {
-            result_search?.tracks?.forEach((track) => {
+            result_search?.tracks?.forEach((track: Track) => {
                 choices.push({
                     name: track.title.slice(0, 100),
                     value: track.title.slice(0, 100),
@@ -56,10 +66,14 @@ module.exports = {
         return await interaction.respond(choices.slice(0, 6))
     },
 
-    run: async ({ interaction }) => {
+    run: async (interaction: CommandInteraction) => {
         const client = interaction.client
 
-        if (!interaction.member.voice.channel)
+        if (!(interaction.member instanceof GuildMember)) {
+            return
+        }
+
+        if (!interaction.member?.voice?.channel) {
             return interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
@@ -67,9 +81,17 @@ module.exports = {
                         .setDescription(`**You Must be in a VC!**`),
                 ],
             })
+        }
 
+        if (!interaction.guild) {
+            return
+        }
+
+        if (!interaction.guild.members.me) {
+            return
+        }
         //verify permission to connect
-        voiceChannelPermissions =
+        const voiceChannelPermissions =
             interaction.member.voice.channel.permissionsFor(
                 interaction.guild.members.me
             )
@@ -90,7 +112,13 @@ module.exports = {
             })
         }
 
-        const queue = await client.player.nodes.create(interaction.guild, {
+        const player = useMainPlayer()
+
+        if (!player) {
+            return
+        }
+
+        const queue = await player.nodes.create(interaction.guild, {
             metadata: {
                 interaction: interaction,
                 channel: interaction.channel,
@@ -107,7 +135,7 @@ module.exports = {
         let embed = new EmbedBuilder() //need to change this to embed builder for v14 (done)
 
         //plays a search term or url if not in playlist
-        let query = interaction.options.getString("query")
+        let query = interaction.options.get("query")?.value as string
 
         if (isUrl(query))
             return interaction.editReply({
@@ -132,7 +160,7 @@ module.exports = {
             ],
         })
 
-        const result_search = await client.player.search(query, {
+        const result_search = await player.search(query, {
             requestedBy: interaction.user,
             searchEngine: QueryType.SPOTIFY_SEARCH,
         })
@@ -188,7 +216,6 @@ module.exports = {
 
         //build embed based on info
         if (tracks.length > 1) {
-            playlist = tracks[0].playlist
             //console.log(tracks)
 
             embed
@@ -208,7 +235,7 @@ module.exports = {
                     .setThumbnail(tracks[0].thumbnail)
                     .setFooter({
                         text: `${interaction.user.username}`,
-                        iconURL: interaction.user.avatarURL(),
+                        iconURL: interaction.user.avatarURL() || undefined,
                     })
                     .setTimestamp()
             } else {
@@ -221,7 +248,7 @@ module.exports = {
                     .setThumbnail(tracks[0].thumbnail)
                     .setFooter({
                         text: `${interaction.user.username}`,
-                        iconURL: interaction.user.avatarURL(),
+                        iconURL: interaction.user.avatarURL() || undefined,
                     })
                     .setTimestamp()
             }
@@ -232,7 +259,7 @@ module.exports = {
         await interaction.editReply({
             embeds: [embed],
             components: [
-                new ActionRowBuilder()
+                new ActionRowBuilder<ButtonBuilder>()
                     .addComponents(
                         new ButtonBuilder()
                             .setCustomId("pauseButton")

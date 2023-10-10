@@ -1,9 +1,14 @@
-import { EmbedBuilder, SlashCommandBuilder } from "discord.js"
+import {
+    ButtonInteraction,
+    CommandInteraction,
+    EmbedBuilder,
+    SlashCommandBuilder,
+} from "discord.js"
 
-import { QueryType } from "discord-player"
-import { isUrl } from "./../../utils/isUrl"
+import { QueryType, useMainPlayer } from "discord-player"
+import isUrl from "./../../utils/isUrl"
 import path from "path"
-const User = require(path.join(__dirname, "./../../model/User.js"))
+import { User } from "./../../model/User.js"
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("like")
@@ -15,23 +20,26 @@ module.exports = {
                 .setRequired(true)
         ),
 
-    run: async ({ interaction }) => {
+    run: async (interaction: CommandInteraction | ButtonInteraction) => {
         let query
         if (interaction.isChatInputCommand()) {
-            query = interaction.options.getString("query")
+            query = interaction.options.get("query")?.value as string
         } else if (interaction.isButton()) {
             query = interaction.customId.split("~")[1]
         }
 
-        return addLikedTrack(interaction, query)
-    },
+        if (!query) {
+            return
+        }
 
-    likeFromAdd: (interaction, query) => {
         return addLikedTrack(interaction, query)
     },
 }
 
-async function addLikedTrack(interaction, query) {
+async function addLikedTrack(
+    interaction: CommandInteraction | ButtonInteraction,
+    query: string
+) {
     const track = await searchQuery(query, interaction)
 
     if (!track) {
@@ -72,7 +80,7 @@ async function addLikedTrack(interaction, query) {
                     .setThumbnail(track.thumbnail)
                     .setFooter({
                         text: `${interaction.user.username}`,
-                        iconURL: interaction.user.avatarURL(),
+                        iconURL: interaction.user.avatarURL() || undefined,
                     })
                     .setTimestamp(),
             ],
@@ -88,10 +96,16 @@ async function addLikedTrack(interaction, query) {
  * @param {object} interaction discord interaction object
  * @returns {object} track object to add to db
  */
-async function searchQuery(query, interaction) {
-    const buttonInteraction = interaction.isButton()
+async function searchQuery(
+    query: string,
+    interaction: CommandInteraction | ButtonInteraction
+) {
+    const player = useMainPlayer()
 
-    const client = interaction.client
+    if (!player) {
+        return
+    }
+
     let result_search
     if (isUrl(query)) {
         console.log(`searching url: ${query}`)
@@ -105,7 +119,7 @@ async function searchQuery(query, interaction) {
             embeds: [URLembed],
         })
 
-        result_search = await client.player.search(query, {
+        result_search = await player.search(query, {
             requestedBy: interaction.user,
             searchEngine: QueryType.AUTO,
         })
@@ -122,7 +136,7 @@ async function searchQuery(query, interaction) {
             embeds: [YTembed],
         })
 
-        result_search = await client.player.search(query, {
+        result_search = await player.search(query, {
             requestedBy: interaction.user,
             searchEngine: QueryType.YOUTUBE_SEARCH,
         })
@@ -131,15 +145,6 @@ async function searchQuery(query, interaction) {
     if (!result_search) {
         return
     }
-
-    //stupid way of doing it
-    //remove circular and unneeded properties
-    // delete result_search.tracks[0].playlist
-    // delete result_search.tracks[0].extractors
-    // delete result_search.tracks[0].extractor
-    // delete result_search.tracks[0].client
-    // delete result_search.tracks[0].player
-    // delete result_search.tracks[0].voiceUtils
 
     return result_search.tracks[0] //adds 1 track from search
 }

@@ -1,7 +1,10 @@
+import { Interaction } from "discord.js"
+import MyClient from "../../utils/MyClient"
+
 module.exports = {
     name: "interactionCreate",
-    async execute(interaction) {
-        const client = interaction.client
+    async execute(interaction: Interaction) {
+        const client = interaction.client as MyClient
 
         if (interaction.isChatInputCommand()) {
             console.log(
@@ -17,7 +20,6 @@ module.exports = {
             await slashcmd.run({ interaction })
         } else if (interaction.isAutocomplete()) {
             const command = client.slashcommands.get(interaction.commandName)
-            if (!command) return interaction.reply("Not a valid slash command")
 
             try {
                 await command.autocomplete({ interaction })

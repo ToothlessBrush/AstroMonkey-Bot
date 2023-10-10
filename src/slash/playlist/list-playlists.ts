@@ -1,43 +1,50 @@
-const {
+import { CommandInteraction } from "discord.js"
+import { IServer } from "../../model/Server"
+import { IUser } from "../../model/User"
+
+import {
     EmbedBuilder,
     SlashCommandBuilder,
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
-} = require("discord.js")
-const { QueryType } = require("discord-player")
+} from "discord.js"
+import { QueryType } from "discord-player"
 
-const path = require("path")
-const Server = require(path.join(__dirname, "./../../model/Server.js"))
-const User = require(path.join(__dirname, "./../../model/User.js"))
+import path from "path"
+import { Server } from "./../../model/Server.js"
+import { User } from "./../../model/User.js"
+import { IPlaylist } from "../../model/Playlist"
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName("list-playlists")
         .setDescription("lists your playlists and server playlists"),
 
-    run: async ({ interaction }) => {
-        const serverID = interaction.guild.id
+    run: async (interaction: CommandInteraction) => {
+        const serverID = interaction.guild?.id
         const userID = interaction.user.id
 
         let serverPlaylists
 
-        await Server.findOne({ "server.ID": serverID }).then((server) => {
-            if (server) {
-                serverPlaylists = server.playlists
+        await Server.findOne({ "server.ID": serverID }).then(
+            (server: IServer | null) => {
+                if (server) {
+                    serverPlaylists = server.playlists
+                }
             }
-        })
+        )
 
         let userPlaylists
 
-        await User.findOne({ ID: userID }).then((user) => {
+        await User.findOne({ ID: userID }).then((user: IUser | null) => {
             if (user) {
                 userPlaylists = user.playlists
             }
         })
 
         const playlistString = `**${
-            interaction.guild.name
+            interaction.guild?.name
         }'s Playlists**\n${mapPlaylists(serverPlaylists)}\n\n **${
             interaction.user.username
         }'s Playlists**\n${mapPlaylists(userPlaylists)} `
@@ -50,7 +57,7 @@ module.exports = {
             ],
         })
 
-        function mapPlaylists(playlists) {
+        function mapPlaylists(playlists: IPlaylist[] | undefined) {
             if (!playlists) {
                 return `No Playlists`
             }

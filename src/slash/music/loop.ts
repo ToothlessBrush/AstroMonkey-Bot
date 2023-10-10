@@ -1,8 +1,8 @@
-const { SlashCommandBuilder } = require("@discordjs/builders")
-const { QueueRepeatMode } = require("discord-player")
-const { EmbedBuilder } = require("discord.js")
+import { SlashCommandBuilder } from "@discordjs/builders"
+import { QueueRepeatMode, useQueue } from "discord-player"
+import { EmbedBuilder, CommandInteraction } from "discord.js"
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName("loop")
         .setDescription("loops current song or queue")
@@ -18,9 +18,13 @@ module.exports = {
                 )
         ),
 
-    run: async ({ interaction }) => {
-        const client = queue.client
-        const queue = client.player.nodes.get(interaction.guildId)
+    run: async (interaction: CommandInteraction) => {
+        if (!interaction.guild) {
+            //somethings gone horrible if this is true
+            return
+        }
+
+        const queue = useQueue(interaction.guild)
 
         if (!queue) {
             return await interaction.editReply({
@@ -32,20 +36,22 @@ module.exports = {
             })
         }
 
-        const loopMode = interaction.options.getString("mode")
+        const loopMode = interaction.options.get("mode")?.value as
+            | string
+            | undefined
 
         let embed = new EmbedBuilder()
 
         embed.setColor(0xa020f0)
 
         if (loopMode === "OFF") {
-            await queue.setRepeatMode(QueueRepeatMode.OFF)
+            queue.setRepeatMode(QueueRepeatMode.OFF)
             embed.setDescription(`**Stopped Looping**`)
         } else if (loopMode === `TRACK`) {
-            await queue.setRepeatMode(QueueRepeatMode.TRACK)
+            queue.setRepeatMode(QueueRepeatMode.TRACK)
             embed.setDescription(`**Looping the Current Track**`)
         } else if (loopMode === `QUEUE`) {
-            await queue.setRepeatMode(QueueRepeatMode.QUEUE)
+            queue.setRepeatMode(QueueRepeatMode.QUEUE)
             embed.setDescription(`**Looping the Queue**`)
         }
 

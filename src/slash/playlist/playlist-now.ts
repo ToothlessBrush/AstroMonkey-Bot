@@ -1,16 +1,22 @@
-import { ButtonInteraction } from "discord.js"
+import {
+    AutocompleteInteraction,
+    ButtonInteraction,
+    CommandInteraction,
+    GuildMember,
+} from "discord.js"
 
-const { SlashCommandBuilder, ButtonBuilder } = require("@discordjs/builders")
-const { Track } = require("discord-player")
-const {
+import { SlashCommandBuilder, ButtonBuilder } from "@discordjs/builders"
+import {
     EmbedBuilder,
     ActionRowBuilder,
     ButtonStyle,
     PermissionsBitField,
-} = require("discord.js")
-const path = require("path")
-const Server = require(path.join(__dirname, "./../../model/Server.js"))
-const User = require(path.join(__dirname, "./../../model/User.js"))
+} from "discord.js"
+import path from "path"
+import { Server } from "./../../model/Server.js"
+import { User } from "./../../model/User.js"
+import { Track, TrackJSON, useMainPlayer } from "discord-player"
+import { IPlaylist } from "../../model/Playlist.js"
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -32,10 +38,10 @@ module.exports = {
                 .setRequired(false)
         ),
 
-    autocomplete: async ({ client, interaction }) => {
+    autocomplete: async (interaction: AutocompleteInteraction) => {
         const focusedValue = interaction.options.getFocused()
         let choices = ["Likes"]
-        await Server.findOne({ "server.ID": interaction.guild.id }).then(
+        await Server.findOne({ "server.ID": interaction.guild?.id }).then(
             (server) => {
                 if (!server) {
                     return
@@ -63,7 +69,7 @@ module.exports = {
         })
 
         choices = removeDuplicates(choices)
-        function removeDuplicates(arr) {
+        function removeDuplicates<T>(arr) {
             return arr.filter((item, index) => arr.indexOf(item) === index)
         }
 
@@ -76,8 +82,12 @@ module.exports = {
         )
     },
 
-    run: async ({ interaction }) => {
-        if (!interaction.member.voice.channel) {
+    run: async (interaction: CommandInteraction) => {
+        if (!(interaction.member instanceof GuildMember)) {
+            return
+        }
+
+        if (!interaction.member?.voice.channel) {
             return interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
@@ -87,8 +97,12 @@ module.exports = {
             })
         }
 
+        if (!interaction.guild?.members.me) {
+            return
+        }
+
         //verify permission to connect
-        voiceChannelPermissions =
+        const voiceChannelPermissions =
             interaction.member.voice.channel.permissionsFor(
                 interaction.guild.members.me
             )
@@ -109,8 +123,10 @@ module.exports = {
             })
         }
 
-        const playlistName = interaction.options.getString("playlist")
-        const shuffle = interaction.options.getBoolean("shuffle") || false
+        const playlistName = interaction.options.get("playlist")
+            ?.value as string
+        const shuffle =
+            (interaction.options.get("shuffle")?.value as boolean) || false
 
         const serverID = interaction.guild.id
         const userID = interaction.user.id
@@ -126,13 +142,13 @@ module.exports = {
             })
 
             //build fake playlist object for function
-            const playlist = {
+            const playlist: IPlaylist = {
                 name: "Likes",
                 creater: {
                     name: interaction.user.username,
                     ID: interaction.user.id,
                 },
-                tracks: likedTracks,
+                tracks: likedTracks || [],
             }
 
             return playTracks(interaction, playlist, shuffle)
@@ -172,7 +188,7 @@ module.exports = {
                         ),
                 ],
                 components: [
-                    new ActionRowBuilder().addComponents(
+                    new ActionRowBuilder<ButtonBuilder>().addComponents(
                         new ButtonBuilder()
                             .setCustomId(
                                 `serverPlaylistButton~${serverPlaylist._id.toString()}~${shuffle}`
@@ -199,13 +215,21 @@ module.exports = {
     //buttons for case when 2 playlists found
 
     //need to switch to collector
-    buttons: async (interaction: ButtonInteraction, docType: String, playlistId: String, shuffle: boolean) => {
+    buttons: async (
+        interaction: ButtonInteraction,
+        docType: String,
+        playlistId: String,
+        shuffle: boolean
+    ) => {
         let playlist
 
         if (docType == "server") {
             playlist = await Server.findOne({
-                "server.ID": interaction.guild.id,
+                "server.ID": interaction.guild?.id,
             }).then((server) => {
+                if (!server) {
+                    return
+                }
                 return server.playlists.find(
                     (playlist) => playlist._id.toString() == playlistId
                 )
@@ -213,6 +237,9 @@ module.exports = {
         } else if (docType == "user") {
             playlist = await User.findOne({ ID: interaction.user.id }).then(
                 (user) => {
+                    if (!user) {
+                        return
+                    }
                     return user.playlists.find(
                         (playlist) => playlist._id.toString() == playlistId
                     )
@@ -231,13 +258,24 @@ module.exports = {
  * @param {boolean} shuffle whether to shuffle queue or not before adding
  * @returns nothing
  */
-async function playTracks(interaction, playlist, shuffle) {
-    const player = interaction.client.player
+async function playTracks(
+    interaction: CommandInteraction | ButtonInteraction,
+    playlist: IPlaylist | undefined,
+    shuffle: boolean
+) {
+    const player = useMainPlayer()
+    if (!player) {
+        return
+    }
 
-    const queue = await player.nodes.create(interaction.guild, {
+    if (!interaction.guild) {
+        return
+    }
+
+    const queue = player.nodes.create(interaction.guild, {
         metadata: {
             channel: interaction.channel,
-            client: interaction.guild.members.me,
+            client: interaction.guild?.members.me,
             requestedBy: interaction.user,
         },
         selfDeaf: true,
@@ -254,7 +292,7 @@ async function playTracks(interaction, playlist, shuffle) {
             embeds: [
                 new EmbedBuilder()
                     .setColor(0xff0000)
-                    .setTitle(`${playlist.name} was not found!`),
+                    .setTitle(`playlist was not found!`),
             ],
             components: [],
         }
@@ -291,20 +329,18 @@ async function playTracks(interaction, playlist, shuffle) {
         shuffleArray(tracksJSON)
     }
 
-    const tracks = tracksJSON.map((track) => new Track(player, track)) //convert track data to track objects
+    const tracks = tracksJSON.map((trackData: TrackJSON) => new Track(player, trackData)) //convert track data to track objects
 
     const QUEUE_SIZE = queue.tracks.size
-    
-    await queue.addTrack(tracks)
+
+    queue.addTrack(tracks)
 
     queue.node.skipTo(QUEUE_SIZE)
-
-    queue.interaction = interaction
 
     try {
         //verify vc connection
         if (!queue.connection) {
-            await queue.connect(interaction.member.voice.channel)
+            await queue.connect(interaction.member?.voice.channel)
         }
     } catch (error) {
         queue.delete()

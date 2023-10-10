@@ -1,14 +1,23 @@
-const { SlashCommandBuilder, ActionRowBuilder } = require("@discordjs/builders")
-const { EmbedBuilder, ButtonBuilder, ButtonStyle } = require("discord.js")
+import { SlashCommandBuilder, ActionRowBuilder } from "@discordjs/builders"
+import {
+    EmbedBuilder,
+    ButtonBuilder,
+    ButtonStyle,
+    CommandInteraction,
+} from "discord.js"
+import { useQueue } from "discord-player"
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName("pause")
         .setDescription("pauses the music queue"),
 
-    run: async ({ interaction }) => {
-        const client = interaction.client
-        const queue = client.player.nodes.get(interaction.guildId)
+    run: async (interaction: CommandInteraction) => {
+        if (!interaction.guild) {
+            return
+        }
+
+        const queue = useQueue(interaction.guild)
 
         if (!queue) {
             return await interaction.editReply({
@@ -35,12 +44,12 @@ module.exports = {
                     )
                     .setFooter({
                         text: `${interaction.user.username}`,
-                        iconURL: interaction.user.avatarURL(),
+                        iconURL: interaction.user.avatarURL() || undefined,
                     })
                     .setTimestamp(),
             ],
             components: [
-                new ActionRowBuilder().addComponents(
+                new ActionRowBuilder<ButtonBuilder>().addComponents(
                     new ButtonBuilder()
                         .setCustomId(`resumeButton`)
                         .setLabel(`Resume`)

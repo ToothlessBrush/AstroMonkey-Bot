@@ -1,18 +1,25 @@
-const {
+import {
+    AutocompleteInteraction,
+    ButtonInteraction,
+    CommandInteraction,
+} from "discord.js"
+
+import {
     EmbedBuilder,
     SlashCommandBuilder,
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
-} = require("discord.js")
-const { QueryType } = require("discord-player")
+} from "discord.js"
+import { QueryType, Track, useMainPlayer } from "discord-player"
 
-const path = require("path")
+import path from "path"
 
-const Server = require(path.join(__dirname, "./../../model/Server.js"))
-const User = require(path.join(__dirname, "./../../model/User.js"))
+import { IServer, Server } from "./../../model/Server.js"
+import { User } from "./../../model/User.js"
 
-const { isUrl } = require("./../../utils/isUrl")
+import isUrl from "./../../utils/isUrl"
+import MyClient from "../../utils/MyClient.js"
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -34,10 +41,10 @@ module.exports = {
                 .setRequired(true)
         ),
 
-    autocomplete: async ({ interaction }) => {
+    autocomplete: async (interaction: AutocompleteInteraction) => {
         const focusedValue = interaction.options.getFocused()
         let choices = ["Likes"]
-        await Server.findOne({ "server.ID": interaction.guild.id }).then(
+        await Server.findOne({ "server.ID": interaction.guild?.id }).then(
             (server) => {
                 if (!server) {
                     return
@@ -65,7 +72,7 @@ module.exports = {
         })
 
         choices = removeDuplicates(choices)
-        function removeDuplicates(arr) {
+        function removeDuplicates<T>(arr: T[]): T[] {
             return arr.filter((item, index) => arr.indexOf(item) === index)
         }
 
@@ -78,11 +85,12 @@ module.exports = {
         )
     },
 
-    run: async ({ interaction }) => {
-        const client = interaction.client
-        const playlistName = interaction.options.getString("playlist")
-        const query = interaction.options.getString("query")
-        const serverID = interaction.guild.id
+    run: async (interaction: CommandInteraction) => {
+        const client = interaction.client as MyClient
+        const playlistName = interaction.options.get("playlist")
+            ?.value as string
+        const query = interaction.options.get("query")?.value as string
+        const serverID = interaction.guild?.id
         const userID = interaction.user.id
 
         if (playlistName == "Likes") {
@@ -158,7 +166,7 @@ module.exports = {
                         ),
                 ],
                 components: [
-                    new ActionRowBuilder().addComponents(
+                    new ActionRowBuilder<ButtonBuilder>().addComponents(
                         new ButtonBuilder()
                             .setCustomId(serverCustomId)
                             .setLabel(`Server`)
@@ -173,12 +181,12 @@ module.exports = {
         }
 
         //save to db
-        if (userPL) {
+        if (userPL && user) {
             userPL.tracks.push(track.toJSON(true))
             user.save()
         }
 
-        if (serverPL) {
+        if (serverPL && server) {
             serverPL.tracks.push(track.toJSON(true))
             server.save()
         }
@@ -188,7 +196,7 @@ module.exports = {
                 new EmbedBuilder()
                     .setColor(0xa020f0)
                     .setTitle(
-                        `Added to \`${userPL ? userPL.name : serverPL.name}\``
+                        `Added to \`${userPL ? userPL.name : serverPL?.name}\``
                     )
                     .setDescription(
                         `**[${track.title}](${track.url})** \n*By ${track.author}* | ${track.duration}`
@@ -196,7 +204,7 @@ module.exports = {
                     .setThumbnail(track.thumbnail)
                     .setFooter({
                         text: `${interaction.user.username}`,
-                        iconURL: interaction.user.avatarURL(),
+                        iconURL: interaction.user.avatarURL() || undefined,
                     })
                     .setTimestamp(),
             ],
@@ -204,11 +212,20 @@ module.exports = {
     },
 
     //need to switch to collector
-    buttons: async (interaction, docType, playlistID, query) => {
-        const serverID = interaction.guild.id
+    buttons: async (
+        interaction: ButtonInteraction,
+        docType: string,
+        playlistID: string,
+        query: string
+    ) => {
+        const serverID = interaction.guild?.id
         const userID = interaction.user.id
 
         const track = await searchQuery(query, interaction)
+
+        if (!track) {
+            return
+        }
 
         let playlistName
 
@@ -268,19 +285,23 @@ module.exports = {
             })
         }
 
-        async function trackAddedReply(interaction, playlistName, track) {
+        async function trackAddedReply(
+            interaction: CommandInteraction | ButtonInteraction,
+            playlistName: string,
+            track: Track | undefined
+        ) {
             return await interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xa020f0)
                         .setTitle(`Added to \`${playlistName}\``)
                         .setDescription(
-                            `**[${track.title}](${track.url})** \n*By ${track.author}* | ${track.duration}`
+                            `**[${track?.title}](${track?.url})** \n*By ${track?.author}* | ${track?.duration}`
                         )
-                        .setThumbnail(track.thumbnail)
+                        .setThumbnail(track?.thumbnail || null)
                         .setFooter({
                             text: `${interaction.user.username}`,
-                            iconURL: interaction.user.avatarURL(),
+                            iconURL: interaction.user.avatarURL() || undefined,
                         })
                         .setTimestamp(),
                 ],
@@ -298,10 +319,16 @@ module.exports = {
  * @param {object} interaction discord interaction object
  * @returns {object} track object to add to db
  */
-async function searchQuery(query, interaction) {
+async function searchQuery(
+    query: string,
+    interaction: CommandInteraction | ButtonInteraction
+) {
     const buttonInteraction = interaction.isButton()
 
-    const client = interaction.client
+    const player = useMainPlayer()
+    if (!player) {
+        return
+    }
     let result_search
     if (isUrl(query)) {
         console.log(`searching url: ${query}`)
@@ -321,7 +348,7 @@ async function searchQuery(query, interaction) {
             })
         }
 
-        result_search = await client.player.search(query, {
+        result_search = await player.search(query, {
             requestedBy: interaction.user,
             searchEngine: QueryType.AUTO,
         })
@@ -344,7 +371,7 @@ async function searchQuery(query, interaction) {
             })
         }
 
-        result_search = await client.player.search(query, {
+        result_search = await player.search(query, {
             requestedBy: interaction.user,
             searchEngine: QueryType.YOUTUBE_SEARCH,
         })
@@ -353,15 +380,6 @@ async function searchQuery(query, interaction) {
     if (!result_search) {
         return
     }
-
-    //stupid way of doing it
-    //remove circular and unneeded properties
-    // delete result_search.tracks[0].playlist
-    // delete result_search.tracks[0].extractors
-    // delete result_search.tracks[0].extractor
-    // delete result_search.tracks[0].client
-    // delete result_search.tracks[0].player
-    // delete result_search.tracks[0].voiceUtils
 
     return result_search.tracks[0]
 }

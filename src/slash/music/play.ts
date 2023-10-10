@@ -9,11 +9,11 @@ import {
     GuildMember,
     StringSelectMenuInteraction,
 } from "discord.js"
-import { QueryType, useMainPlayer } from "discord-player"
+import { GuildQueue, QueryType, useMainPlayer, useMetadata } from "discord-player"
 
 import isUrl from "./../../utils/isUrl"
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName("play")
         .setDescription("plays a song from youtube or spotify")
@@ -68,18 +68,8 @@ module.exports = {
     },
 
     run: async (interaction: CommandInteraction) => {
-        const player = useMainPlayer()
-
-        if (!player) {
-            return
-        }
-
         //error checking
         if (!(interaction.member instanceof GuildMember)) {
-            return
-        }
-
-        if (!interaction.guild) {
             return
         }
 
@@ -92,22 +82,14 @@ module.exports = {
                 ],
             })
 
-        const member = interaction.member
-
-        if (!member) {
+        if (!interaction.guild?.members.me) {
             return
         }
-        const voiceChannel = member.voice.channel
 
-        if (!voiceChannel) {
-            return
-        }
-        
         //verify permission to connect
-        const voiceChannelPermissions =
-            voiceChannel.permissionsFor(
-                interaction.guild.members.me
-            )
+        const voiceChannelPermissions = interaction.member.voice.channel.permissionsFor(
+            interaction.guild.members.me
+        )
 
         if (
             !voiceChannelPermissions.has(PermissionsBitField.Flags.Connect) ||
@@ -125,6 +107,16 @@ module.exports = {
             })
         }
 
+        const player = useMainPlayer()
+
+        if (!player) {
+            return
+        }
+
+        if (!interaction.guild) {
+            return
+        }
+
         const queue = player.nodes.create(interaction.guild, {
             metadata: {
                 interaction: interaction,
@@ -137,7 +129,11 @@ module.exports = {
             leaveOnEmpty: true,
             leaveOnEnd: true,
             skipOnNoStream: true,
-        })
+        }) as GuildQueue
+
+        const metadata = useMetadata(queue)
+
+        console.log(metadata)
 
         let embed = new EmbedBuilder() //need to change this to embed builder for v14 (done)
 
@@ -152,7 +148,7 @@ module.exports = {
         }
 
         //error check query
-        if (query == undefined || query == null) {
+        if (!query) {
             return
         }
 

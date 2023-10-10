@@ -1,4 +1,3 @@
-//const Discord = require("discord.js")
 import {
     Client,
     GatewayIntentBits,
@@ -6,8 +5,8 @@ import {
     Options,
     GuildMember,
 } from "discord.js"
+import MyClient from "./utils/MyClient"
 import { REST } from "@discordjs/rest"
-import { Routes } from "discord-api-types/v9"
 
 import { connect, connection } from "mongoose"
 
@@ -45,17 +44,17 @@ const GLOBAL = process.argv[3] == "global"
 
 const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
-    //lower cache limit to hopefully decrease memory usage
+    //lower cache limit to hopefully decrease memory usage (didnt work)
     makeCache: Options.cacheWithLimits({
         ...Options.DefaultMakeCacheSettings,
         ReactionManager: 0,
         GuildMemberManager: {
-            maxSize: 100, //default 200
+            maxSize: 200, //default 200
             keepOverLimit: (member: GuildMember) =>
                 member.id === client.user?.id,
         },
     }),
-}) as Client & { slashcommands: Collection<string, any>; player: Player } //we define client object as a client and other elements we need
+}) as MyClient
 
 client.slashcommands = new Collection<string, any>()
 client.player = new Player(client, {
@@ -90,7 +89,7 @@ for (const dir of subDir) {
         .readdirSync(path.join(slashDirectory, dir))
         .filter((file: string) => file.endsWith(".js"))
     for (const file of slashFiles) {
-        const slashcmd = require(path.join(slashDirectory, dir, file))
+        const slashcmd = await import(path.join(slashDirectory, dir, file))
         client.slashcommands.set(slashcmd.data.name, slashcmd)
         if (LOAD_SLASH) {
             commands.push(slashcmd.data.toJSON()) //.toJSON because it can catch errors I think
@@ -102,7 +101,7 @@ for (const dir of subDir) {
 if (LOAD_SLASH) {
     const rest = new REST({ version: "9" }).setToken(TOKEN)
     console.log("Deploying slash commands")
-    const route = GLOBAL //input sting manually (replaces applicationCommands(applicationId: string): `/applications/${string}/commands`) for typescript 
+    const route = GLOBAL //input sting manually (replaces applicationCommands(applicationId: string): `/applications/${string}/commands`) for typescript
         ? (`/applications/${CLIENT_ID}/commands` as `/${string}`)
         : (`/applications/${CLIENT_ID}/guilds/${GUILD_ID}/commands` as `/${string}`)
     rest.put(route, { body: commands })
@@ -131,11 +130,15 @@ if (LOAD_SLASH) {
     //register discord events
     for (const file of eventFiles) {
         const filePath = path.join(clientPath, file)
-        const event = require(filePath)
-        if (event.once) {
-            client.once(event.name, (...args: any) => event.execute(...args))
-        } else {
-            client.on(event.name, (...args: any) => event.execute(...args))
+        const event = await import(filePath)
+        try {
+            if (event.once) {
+                client.once(event.name, (...args: any) => event.execute(...args))
+            } else {
+                client.on(event.name, (...args: any) => event.execute(...args))
+            }
+        } catch (err) {
+            console.log(`error while importing discord event files: ${err}`)
         }
     }
     console.log(`registered client events`)
@@ -148,13 +151,17 @@ if (LOAD_SLASH) {
 
     for (const file of DBevents) {
         const filePath = path.join(DBEventsPath, file)
-        const event = require(filePath)
-        if (event.once) {
-            connection.once(event.name, (...args: any) =>
-                event.execute(...args)
-            )
-        } else {
-            connection.on(event.name, (...args: any) => event.execute(...args))
+        const event = await import(filePath)
+        try {
+            if (event.once) {
+                connection.once(event.name, (...args: any) =>
+                    event.execute(...args)
+                )
+            } else {
+                connection.on(event.name, (...args: any) => event.execute(...args))
+            }
+        } catch (err) {
+            console.error(`Error while importing db event files: ${err}`)
         }
     }
     console.log(`registered database events`)
