@@ -1,6 +1,6 @@
 # Astromonkey Discord Bot Privacy Policy
 
-_Last Updated: [Date]_
+_Last Updated: October 10, 2023_
 
 ## Introduction
 
