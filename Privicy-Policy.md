@@ -1,4 +1,4 @@
-# Astromonkey Discord Bot Privacy Policy
+# Privacy Policy
 
 _Last Updated: October 10, 2023_
 
