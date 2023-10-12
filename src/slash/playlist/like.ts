@@ -5,7 +5,7 @@ import {
     SlashCommandBuilder,
 } from "discord.js"
 
-import { QueryType, useMainPlayer } from "discord-player"
+import { QueryType, Track, useMainPlayer } from "discord-player"
 import isUrl from "./../../utils/isUrl"
 import path from "path"
 import { User } from "./../../model/User.js"
@@ -22,10 +22,12 @@ export default {
 
     run: async (interaction: CommandInteraction | ButtonInteraction) => {
         let query
-        if (interaction.isChatInputCommand()) {
+        const isButton = interaction.isButton()
+
+        if (!isButton) {
             query = interaction.options.get("query")?.value as string
-        } else if (interaction.isButton()) {
-            query = interaction.customId.split("~")[1]
+        } else if (isButton) {
+            query = (interaction as ButtonInteraction).customId.split("~")[1]
         }
 
         if (!query) {
@@ -99,7 +101,7 @@ async function addLikedTrack(
 async function searchQuery(
     query: string,
     interaction: CommandInteraction | ButtonInteraction
-) {
+): Promise<Track<unknown> | undefined> {
     const player = useMainPlayer()
 
     if (!player) {
