@@ -3,7 +3,7 @@ import {
     SlashCommandBuilder,
     ActionRowBuilder,
 } from "@discordjs/builders"
-import { ButtonStyle, CommandInteraction, EmbedBuilder } from "discord.js"
+import { ButtonStyle, ChatInputCommandInteraction, CommandInteraction, EmbedBuilder } from "discord.js"
 import { useQueue } from "discord-player"
 
 export default {
@@ -11,7 +11,7 @@ export default {
         .setName("playlast")
         .setDescription("Plays the Previously Played Song"),
 
-    run: async (interaction: CommandInteraction) => {
+    run: async (interaction: ChatInputCommandInteraction) => {
         if (!interaction.guild) {
             return
         }

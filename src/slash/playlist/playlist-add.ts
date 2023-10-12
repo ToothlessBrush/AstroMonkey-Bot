@@ -1,6 +1,7 @@
 import {
     AutocompleteInteraction,
     ButtonInteraction,
+    ChatInputCommandInteraction,
     CommandInteraction,
 } from "discord.js"
 
@@ -85,7 +86,7 @@ export default {
         )
     },
 
-    run: async (interaction: CommandInteraction) => {
+    run: async (interaction: ChatInputCommandInteraction) => {
         const client = interaction.client as MyClient
         const playlistName = interaction.options.get("playlist")
             ?.value as string

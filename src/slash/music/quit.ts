@@ -1,5 +1,5 @@
 import { useQueue } from "discord-player"
-import { CommandInteraction } from "discord.js"
+import { ChatInputCommandInteraction, CommandInteraction } from "discord.js"
 
 import { SlashCommandBuilder } from "@discordjs/builders"
 import { EmbedBuilder } from "discord.js"
@@ -9,7 +9,7 @@ export default {
         .setName("quit")
         .setDescription("clears queue and stops bot"),
 
-    run: async (interaction: CommandInteraction) => {
+    run: async (interaction: ChatInputCommandInteraction) => {
         
         if (!interaction.guild) {
             return

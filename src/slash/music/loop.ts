@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from "@discordjs/builders"
 import { QueueRepeatMode, useQueue } from "discord-player"
-import { EmbedBuilder, CommandInteraction } from "discord.js"
+import { EmbedBuilder, CommandInteraction, ChatInputCommandInteraction } from "discord.js"
 
 export default {
     data: new SlashCommandBuilder()
@@ -18,7 +18,7 @@ export default {
                 )
         ),
 
-    run: async (interaction: CommandInteraction) => {
+    run: async (interaction: ChatInputCommandInteraction) => {
         if (!interaction.guild) {
             //somethings gone horrible if this is true
             return

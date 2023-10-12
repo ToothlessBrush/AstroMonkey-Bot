@@ -7,6 +7,7 @@ import {
     CommandInteraction,
     AutocompleteInteraction,
     ButtonInteraction,
+    ChatInputCommandInteraction,
 } from "discord.js"
 
 import { Server, IServer } from "./../../model/Server.js"
@@ -71,7 +72,7 @@ export default {
         )
     },
 
-    run: async (interaction: CommandInteraction) => {
+    run: async (interaction: ChatInputCommandInteraction) => {
         const playlistQuery = interaction.options.get("playlist")
             ?.value as string
 

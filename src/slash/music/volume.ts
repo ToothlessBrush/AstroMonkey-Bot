@@ -1,6 +1,6 @@
 import { EmbedBuilder } from "@discordjs/builders"
 import { useQueue } from "discord-player"
-import { CommandInteraction, SlashCommandBuilder } from "discord.js"
+import { ChatInputCommandInteraction, CommandInteraction, SlashCommandBuilder } from "discord.js"
 
 export default {
     data: new SlashCommandBuilder()
@@ -17,7 +17,7 @@ export default {
                 .setMaxValue(100)
         ),
 
-    run: async (interaction: CommandInteraction) => {
+    run: async (interaction: ChatInputCommandInteraction) => {
         if (!interaction.guild) {
             return
         }

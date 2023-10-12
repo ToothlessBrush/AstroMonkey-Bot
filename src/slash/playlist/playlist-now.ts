@@ -1,6 +1,7 @@
 import {
     AutocompleteInteraction,
     ButtonInteraction,
+    ChatInputCommandInteraction,
     CommandInteraction,
     GuildMember,
 } from "discord.js"
@@ -83,7 +84,7 @@ export default {
         )
     },
 
-    run: async (interaction: CommandInteraction) => {
+    run: async (interaction: ChatInputCommandInteraction) => {
         if (!(interaction.member instanceof GuildMember)) {
             return
         }

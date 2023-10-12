@@ -7,6 +7,7 @@ import {
     CommandInteraction,
     AutocompleteInteraction,
     ButtonInteraction,
+    ChatInputCommandInteraction,
 } from "discord.js"
 import { QueryType } from "discord-player"
 
@@ -72,7 +73,7 @@ export default {
         )
     },
 
-    run: async (interaction: CommandInteraction) => {
+    run: async (interaction: ChatInputCommandInteraction) => {
         const serverID = interaction.guild?.id
         const userID = interaction.user.id
         const playlistName = interaction.options.get("playlist")
@@ -97,7 +98,7 @@ export default {
                 tracks: likedTracks,
             }
 
-            showTracks(interaction, playlist)
+            return showTracks(interaction, playlist)
         }
 
         const server = await Server.findOne({ "server.ID": serverID })

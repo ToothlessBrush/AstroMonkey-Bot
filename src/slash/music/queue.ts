@@ -1,4 +1,8 @@
-import { ButtonInteraction, CommandInteraction } from "discord.js"
+import {
+    ButtonInteraction,
+    ChatInputCommandInteraction,
+    CommandInteraction,
+} from "discord.js"
 
 import { SlashCommandBuilder, ActionRowBuilder } from "@discordjs/builders"
 import { EmbedBuilder, ButtonBuilder, ButtonStyle } from "discord.js"
@@ -13,7 +17,7 @@ export default {
             option.setName("page").setDescription("page number").setMinValue(1)
         ),
 
-    run: async (interaction: CommandInteraction) => {
+    run: async (interaction: ChatInputCommandInteraction) => {
         const page =
             ((interaction.options.get("page")?.value as number) || 1) - 1
 
@@ -38,7 +42,7 @@ export default {
  * @returns void
  */
 async function displayQueue(
-    interaction: CommandInteraction | ButtonInteraction,
+    interaction: ChatInputCommandInteraction | ButtonInteraction,
     page: number,
     updateMessage: boolean
 ) {
@@ -58,9 +62,15 @@ async function displayQueue(
             if (!button) {
                 return
             }
-            return await interaction.update({ embeds: [musicEmbed] })
+            return await interaction.update({
+                embeds: [musicEmbed],
+                components: [],
+            })
         } else {
-            return await interaction.editReply({ embeds: [musicEmbed] })
+            return await interaction.editReply({
+                embeds: [musicEmbed],
+                components: [],
+            })
         }
     }
 
@@ -70,7 +80,9 @@ async function displayQueue(
         totalPages = 1
     }
 
-    page = totalPages - 1
+    if (page > totalPages - 1) {
+        page = totalPages - 1
+    }
 
     const queueString = queue.tracks.data
         .slice(page * 10, page * 10 + 10)

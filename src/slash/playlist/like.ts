@@ -1,5 +1,6 @@
 import {
     ButtonInteraction,
+    ChatInputCommandInteraction,
     CommandInteraction,
     EmbedBuilder,
     SlashCommandBuilder,
@@ -20,8 +21,11 @@ export default {
                 .setRequired(true)
         ),
 
-    run: async (interaction: CommandInteraction | ButtonInteraction) => {
+    run: async (
+        interaction: ChatInputCommandInteraction | ButtonInteraction
+    ) => {
         let query
+
         const isButton = interaction.isButton()
 
         if (!isButton) {

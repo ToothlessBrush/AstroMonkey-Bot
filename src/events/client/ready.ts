@@ -13,7 +13,7 @@ export default {
         console.log(chalk.green(`Logged in as ${client.user.tag}`))
         client.user.setActivity({
             name: "/help",
-            type: ActivityType.Streaming,
+            type: ActivityType.Listening,
         })
     },
 }

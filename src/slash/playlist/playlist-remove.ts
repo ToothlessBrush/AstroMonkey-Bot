@@ -8,6 +8,7 @@ import {
     ButtonInteraction,
     CommandInteraction,
     AutocompleteInteraction,
+    ChatInputCommandInteraction,
 } from "discord.js"
 
 import path from "path"
@@ -143,7 +144,7 @@ export default {
         )
     },
 
-    run: async (interaction: CommandInteraction ) => {
+    run: async (interaction: ChatInputCommandInteraction ) => {
         const playlistName = interaction.options.get("playlist")?.value as string
         const query = interaction.options.get("track")?.value as string
         const serverID = interaction.guild?.id

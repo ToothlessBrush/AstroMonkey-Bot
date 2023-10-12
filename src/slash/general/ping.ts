@@ -1,12 +1,12 @@
 import { SlashCommandBuilder } from "@discordjs/builders"
-import { EmbedBuilder, CommandInteraction } from "discord.js"
+import { EmbedBuilder, CommandInteraction, ChatInputCommandInteraction } from "discord.js"
 
 export default {
     data: new SlashCommandBuilder()
         .setName("ping")
         .setDescription("replies with the latency of the bot"),
 
-    run: async ( interaction: CommandInteraction ) => {
+    run: async ( interaction: ChatInputCommandInteraction ) => {
         if (interaction.isAutocomplete()) {
             return
         }

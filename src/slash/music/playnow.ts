@@ -7,6 +7,8 @@ import {
     CommandInteraction,
     GuildMember,
     StringSelectMenuInteraction,
+    ChatInputCommandInteraction,
+    AutocompleteInteraction,
 } from "discord.js"
 import { QueryType, SearchResult, useMainPlayer } from "discord-player"
 
@@ -23,10 +25,52 @@ export default {
                 .setName("query")
                 .setDescription("a search term, share link, or URL of the song")
                 .setRequired(true)
+                .setAutocomplete(true)
         ),
 
-    run: async (interaction: CommandInteraction) => {
+    autocomplete: async (interaction: AutocompleteInteraction) => {
+        const player = useMainPlayer()
+        const focusedValue = interaction.options.getFocused()
 
+        //search platforms for the query
+        let result_search
+
+        let choices = []
+        if (focusedValue) {
+            choices.push({
+                name: focusedValue.slice(0, 100),
+                value: focusedValue.slice(0, 100),
+            })
+            if (isUrl(focusedValue)) {
+                result_search = await player?.search(focusedValue, {
+                    searchEngine: QueryType.AUTO,
+                })
+            } else {
+                result_search = await player?.search(focusedValue, {
+                    searchEngine: QueryType.YOUTUBE_SEARCH,
+                })
+            }
+        }
+
+        //set choices for autocomplete
+        if (result_search?.playlist) {
+            choices.push({
+                name: result_search.playlist.title.slice(0, 100),
+                value: result_search.playlist.url.slice(0, 100),
+            })
+        } else {
+            result_search?.tracks?.forEach((track: any) =>
+                choices.push({
+                    name: track.title.slice(0, 100),
+                    value: track.url.slice(0, 100),
+                })
+            )
+        }
+
+        return await interaction.respond(choices.slice(0, 5))
+    },
+
+    run: async (interaction: ChatInputCommandInteraction) => {
         //error checking
         if (!(interaction.member instanceof GuildMember)) {
             return
@@ -45,7 +89,7 @@ export default {
         if (!interaction.guild?.members.me) {
             return
         }
-        
+
         //verify permission to connect
         const voiceChannelPermissions =
             interaction.member.voice.channel.permissionsFor(
@@ -74,8 +118,6 @@ export default {
             return
         }
 
-        
-
         const queue = player.nodes.create(interaction.guild, {
             metadata: {
                 interaction: interaction,
@@ -92,15 +134,7 @@ export default {
 
         let embed = new EmbedBuilder() //need to change this to embed builder for v14 (done)
 
-        //grabs query string differently depending on which interaction type it is
-        let query
-        if (interaction.isChatInputCommand()) {
-            query = interaction.options.getString("query")
-        } else if (interaction.isStringSelectMenu()) {
-            const stringSelectMenuInteraction =
-                interaction as StringSelectMenuInteraction //switch to stringselect menu interaction to get value
-            query = stringSelectMenuInteraction.values[0]
-        }
+        const query = interaction.options.getString("query")
 
         if (!query) {
             return

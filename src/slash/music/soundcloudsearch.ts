@@ -7,6 +7,7 @@ import {
     ActionRowBuilder,
     ButtonStyle,
     PermissionsBitField,
+    ChatInputCommandInteraction,
 } from "discord.js"
 
 import { SlashCommandBuilder, ButtonBuilder } from "@discordjs/builders"
@@ -67,7 +68,7 @@ export default {
         return await interaction.respond(choices.slice(0, 6))
     },
 
-    run: async (interaction: CommandInteraction) => {
+    run: async (interaction: ChatInputCommandInteraction) => {
         const client = interaction.client
 
         if (!(interaction.member instanceof GuildMember)) {

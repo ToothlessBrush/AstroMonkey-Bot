@@ -184,7 +184,7 @@ export default {
                     return
                 case "like":
                     await interaction.deferReply()
-                    client.slashcommands.get("like").run({ interaction })
+                    client.slashcommands.get("like").run(interaction)
                     return
                 default:
                     return

@@ -9,6 +9,7 @@ import {
     AutocompleteInteraction,
     GuildMember,
     ButtonInteraction,
+    ChatInputCommandInteraction,
 } from "discord.js"
 import path from "path"
 import { Server, IServer } from "./../../model/Server.js"
@@ -77,7 +78,7 @@ export default {
         )
     },
 
-    run: async (interaction: CommandInteraction) => {
+    run: async (interaction: ChatInputCommandInteraction) => {
         if (!(interaction.member instanceof GuildMember)) {
             return
         }

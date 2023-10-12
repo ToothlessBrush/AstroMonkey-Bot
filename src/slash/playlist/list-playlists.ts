@@ -1,4 +1,4 @@
-import { CommandInteraction } from "discord.js"
+import { ChatInputCommandInteraction, CommandInteraction } from "discord.js"
 import { IServer } from "../../model/Server"
 import { IUser } from "../../model/User"
 
@@ -21,7 +21,7 @@ export default {
         .setName("list-playlists")
         .setDescription("lists your playlists and server playlists"),
 
-    run: async (interaction: CommandInteraction) => {
+    run: async (interaction: ChatInputCommandInteraction) => {
         const serverID = interaction.guild?.id
         const userID = interaction.user.id
 

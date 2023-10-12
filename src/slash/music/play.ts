@@ -73,7 +73,9 @@ export default {
         return await interaction.respond(choices.slice(0, 5))
     },
 
-    run: async (interaction: CommandInteraction) => {
+    run: async (
+        interaction: ChatInputCommandInteraction | StringSelectMenuInteraction
+    ) => {
         //error checking
         if (!(interaction.member instanceof GuildMember)) {
             return
