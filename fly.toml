@@ -12,3 +12,6 @@ primary_region = "ord"
 [[services]]
   protocol = "tcp"
   internal_port = 8080
+
+[env]
+  NODE_ENV = "production"

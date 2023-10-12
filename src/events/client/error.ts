@@ -1,5 +1,7 @@
+import { Events } from "discord.js"
+
 export default {
-    name: "error",
+    name: Events.Error,
     execute(error: Error) {
         console.error(error)
     },
