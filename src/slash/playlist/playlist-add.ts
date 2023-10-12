@@ -21,7 +21,7 @@ import { User } from "./../../model/User.js"
 import isUrl from "./../../utils/isUrl"
 import MyClient from "../../utils/MyClient.js"
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName("playlist-add")
         .setDescription("add tracks to a playlist")
@@ -153,8 +153,8 @@ module.exports = {
                 customIdTrack = track.url
             }
 
-            const serverCustomId = `addServerPL~${serverPL._id.toString()}~${customIdTrack}`
-            const userCustomId = `addUserPL~${userPL._id.toString()}~${customIdTrack}`
+            const serverCustomId = `addServerPL~${serverPL._id?.toString()}~${customIdTrack}`
+            const userCustomId = `addUserPL~${userPL._id?.toString()}~${customIdTrack}`
 
             return interaction.editReply({
                 embeds: [
@@ -240,7 +240,7 @@ module.exports = {
                 }
                 //find playlist based on doc id
                 let userPL = user.playlists.find(
-                    (playlist) => playlist._id.toString() == playlistID
+                    (playlist) => playlist._id?.toString() == playlistID
                 )
 
                 if (!userPL) {
@@ -267,7 +267,7 @@ module.exports = {
                 }
                 //find playlist based on doc id
                 let serverPL = server.playlists.find(
-                    (playlist) => playlist._id.toString() == playlistID
+                    (playlist) => playlist._id?.toString() == playlistID
                 )
 
                 if (!serverPL) {

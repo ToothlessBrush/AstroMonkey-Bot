@@ -9,10 +9,10 @@ import {
     ButtonInteraction,
 } from "discord.js"
 
-import { Server } from "./../../model/Server.js"
-import { User } from "./../../model/User.js"
+import { Server, IServer } from "./../../model/Server.js"
+import { User, IUser } from "./../../model/User.js"
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName("delete-playlist")
         .setDescription("delete a playlist")
@@ -114,13 +114,13 @@ module.exports = {
                     new ActionRowBuilder<ButtonBuilder>().addComponents(
                         new ButtonBuilder()
                             .setCustomId(
-                                `deleteServerPL~${serverPL._id.toString()}`
+                                `deleteServerPL~${serverPL._id?.toString()}`
                             )
                             .setLabel(`Server`)
                             .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
                             .setCustomId(
-                                `deleteUserPL~${userPL._id.toString()}`
+                                `deleteUserPL~${userPL._id?.toString()}`
                             )
                             .setLabel(`Personal`)
                             .setStyle(ButtonStyle.Secondary)
@@ -142,7 +142,7 @@ module.exports = {
         if (serverPL) {
             return askConfirmDelete(
                 interaction,
-                serverPL._id.toString(),
+                serverPL._id?.toString(),
                 serverPL.name
             )
         }
@@ -150,7 +150,7 @@ module.exports = {
         if (userPL) {
             return askConfirmDelete(
                 interaction,
-                userPL._id.toString(),
+                userPL._id?.toString(),
                 userPL.name
             )
         }
@@ -177,7 +177,7 @@ module.exports = {
             }
 
             playlist = user.playlists.find(
-                (playlist) => playlist._id.toString() == playlistID
+                (playlist) => playlist._id?.toString() == playlistID
             )
         } else if (docType == "server") {
             const server = await Server.findOne({ "server.ID": serverID })
@@ -189,7 +189,7 @@ module.exports = {
             }
 
             playlist = server.playlists.find(
-                (playlist) => playlist._id.toString() == playlistID
+                (playlist) => playlist._id?.toString() == playlistID
             )
         }
 
@@ -217,7 +217,7 @@ module.exports = {
             }
 
             let playlistIndex = user.playlists.findIndex(
-                (playlist) => playlist._id.toString() == playlistID
+                (playlist) => playlist._id?.toString() == playlistID
             )
 
             //if found in user
@@ -264,7 +264,7 @@ module.exports = {
                     }
 
                     let playlistIndex = server.playlists.findIndex(
-                        (playlist) => playlist._id.toString() == playlistID
+                        (playlist) => playlist._id?.toString() == playlistID
                     )
 
                     if (playlistIndex == -1) {
@@ -324,7 +324,7 @@ module.exports = {
  */
 async function askConfirmDelete(
     interaction: CommandInteraction | ButtonInteraction,
-    playlistID: string,
+    playlistID: string | undefined,
     playlistName: string
 ) {
     const buttonInteraction = interaction.isButton()

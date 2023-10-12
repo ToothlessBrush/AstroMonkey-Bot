@@ -4,7 +4,7 @@ import { CommandInteraction } from "discord.js"
 import { SlashCommandBuilder, ActionRowBuilder } from "@discordjs/builders"
 import { EmbedBuilder, ButtonBuilder, ButtonStyle } from "discord.js"
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName("resume")
         .setDescription("resumes the music queue"),

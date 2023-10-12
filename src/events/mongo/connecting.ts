@@ -1,6 +1,6 @@
 import chalk from "chalk"
 
-module.exports = {
+export default {
     name: "connecting",
     execute() {
         console.log(chalk.cyan("[Database Status]: Connecting..."))

@@ -9,7 +9,7 @@ import { QueryType, useMainPlayer } from "discord-player"
 import isUrl from "./../../utils/isUrl"
 import path from "path"
 import { User } from "./../../model/User.js"
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName("like")
         .setDescription("Like a song (same as playlist-add Likes")

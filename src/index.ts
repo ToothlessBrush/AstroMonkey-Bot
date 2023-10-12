@@ -87,13 +87,13 @@ const subDir = fs
 for (const dir of subDir) {
     const slashFiles = fs
         .readdirSync(path.join(slashDirectory, dir))
-        .filter((file: string) => file.endsWith(".js"))
+        .filter((file: string) => file.endsWith(".ts") || file.endsWith(`.js`))
     for (const file of slashFiles) {
-        const slashcmd = await import(path.join(slashDirectory, dir, file))
+        //console.log(slashDirectory + "/" + dir + "/" + file)
+        const slashcmd = require(path.join(slashDirectory, dir, file)).default
         client.slashcommands.set(slashcmd.data.name, slashcmd)
         if (LOAD_SLASH) {
-            commands.push(slashcmd.data.toJSON()) //.toJSON because it can catch errors I think
-            //console.log(slashcmd.data)
+            commands.push(slashcmd.data.toJSON())
         }
     }
 }
@@ -113,9 +113,9 @@ if (LOAD_SLASH) {
             )
             process.exit(0)
         })
-        .catch((err: Object) => {
+        .catch((err: Error) => {
             if (err) {
-                console.log(err)
+                console.error(err)
                 process.exit(1)
             }
         })
@@ -125,15 +125,17 @@ if (LOAD_SLASH) {
     const clientPath = path.join(__dirname, "events", "client")
     const eventFiles = fs
         .readdirSync(clientPath)
-        .filter((file: String) => file.endsWith(".js"))
+        .filter((file: string) => file.endsWith(".ts") || file.endsWith(`.js`))
 
     //register discord events
     for (const file of eventFiles) {
         const filePath = path.join(clientPath, file)
-        const event = await import(filePath)
+        const event = require(filePath).default
         try {
             if (event.once) {
-                client.once(event.name, (...args: any) => event.execute(...args))
+                client.once(event.name, (...args: any) =>
+                    event.execute(...args)
+                )
             } else {
                 client.on(event.name, (...args: any) => event.execute(...args))
             }
@@ -147,18 +149,20 @@ if (LOAD_SLASH) {
     const DBEventsPath = path.join(__dirname, "events", "mongo")
     const DBevents = fs
         .readdirSync(DBEventsPath)
-        .filter((file: String) => file.endsWith(".js"))
+        .filter((file: string) => file.endsWith(".ts") || file.endsWith(`.js`))
 
     for (const file of DBevents) {
         const filePath = path.join(DBEventsPath, file)
-        const event = await import(filePath)
+        const event = require(filePath).default
         try {
             if (event.once) {
                 connection.once(event.name, (...args: any) =>
                     event.execute(...args)
                 )
             } else {
-                connection.on(event.name, (...args: any) => event.execute(...args))
+                connection.on(event.name, (...args: any) =>
+                    event.execute(...args)
+                )
             }
         } catch (err) {
             console.error(`Error while importing db event files: ${err}`)

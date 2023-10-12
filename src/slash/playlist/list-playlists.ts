@@ -16,7 +16,7 @@ import { Server } from "./../../model/Server.js"
 import { User } from "./../../model/User.js"
 import { IPlaylist } from "../../model/Playlist"
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName("list-playlists")
         .setDescription("lists your playlists and server playlists"),

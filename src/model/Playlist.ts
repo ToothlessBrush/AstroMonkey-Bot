@@ -1,5 +1,5 @@
 import { TrackJSON } from "discord-player"
-import { Schema, Document } from "mongoose"
+import mongoose, { Schema, ObjectId } from "mongoose"
 
 interface IPlaylist {
     name: string
@@ -11,7 +11,7 @@ interface IPlaylist {
     duration?: number
     dateCreated?: Date
     tracks: TrackJSON[]
-    _id?: any
+    _id?: mongoose.Types.ObjectId
 }
 
 const playlistSchema = new Schema<IPlaylist>({

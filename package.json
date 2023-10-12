@@ -2,18 +2,22 @@
     "name": "astromonkey-v2",
     "version": "1.0.0",
     "description": "",
-    "main": "./src/index.js",
+    "main": "./src/index.ts",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "start": "set NODE_ENV=prod&& node ./src/index.js",
-        "dev": "set NODE_ENV=dev&& ts-node-dev src/index.ts"
+        "start": "set NODE_ENV=prod&& node ./dist/index.js",
+        "dev": "set NODE_ENV=dev&& npx tsx watch ./src/index.ts",
+        "build": "tsc"
     },
     "keywords": [],
     "author": "",
-    "license": "ISC",
+    "license": "MIT",
     "devDependencies": {
-        "typescript": "^5.2.2",
-        "ts-node-dev": "2.0.0"
+        "@types/node": "^20.8.4",
+        "npm": "^10.2.0",
+        "tslib": "^2.6.2",
+        "tsx": "^3.13.0",
+        "typescript": "^5.2.2"
     },
     "dependencies": {
         "@discord-player/extractor": "^4.4.4",
@@ -21,14 +25,14 @@
         "@discordjs/opus": "github:discordjs/opus",
         "@discordjs/rest": "^1.7.1",
         "@discordjs/voice": "^0.16.0",
+        "@types/ffmpeg-static": "^3.0.1",
         "chalk": "^4.1.2",
         "discord-api-types": "^0.37.56",
         "discord-player": "^6.6.3",
         "discord.js": "^14.13.0",
         "dotenv": "^16.3.1",
         "ffmpeg-static": "^5.2.0",
-        "mongodb": "^5.8.0",
-        "mongoose": "^7.5.0",
+        "mongoose": "^7.6.1",
         "youtube-ext": "^1.1.14"
     }
 }

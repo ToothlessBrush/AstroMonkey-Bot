@@ -1,4 +1,4 @@
-const {
+import {
     EmbedBuilder,
     SlashCommandBuilder,
     ActionRowBuilder,
@@ -6,14 +6,17 @@ const {
     ButtonStyle,
     Embed,
     ButtonInteraction,
-} = require("discord.js")
+    CommandInteraction,
+    AutocompleteInteraction,
+} from "discord.js"
 
-const path = require("path")
-const Server = require(path.join(__dirname, "./../../model/Server.js"))
-const User = require(path.join(__dirname, "./../../model/User.js"))
-const { trusted } = require("mongoose")
+import path from "path"
+import { Server } from "./../../model/Server.js"
+import { User } from "./../../model/User.js"
+import { trusted } from "mongoose"
+import { IPlaylist } from "../../model/Playlist.js"
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName("playlist-remove")
         .setDescription("remove a track from a playlist")
@@ -32,13 +35,13 @@ module.exports = {
                 .setRequired(true)
         ),
 
-    autocomplete: async ({ interaction }) => {
+    autocomplete: async (interaction: AutocompleteInteraction) => {
         const focusedOption = interaction.options.getFocused(true)
 
         let choices = []
         if (focusedOption.name == "playlist") {
             choices.push("Likes")
-            await Server.findOne({ "server.ID": interaction.guild.id }).then(
+            await Server.findOne({ "server.ID": interaction.guild?.id }).then(
                 (server) => {
                     if (!server) {
                         return
@@ -67,7 +70,9 @@ module.exports = {
         }
 
         if (focusedOption.name == "track") {
-            const playlistName = interaction.options._hoistedOptions[0].value
+            const playlistName = interaction.options.get(`playlist`)?.value as string //hope this will work
+
+            //const playlistName = interaction.options._hoistedOptions[0].value
 
             if (playlistName == "Likes") {
                 User.findOne({ ID: interaction.user.id }).then((user) => {
@@ -80,7 +85,7 @@ module.exports = {
                 })
             }
 
-            await Server.findOne({ "server.ID": interaction.guild.id }).then(
+            await Server.findOne({ "server.ID": interaction.guild?.id }).then(
                 (server) => {
                     if (!server) {
                         return
@@ -125,7 +130,7 @@ module.exports = {
         }
 
         choices = removeDuplicates(choices)
-        function removeDuplicates(arr) {
+        function removeDuplicates<T>(arr: T[]) {
             return arr.filter((item, index) => arr.indexOf(item) === index)
         }
 
@@ -138,10 +143,10 @@ module.exports = {
         )
     },
 
-    run: async ({ client, interaction }) => {
-        const playlistName = interaction.options.getString("playlist")
-        const query = interaction.options.getString("track")
-        const serverID = interaction.guild.id
+    run: async (interaction: CommandInteraction ) => {
+        const playlistName = interaction.options.get("playlist")?.value as string
+        const query = interaction.options.get("track")?.value as string
+        const serverID = interaction.guild?.id
         const userID = interaction.user.id
 
         if (playlistName == "Likes") {
@@ -216,16 +221,16 @@ module.exports = {
                         ),
                 ],
                 components: [
-                    new ActionRowBuilder().addComponents(
+                    new ActionRowBuilder<ButtonBuilder>().addComponents(
                         new ButtonBuilder()
                             .setCustomId(
-                                `removeServerPL~${serverPL._id.toString()}~${trackId}`
+                                `removeServerPL~${serverPL._id?.toString()}~${trackId}`
                             )
                             .setLabel(`Server`)
                             .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
                             .setCustomId(
-                                `removeUserPL~${userPL._id.toString()}~${tracmId}`
+                                `removeUserPL~${userPL._id?.toString()}~${trackId}`
                             )
                             .setLabel(`Personal`)
                             .setStyle(ButtonStyle.Secondary)
@@ -244,21 +249,21 @@ module.exports = {
             })
         }
 
-        if (serverPL) {
+        if (serverPL && server) {
             removeTrack(interaction, serverPL, query)
             server.save()
         }
 
-        if (userPL) {
+        if (userPL && user) {
             removeTrack(interaction, userPL, query)
             user.save()
         }
     },
 
     //need to switch to collector
-    buttons: async (interaction, docType, playlistId, query) => {
+    buttons: async (interaction: ButtonInteraction, docType: string, playlistId: string, query: string) => {
         if (docType == "server") {
-            await Server.findOne({ "server.ID": interaction.guild.id }).then(
+            await Server.findOne({ "server.ID": interaction.guild?.id }).then(
                 async (server) => {
                     if (!server) {
                         return await interaction.update({
@@ -269,7 +274,7 @@ module.exports = {
                     }
 
                     let playlist = server.playlists.find(
-                        (playlist) => playlist._id.toString() == playlistId
+                        (playlist) => playlist._id?.toString() == playlistId
                     )
 
                     if (!playlist) {
@@ -297,7 +302,7 @@ module.exports = {
                     }
 
                     let playlist = user.playlists.find(
-                        (playlist) => playlist._id.toString() == playlistId
+                        (playlist) => playlist._id?.toString() == playlistId
                     )
 
                     if (!playlist) {
@@ -324,7 +329,7 @@ module.exports = {
  * @param {String} query the name of track to remove
  * @returns {void} points to playlist array
  */
-async function removeTrack(interaction, playlist, query) {
+async function removeTrack(interaction: CommandInteraction | ButtonInteraction, playlist: IPlaylist, query: string) {
     const buttonInteraction = interaction.isButton()
 
     const trackIndex = playlist.tracks.findIndex(

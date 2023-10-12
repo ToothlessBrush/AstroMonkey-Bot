@@ -3,7 +3,7 @@ import {
     SlashCommandBuilder,
     ActionRowBuilder,
 } from "@discordjs/builders"
-import { CommandInteraction, EmbedBuilder } from "discord.js"
+import { ButtonStyle, CommandInteraction, EmbedBuilder } from "discord.js"
 import { useQueue } from "discord-player"
 
 export default {

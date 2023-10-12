@@ -1,6 +1,6 @@
 import chalk from "chalk"
 
-module.exports = {
+export default {
     name: "disconnected",
     execute() {
         console.log(chalk.red("[Database Status]: Disconnected"))

@@ -6,6 +6,7 @@ import {
 import { Server } from "./../../model/Server.js"
 import { User } from "./../../model/User.js"
 import { IPlaylist } from "../../model/Playlist.js"
+import mongoose from "mongoose"
 
 export default {
     data: new SlashCommandBuilder()
@@ -55,6 +56,7 @@ export default {
             },
             length: 0,
             tracks: [],
+            _id: new mongoose.Types.ObjectId()
         }
 
         if (serverType) {

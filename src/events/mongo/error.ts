@@ -1,6 +1,6 @@
 import chalk from "chalk"
 
-module.exports = {
+export default {
     name: "err",
     execute() {
         console.log(chalk.red(`an error occured with the database connection`))

@@ -8,8 +8,14 @@ import {
     AutocompleteInteraction,
     GuildMember,
     StringSelectMenuInteraction,
+    ChatInputCommandInteraction,
 } from "discord.js"
-import { GuildQueue, QueryType, useMainPlayer, useMetadata } from "discord-player"
+import {
+    GuildQueue,
+    QueryType,
+    useMainPlayer,
+    useMetadata,
+} from "discord-player"
 
 import isUrl from "./../../utils/isUrl"
 
@@ -87,9 +93,10 @@ export default {
         }
 
         //verify permission to connect
-        const voiceChannelPermissions = interaction.member.voice.channel.permissionsFor(
-            interaction.guild.members.me
-        )
+        const voiceChannelPermissions =
+            interaction.member.voice.channel.permissionsFor(
+                interaction.guild.members.me
+            )
 
         if (
             !voiceChannelPermissions.has(PermissionsBitField.Flags.Connect) ||
@@ -130,10 +137,6 @@ export default {
             leaveOnEnd: true,
             skipOnNoStream: true,
         }) as GuildQueue
-
-        const metadata = useMetadata(queue)
-
-        console.log(metadata)
 
         let embed = new EmbedBuilder() //need to change this to embed builder for v14 (done)
 

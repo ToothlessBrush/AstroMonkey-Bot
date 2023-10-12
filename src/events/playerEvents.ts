@@ -21,7 +21,7 @@ export const registerPlayerEvents = (player: Player) => {
         }
 
         try {
-            await interaction.reply({
+            await interaction.followUp({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
@@ -44,10 +44,12 @@ export const registerPlayerEvents = (player: Player) => {
                 console.error(voiceTextErr)
             }
         }
+
+        console.log(queue.tracks)
     })
     player.events.on(
         "playerError",
-        async (queue: GuildQueue<unknown>, error) => {
+        async (queue: GuildQueue<unknown>, error: Error) => {
             console.log(
                 `[${queue.guild.name}] Error emitted from the connection: ${error.message}`
             )
@@ -55,7 +57,7 @@ export const registerPlayerEvents = (player: Player) => {
             type metaDataType = {
                 interaction: Interaction
             }
-    
+
             const [getMetadata] = useMetadata<metaDataType>(queue)
             const metadata = getMetadata()
             const interaction = metadata?.interaction
@@ -66,7 +68,7 @@ export const registerPlayerEvents = (player: Player) => {
             }
 
             try {
-                await interaction.reply({
+                await interaction.followUp({
                     embeds: [
                         new EmbedBuilder()
                             .setColor(0xff0000)
@@ -89,6 +91,8 @@ export const registerPlayerEvents = (player: Player) => {
                     console.error(voiceTextErr)
                 }
             }
+
+            console.log(queue.tracks)
         }
     )
 

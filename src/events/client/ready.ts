@@ -11,7 +11,6 @@ export default {
             process.exit(1)
         }
         console.log(chalk.green(`Logged in as ${client.user.tag}`))
-        client.user.setStatus("available")
         client.user.setActivity({
             name: "/help",
             type: ActivityType.Streaming,

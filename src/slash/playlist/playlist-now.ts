@@ -17,8 +17,9 @@ import { Server } from "./../../model/Server.js"
 import { User } from "./../../model/User.js"
 import { Track, TrackJSON, useMainPlayer } from "discord-player"
 import { IPlaylist } from "../../model/Playlist.js"
+import mongoose from "mongoose"
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName("playlist-now")
         .setDescription(
@@ -69,7 +70,7 @@ module.exports = {
         })
 
         choices = removeDuplicates(choices)
-        function removeDuplicates<T>(arr) {
+        function removeDuplicates<T>(arr: T[]): T[] {
             return arr.filter((item, index) => arr.indexOf(item) === index)
         }
 
@@ -191,13 +192,13 @@ module.exports = {
                     new ActionRowBuilder<ButtonBuilder>().addComponents(
                         new ButtonBuilder()
                             .setCustomId(
-                                `serverPlaylistButton~${serverPlaylist._id.toString()}~${shuffle}`
+                                `serverPlaylistButton~${serverPlaylist._id?.toString()}~${shuffle}`
                             )
                             .setLabel(`Server`)
                             .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
                             .setCustomId(
-                                `userPlaylistButton~${userPlaylist._id.toString()}~${shuffle}`
+                                `userPlaylistButton~${userPlaylist._id?.toString()}~${shuffle}`
                             )
                             .setLabel(`Personal`)
                             .setStyle(ButtonStyle.Secondary)
@@ -230,8 +231,9 @@ module.exports = {
                 if (!server) {
                     return
                 }
+                
                 return server.playlists.find(
-                    (playlist) => playlist._id.toString() == playlistId
+                    (playlist) => playlist._id?.toString() == playlistId
                 )
             })
         } else if (docType == "user") {
@@ -241,7 +243,7 @@ module.exports = {
                         return
                     }
                     return user.playlists.find(
-                        (playlist) => playlist._id.toString() == playlistId
+                        (playlist) => playlist._id?.toString() == playlistId
                     )
                 }
             )
@@ -274,8 +276,9 @@ async function playTracks(
 
     const queue = player.nodes.create(interaction.guild, {
         metadata: {
+            interaction: interaction,
             channel: interaction.channel,
-            client: interaction.guild?.members.me,
+            client: interaction.guild.members.me,
             requestedBy: interaction.user,
         },
         selfDeaf: true,
@@ -329,7 +332,19 @@ async function playTracks(
         shuffleArray(tracksJSON)
     }
 
-    const tracks = tracksJSON.map((trackData: TrackJSON) => new Track(player, trackData)) //convert track data to track objects
+    const tracks = tracksJSON.map(
+        (trackData: TrackJSON) =>
+            new Track(player, {
+                title: trackData.title,
+                author: trackData.author,
+                url: trackData.url,
+                thumbnail: trackData.thumbnail,
+                duration: trackData.duration,
+                views: trackData.views,
+                requestedBy: interaction.user, //requested by interaction user instead of the user who added track to playlist
+                description: trackData.description,
+            })
+    ) //convert track data to track objects
 
     const QUEUE_SIZE = queue.tracks.size
 
@@ -337,10 +352,18 @@ async function playTracks(
 
     queue.node.skipTo(QUEUE_SIZE)
 
+    if (!(interaction.member instanceof GuildMember)) {
+        return
+    }
+
+    if (!interaction.member.voice.channel) {
+        return
+    }
+
     try {
         //verify vc connection
         if (!queue.connection) {
-            await queue.connect(interaction.member?.voice.channel)
+            await queue.connect(interaction.member?.voice?.channel)
         }
     } catch (error) {
         queue.delete()
@@ -370,12 +393,12 @@ async function playTracks(
                 .setThumbnail(tracks[0].thumbnail)
                 .setFooter({
                     text: `${interaction.user.username}`,
-                    iconURL: interaction.user.avatarURL(),
+                    iconURL: interaction.user.avatarURL() || undefined,
                 })
                 .setTimestamp(),
         ],
         components: [
-            new ActionRowBuilder()
+            new ActionRowBuilder<ButtonBuilder>()
                 .addComponents(
                     new ButtonBuilder()
                         .setCustomId("pauseButton")
@@ -427,7 +450,7 @@ async function playTracks(
 }
 
 //durstenfeld shuffle
-function shuffleArray(array) {
+function shuffleArray<T>(array: T[]) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1))
         ;[array[i], array[j]] = [array[j], array[i]]
