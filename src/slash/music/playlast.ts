@@ -1,14 +1,22 @@
-import { SlashCommandBuilder } from "@discordjs/builders"
-import { EmbedBuilder } from "discord.js"
+import {
+    ButtonBuilder,
+    SlashCommandBuilder,
+    ActionRowBuilder,
+} from "@discordjs/builders"
+import { ButtonStyle, CommandInteraction, EmbedBuilder } from "discord.js"
+import { useQueue } from "discord-player"
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName("playlast")
         .setDescription("Plays the Previously Played Song"),
 
-    run: async ({ interaction }) => {
-        const client = interaction.client
-        const queue = client.player.nodes.get(interaction.guildId)
+    run: async (interaction: CommandInteraction) => {
+        if (!interaction.guild) {
+            return
+        }
+
+        const queue = useQueue(interaction.guild)
 
         if (!queue) {
             return await interaction.editReply({
@@ -21,6 +29,7 @@ module.exports = {
         }
 
         let embed = new EmbedBuilder()
+        let components = new ActionRowBuilder<ButtonBuilder>()
 
         embed.setColor(0xa020f0)
 
@@ -29,9 +38,61 @@ module.exports = {
             let song = queue.currentTrack
             embed
                 .setTitle(`**Playing**`)
-                .setDescription(`**[${song.title}](${song.url})**`)
-                .setThumbnail(song.thumbnail)
-                .setFooter({ text: `Duration: ${song.duration}` })
+                .setDescription(`**[${song?.title}](${song?.url})**`)
+                .setThumbnail(song?.thumbnail || null)
+                .setFooter({ text: `Duration: ${song?.duration}` })
+
+            components
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId("pauseButton")
+                        //.setLabel("Pause")
+                        .setStyle(ButtonStyle.Secondary)
+                        .setEmoji({
+                            name: "Pause",
+                            id: "1150516067983171755",
+                        }) // Set emoji here using setEmoji
+                )
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`skipButton`)
+                        //.setLabel(`Skip`)
+                        .setStyle(ButtonStyle.Secondary)
+                        .setEmoji({
+                            name: "Next",
+                            id: "1150516100824571965",
+                        })
+                )
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId("shuffleButton")
+                        //.setLabel(`Shuffle`)
+                        .setStyle(ButtonStyle.Secondary)
+                        .setEmoji({
+                            name: "Shuffle",
+                            id: "1150515970432053249",
+                        })
+                )
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`queueButton`)
+                        .setLabel(`Queue`)
+                        .setStyle(ButtonStyle.Secondary)
+                        .setEmoji({
+                            name: "Queue",
+                            id: "1150521944828039269",
+                        })
+                )
+                .addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`like~${song?.url}`)
+                        .setLabel("Like")
+                        .setStyle(ButtonStyle.Primary)
+                        .setEmoji({
+                            name: "Heart",
+                            id: "1150523515250942025",
+                        })
+                )
         } else {
             embed
                 .setColor(0xff0000)
@@ -40,59 +101,7 @@ module.exports = {
 
         await interaction.editReply({
             embeds: [embed],
-            components: [
-                new ActionRowBuilder()
-                    .addComponents(
-                        new ButtonBuilder()
-                            .setCustomId("pauseButton")
-                            //.setLabel("Pause")
-                            .setStyle(ButtonStyle.Secondary)
-                            .setEmoji({
-                                name: "Pause",
-                                id: "1150516067983171755",
-                            }) // Set emoji here using setEmoji
-                    )
-                    .addComponents(
-                        new ButtonBuilder()
-                            .setCustomId(`skipButton`)
-                            //.setLabel(`Skip`)
-                            .setStyle(ButtonStyle.Secondary)
-                            .setEmoji({
-                                name: "Next",
-                                id: "1150516100824571965",
-                            })
-                    )
-                    .addComponents(
-                        new ButtonBuilder()
-                            .setCustomId("shuffleButton")
-                            //.setLabel(`Shuffle`)
-                            .setStyle(ButtonStyle.Secondary)
-                            .setEmoji({
-                                name: "Shuffle",
-                                id: "1150515970432053249",
-                            })
-                    )
-                    .addComponents(
-                        new ButtonBuilder()
-                            .setCustomId(`queueButton`)
-                            .setLabel(`Queue`)
-                            .setStyle(ButtonStyle.Secondary)
-                            .setEmoji({
-                                name: "Queue",
-                                id: "1150521944828039269",
-                            })
-                    )
-                    .addComponents(
-                        new ButtonBuilder()
-                            .setCustomId(`like~${tracks[0].url}`)
-                            .setLabel("Like")
-                            .setStyle(ButtonStyle.Primary)
-                            .setEmoji({
-                                name: "Heart",
-                                id: "1150523515250942025",
-                            })
-                    ),
-            ],
+            components: [components],
         })
     },
 }

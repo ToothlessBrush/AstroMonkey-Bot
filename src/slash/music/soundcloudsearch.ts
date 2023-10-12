@@ -1,15 +1,20 @@
-const { SlashCommandBuilder, ButtonBuilder } = require("@discordjs/builders")
-const {
+import { useMainPlayer } from "discord-player"
+import {
+    AutocompleteInteraction,
+    CommandInteraction,
+    GuildMember,
     EmbedBuilder,
     ActionRowBuilder,
     ButtonStyle,
     PermissionsBitField,
-} = require("discord.js")
-const { QueryType, Playlist } = require("discord-player")
+} from "discord.js"
 
-const { isUrl } = require("../../utils/isUrl")
+import { SlashCommandBuilder, ButtonBuilder } from "@discordjs/builders"
+import { QueryType } from "discord-player"
 
-module.exports = {
+import isUrl from "../../utils/isUrl"
+
+export default {
     data: new SlashCommandBuilder()
         .setName("soundcloudsearch")
         .setDescription(
@@ -25,8 +30,13 @@ module.exports = {
                 .setAutocomplete(true)
         ),
 
-    autocomplete: async ({ interaction }) => {
-        const client = interaction.client
+    autocomplete: async (interaction: AutocompleteInteraction) => {
+        const player = useMainPlayer()
+
+        if (!player) {
+            return
+        }
+
         const focusedValue = interaction.options.getFocused()
 
         let result_search
@@ -35,7 +45,7 @@ module.exports = {
 
         if (focusedValue) {
             choices.push({ name: focusedValue, value: focusedValue })
-            result_search = await client.player.search(focusedValue, {
+            result_search = await player.search(focusedValue, {
                 searchEngine: QueryType.SOUNDCLOUD_SEARCH,
             })
         }
@@ -57,10 +67,14 @@ module.exports = {
         return await interaction.respond(choices.slice(0, 6))
     },
 
-    run: async ({ interaction }) => {
+    run: async (interaction: CommandInteraction) => {
         const client = interaction.client
-        
-        if (!interaction.member.voice.channel)
+
+        if (!(interaction.member instanceof GuildMember)) {
+            return
+        }
+
+        if (!interaction.member?.voice.channel)
             return interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
@@ -69,9 +83,16 @@ module.exports = {
                 ],
             })
 
+        if (!interaction.guild) {
+            return
+        }
+
+        if (!interaction.guild.members.me) {
+            return
+        }
         //verify permission to connect
-        voiceChannelPermissions =
-            interaction.member.voice.channel.permissionsFor(
+        const voiceChannelPermissions =
+            interaction.member?.voice.channel.permissionsFor(
                 interaction.guild.members.me
             )
 
@@ -91,7 +112,13 @@ module.exports = {
             })
         }
 
-        const queue = await client.player.nodes.create(interaction.guild, {
+        const player = useMainPlayer()
+
+        if (!player) {
+            return
+        }
+
+        const queue = await player.nodes.create(interaction.guild, {
             metadata: {
                 interaction: interaction,
                 channel: interaction.channel,
@@ -106,7 +133,7 @@ module.exports = {
         })
 
         //plays a search term or url if not in playlist
-        let query = interaction.options.getString("query")
+        let query = interaction.options.get("query")?.value as string
 
         if (isUrl(query))
             return interaction.editReply({
@@ -131,7 +158,7 @@ module.exports = {
             ],
         })
 
-        const result_search = await client.player.search(query, {
+        const result_search = await player.search(query, {
             requestedBy: interaction.user,
             searchEngine: QueryType.SOUNDCLOUD_SEARCH,
         })
@@ -165,7 +192,7 @@ module.exports = {
         //     return
         // }
 
-        await queue.addTrack(tracks) //adds track(s) from the search result
+        queue.addTrack(tracks) //adds track(s) from the search result
 
         try {
             //verify vc connection
@@ -188,7 +215,6 @@ module.exports = {
 
         //build embed based on info
         if (tracks.length > 1) {
-            playlist = tracks[0].playlist
             //console.log(tracks)
 
             embed
@@ -208,7 +234,7 @@ module.exports = {
                     .setThumbnail(tracks[0].thumbnail)
                     .setFooter({
                         text: `${interaction.user.username}`,
-                        iconURL: interaction.user.avatarURL(),
+                        iconURL: interaction.user.avatarURL() || undefined,
                     })
                     .setTimestamp()
             } else {
@@ -221,7 +247,7 @@ module.exports = {
                     .setThumbnail(tracks[0].thumbnail)
                     .setFooter({
                         text: `${interaction.user.username}`,
-                        iconURL: interaction.user.avatarURL(),
+                        iconURL: interaction.user.avatarURL() || undefined,
                     })
                     .setTimestamp()
             }
@@ -232,7 +258,7 @@ module.exports = {
         await interaction.editReply({
             embeds: [embed],
             components: [
-                new ActionRowBuilder()
+                new ActionRowBuilder<ButtonBuilder>()
                     .addComponents(
                         new ButtonBuilder()
                             .setCustomId("pauseButton")

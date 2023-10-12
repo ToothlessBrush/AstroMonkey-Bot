@@ -1,7 +1,8 @@
-const { EmbedBuilder } = require("@discordjs/builders")
-const { SlashCommandBuilder } = require("discord.js")
+import { EmbedBuilder } from "@discordjs/builders"
+import { useQueue } from "discord-player"
+import { CommandInteraction, SlashCommandBuilder } from "discord.js"
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName("volume")
         .setDescription("change the volume of the music")
@@ -16,9 +17,12 @@ module.exports = {
                 .setMaxValue(100)
         ),
 
-    run: async ({ interaction }) => {
-        const client = interaction.client
-        const queue = client.player.nodes.get(interaction.guildId)
+    run: async (interaction: CommandInteraction) => {
+        if (!interaction.guild) {
+            return
+        }
+
+        const queue = useQueue(interaction.guild)
 
         if (!queue) {
             return await interaction.editReply({
@@ -30,9 +34,9 @@ module.exports = {
             })
         }
 
-        const volume = interaction.options.getNumber("volume")
+        const volume = interaction.options.get("volume")?.value as number
 
-        await queue.node.setVolume(volume)
+        queue.node.setVolume(volume)
 
         await interaction.editReply({
             embeds: [

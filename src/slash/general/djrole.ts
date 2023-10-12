@@ -1,7 +1,7 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("@discordjs/builders")
-const { PermissionFlagsBits } = require("discord.js")
+import { SlashCommandBuilder, EmbedBuilder } from "@discordjs/builders"
+import { CommandInteraction, PermissionFlagsBits } from "discord.js"
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName("djrole")
         .setDescription(
@@ -14,8 +14,12 @@ module.exports = {
                 .setRequired(true)
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-    run: async ({ interaction }) => {
-        const role = interaction.options.getRole("role")
+    run: async (interaction: CommandInteraction ) => {
+        
+        if (interaction.isAutocomplete()) {
+            return
+        }
+
         return interaction.editReply({
             embeds: [
                 new EmbedBuilder()

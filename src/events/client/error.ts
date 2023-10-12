@@ -1,6 +1,6 @@
-module.exports = {
+export default {
     name: "error",
-    execute(error) {
+    execute(error: Error) {
         console.error(error)
     },
 }

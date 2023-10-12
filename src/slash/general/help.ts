@@ -1,12 +1,12 @@
-const { SlashCommandBuilder } = require("@discordjs/builders")
-const { EmbedBuilder } = require("discord.js")
+import { SlashCommandBuilder } from "@discordjs/builders"
+import { EmbedBuilder, CommandInteraction } from "discord.js"
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName("help")
         .setDescription("show the bot commands"),
 
-    run: async ({ interaction }) => {
+    run: async (interaction: CommandInteraction) => {
         const description = `
         **General Commands**
         </help:1103275724183453708> - Displays the bot commands (what this is)

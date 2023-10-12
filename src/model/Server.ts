@@ -1,7 +1,16 @@
-const { Schema, model } = require("mongoose")
-const playlistSchema = require("./Playlist")
+import { Schema, model, Document } from "mongoose"
+import { playlistSchema, IPlaylist } from "./Playlist"
 
-const serverSchema = new Schema({
+interface IServer extends Document {
+    server: {
+        name: string
+        ID: string
+    }
+    djrole: string
+    playlists: IPlaylist[]
+}
+
+const serverSchema = new Schema<IServer>({
     server: {
         name: String,
         ID: String,
@@ -10,9 +19,9 @@ const serverSchema = new Schema({
     playlists: [playlistSchema],
 })
 
-const Server = model("Server", serverSchema)
+const Server = model<IServer>("Server", serverSchema)
 
-module.exports = Server
+export { Server, IServer }
 
 /*
 "servers": [

@@ -1,17 +1,21 @@
-const {
+import {
     EmbedBuilder,
     SlashCommandBuilder,
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
-} = require("discord.js")
-const { QueryType } = require("discord-player")
+    CommandInteraction,
+    AutocompleteInteraction,
+    ButtonInteraction,
+} from "discord.js"
+import { QueryType } from "discord-player"
 
-const path = require("path")
-const Server = require(path.join(__dirname, "./../../model/Server.js"))
-const User = require(path.join(__dirname, "./../../model/User.js"))
+import path from "path"
+import { Server } from "./../../model/Server.js"
+import { User } from "./../../model/User.js"
+import { IPlaylist } from "../../model/Playlist.js"
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName("view-playlist")
         .setDescription("view the contents of a playlist")
@@ -23,11 +27,11 @@ module.exports = {
                 .setRequired(true)
         ),
 
-    autocomplete: async ({ interaction }) => {
+    autocomplete: async (interaction: AutocompleteInteraction) => {
         const focusedValue = interaction.options.getFocused()
 
         let choices = ["Likes"]
-        await Server.findOne({ "server.ID": interaction.guild.id }).then(
+        await Server.findOne({ "server.ID": interaction.guild?.id }).then(
             (server) => {
                 if (!server) {
                     return
@@ -55,7 +59,7 @@ module.exports = {
         })
 
         choices = removeDuplicates(choices)
-        function removeDuplicates(arr) {
+        function removeDuplicates<T>(arr: T[]): T[] {
             return arr.filter((item, index) => arr.indexOf(item) === index)
         }
 
@@ -68,21 +72,23 @@ module.exports = {
         )
     },
 
-    run: async ({ interaction }) => {
-        const serverID = interaction.guild.id
+    run: async (interaction: CommandInteraction) => {
+        const serverID = interaction.guild?.id
         const userID = interaction.user.id
-        const playlistName = interaction.options.getString("playlist")
+        const playlistName = interaction.options.get("playlist")
+            ?.value as string
 
         if (playlistName == "Likes") {
-            likedTracks = await User.findOne({ ID: userID }).then((user) => {
-                if (!user) {
-                    return
-                }
+            const likedTracks =
+                (await User.findOne({ ID: userID }).then((user) => {
+                    if (!user) {
+                        return
+                    }
 
-                return user.likes
-            })
+                    return user.likes
+                })) || []
 
-            const playlist = {
+            const playlist: IPlaylist = {
                 name: "Likes",
                 creater: {
                     name: interaction.user.username,
@@ -123,15 +129,15 @@ module.exports = {
                         ),
                 ],
                 components: [
-                    new ActionRowBuilder().addComponents(
+                    new ActionRowBuilder<ButtonBuilder>().addComponents(
                         new ButtonBuilder()
                             .setCustomId(
-                                `showServerPL~${serverPL._id.toString()}`
+                                `showServerPL~${serverPL._id?.toString()}`
                             )
                             .setLabel(`Server`)
                             .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
-                            .setCustomId(`showUserPL~${userPL._id.toString()}`)
+                            .setCustomId(`showUserPL~${userPL._id?.toString()}`)
                             .setLabel(`Personal`)
                             .setStyle(ButtonStyle.Secondary)
                     ),
@@ -145,22 +151,34 @@ module.exports = {
     },
 
     //need to switch to collector
-    buttons: async (interaction, docType, playlistId) => {
+    buttons: async (
+        interaction: ButtonInteraction,
+        docType: string,
+        playlistId: string
+    ) => {
         let playlist
 
         if (docType == "server") {
             playlist = await Server.findOne({
-                "server.ID": interaction.guild.id,
+                "server.ID": interaction.guild?.id,
             }).then((server) => {
+                if (!server) {
+                    return
+                }
+
                 return server.playlists.find(
-                    (playlist) => playlist._id.toString() == playlistId
+                    (playlist) => playlist._id?.toString() == playlistId
                 )
             })
         } else if (docType == "user") {
             playlist = await User.findOne({ ID: interaction.user.id }).then(
                 (user) => {
+                    if (!user) {
+                        return
+                    }
+
                     return user.playlists.find(
-                        (playlist) => playlist._id.toString() == playlistId
+                        (playlist) => playlist._id?.toString() == playlistId
                     )
                 }
             )
@@ -177,7 +195,10 @@ module.exports = {
  * @returns nothing
  */
 
-async function showTracks(interaction, playlist) {
+async function showTracks(
+    interaction: CommandInteraction | ButtonInteraction,
+    playlist: IPlaylist | undefined
+) {
     const buttonInteraction = interaction.isButton()
 
     if (!playlist) {
@@ -185,7 +206,7 @@ async function showTracks(interaction, playlist) {
             embeds: [
                 new EmbedBuilder()
                     .setColor(0xff0000)
-                    .setTitle(`${playlist.name} was not found!`),
+                    .setTitle(`Playlist was not found!`),
             ],
             components: [],
         }

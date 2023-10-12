@@ -1,13 +1,21 @@
-const { Schema, model } = require("mongoose")
-const playlistSchema = require("./Playlist")
+import { Schema, model } from "mongoose"
+import { playlistSchema, IPlaylist } from "./Playlist"
+import { TrackJSON } from "discord-player"
 
-const userSchema = new Schema({
+interface IUser extends Document {
+    name: string
+    ID: string
+    likes: TrackJSON[]
+    playlists: IPlaylist[]
+}
+
+const userSchema = new Schema<IUser>({
     name: String,
     ID: String,
     likes: [Schema.Types.Mixed],
     playlists: [playlistSchema],
 })
 
-const User = model("User", userSchema)
+const User = model<IUser>("User", userSchema)
 
-module.exports = User
+export { User, IUser }

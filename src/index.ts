@@ -1,4 +1,3 @@
-//const Discord = require("discord.js")
 import {
     Client,
     GatewayIntentBits,
@@ -6,8 +5,8 @@ import {
     Options,
     GuildMember,
 } from "discord.js"
+import MyClient from "./utils/MyClient"
 import { REST } from "@discordjs/rest"
-import { Routes } from "discord-api-types/v9"
 
 import { connect, connection } from "mongoose"
 
@@ -26,7 +25,10 @@ require("dotenv").config({
 })
 
 const CONFIG = JSON.parse(
-    fs.readFileSync(path.join(__dirname, `..`, `config.${ENVIORNMENT}.json`))
+    fs.readFileSync(
+        path.join(__dirname, `..`, `config.${ENVIORNMENT}.json`),
+        "utf-8"
+    )
 )
 
 //get env variables
@@ -42,17 +44,17 @@ const GLOBAL = process.argv[3] == "global"
 
 const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
-    //lower cache limit to hopefully decrease memory usage
+    //lower cache limit to hopefully decrease memory usage (didnt work)
     makeCache: Options.cacheWithLimits({
         ...Options.DefaultMakeCacheSettings,
         ReactionManager: 0,
         GuildMemberManager: {
-            maxSize: 100, //default 200
+            maxSize: 200, //default 200
             keepOverLimit: (member: GuildMember) =>
                 member.id === client.user?.id,
         },
     }),
-}) as Client & { slashcommands: Collection<string, any>; player: Player } //we define client object as a client and other elements we need
+}) as MyClient
 
 client.slashcommands = new Collection<string, any>()
 client.player = new Player(client, {
@@ -85,13 +87,13 @@ const subDir = fs
 for (const dir of subDir) {
     const slashFiles = fs
         .readdirSync(path.join(slashDirectory, dir))
-        .filter((file: string) => file.endsWith(".js"))
+        .filter((file: string) => file.endsWith(".ts") || file.endsWith(`.js`))
     for (const file of slashFiles) {
-        const slashcmd = require(path.join(slashDirectory, dir, file))
+        //console.log(slashDirectory + "/" + dir + "/" + file)
+        const slashcmd = require(path.join(slashDirectory, dir, file)).default
         client.slashcommands.set(slashcmd.data.name, slashcmd)
         if (LOAD_SLASH) {
-            commands.push(slashcmd.data.toJSON()) //.toJSON because it can catch errors I think
-            //console.log(slashcmd.data)
+            commands.push(slashcmd.data.toJSON())
         }
     }
 }
@@ -99,9 +101,9 @@ for (const dir of subDir) {
 if (LOAD_SLASH) {
     const rest = new REST({ version: "9" }).setToken(TOKEN)
     console.log("Deploying slash commands")
-    const route = GLOBAL
-        ? Routes.applicationCommands(CLIENT_ID)
-        : Routes.applicationCommands(CLIENT_ID, GUILD_ID)
+    const route = GLOBAL //input sting manually (replaces applicationCommands(applicationId: string): `/applications/${string}/commands`) for typescript
+        ? (`/applications/${CLIENT_ID}/commands` as `/${string}`)
+        : (`/applications/${CLIENT_ID}/guilds/${GUILD_ID}/commands` as `/${string}`)
     rest.put(route, { body: commands })
         .then(() => {
             console.log(
@@ -111,9 +113,9 @@ if (LOAD_SLASH) {
             )
             process.exit(0)
         })
-        .catch((err: Object) => {
+        .catch((err: Error) => {
             if (err) {
-                console.log(err)
+                console.error(err)
                 process.exit(1)
             }
         })
@@ -123,16 +125,22 @@ if (LOAD_SLASH) {
     const clientPath = path.join(__dirname, "events", "client")
     const eventFiles = fs
         .readdirSync(clientPath)
-        .filter((file: String) => file.endsWith(".js"))
+        .filter((file: string) => file.endsWith(".ts") || file.endsWith(`.js`))
 
     //register discord events
     for (const file of eventFiles) {
         const filePath = path.join(clientPath, file)
-        const event = require(filePath)
-        if (event.once) {
-            client.once(event.name, (...args: any) => event.execute(...args))
-        } else {
-            client.on(event.name, (...args: any) => event.execute(...args))
+        const event = require(filePath).default
+        try {
+            if (event.once) {
+                client.once(event.name, (...args: any) =>
+                    event.execute(...args)
+                )
+            } else {
+                client.on(event.name, (...args: any) => event.execute(...args))
+            }
+        } catch (err) {
+            console.log(`error while importing discord event files: ${err}`)
         }
     }
     console.log(`registered client events`)
@@ -141,17 +149,23 @@ if (LOAD_SLASH) {
     const DBEventsPath = path.join(__dirname, "events", "mongo")
     const DBevents = fs
         .readdirSync(DBEventsPath)
-        .filter((file: String) => file.endsWith(".js"))
+        .filter((file: string) => file.endsWith(".ts") || file.endsWith(`.js`))
 
     for (const file of DBevents) {
         const filePath = path.join(DBEventsPath, file)
-        const event = require(filePath)
-        if (event.once) {
-            connection.once(event.name, (...args: any) =>
-                event.execute(...args)
-            )
-        } else {
-            connection.on(event.name, (...args: any) => event.execute(...args))
+        const event = require(filePath).default
+        try {
+            if (event.once) {
+                connection.once(event.name, (...args: any) =>
+                    event.execute(...args)
+                )
+            } else {
+                connection.on(event.name, (...args: any) =>
+                    event.execute(...args)
+                )
+            }
+        } catch (err) {
+            console.error(`Error while importing db event files: ${err}`)
         }
     }
     console.log(`registered database events`)

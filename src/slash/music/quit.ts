@@ -1,14 +1,21 @@
-const { SlashCommandBuilder } = require("@discordjs/builders")
-const { EmbedBuilder } = require("discord.js")
+import { useQueue } from "discord-player"
+import { CommandInteraction } from "discord.js"
 
-module.exports = {
+import { SlashCommandBuilder } from "@discordjs/builders"
+import { EmbedBuilder } from "discord.js"
+
+export default {
     data: new SlashCommandBuilder()
         .setName("quit")
         .setDescription("clears queue and stops bot"),
 
-    run: async ({ interaction }) => {
-        const client = interaction.client
-        const queue = client.player.nodes.get(interaction.guildId)
+    run: async (interaction: CommandInteraction) => {
+        
+        if (!interaction.guild) {
+            return
+        }
+    
+        const queue = useQueue(interaction.guild)
 
         if (!queue)
             return await interaction.editReply({

@@ -1,12 +1,16 @@
-const { ActivityType } = require("discord.js")
-const chalk = require("chalk")
+import { ActivityType } from "discord.js"
+import chalk from "chalk"
+import MyClient from "../../utils/MyClient"
 
-module.exports = {
+export default {
     name: "ready",
     once: true,
-    execute(client) {
+    execute(client: MyClient) {
+        if (!client.user) {
+            console.log("client.user is null")
+            process.exit(1)
+        }
         console.log(chalk.green(`Logged in as ${client.user.tag}`))
-        client.user.setStatus("available")
         client.user.setActivity({
             name: "/help",
             type: ActivityType.Streaming,

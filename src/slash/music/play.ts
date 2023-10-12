@@ -1,15 +1,25 @@
-const { SlashCommandBuilder, ButtonBuilder } = require("@discordjs/builders")
-const {
+import { SlashCommandBuilder, ButtonBuilder } from "@discordjs/builders"
+import {
     EmbedBuilder,
     ActionRowBuilder,
     ButtonStyle,
     PermissionsBitField,
-} = require("discord.js")
-const { QueryType, SearchResult } = require("discord-player")
+    CommandInteraction,
+    AutocompleteInteraction,
+    GuildMember,
+    StringSelectMenuInteraction,
+    ChatInputCommandInteraction,
+} from "discord.js"
+import {
+    GuildQueue,
+    QueryType,
+    useMainPlayer,
+    useMetadata,
+} from "discord-player"
 
-const { isUrl } = require("./../../utils/isUrl")
+import isUrl from "./../../utils/isUrl"
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName("play")
         .setDescription("plays a song from youtube or spotify")
@@ -21,8 +31,8 @@ module.exports = {
                 .setAutocomplete(true)
         ),
 
-    autocomplete: async ({ interaction }) => {
-        const client = interaction.client
+    autocomplete: async (interaction: AutocompleteInteraction) => {
+        const player = useMainPlayer()
         const focusedValue = interaction.options.getFocused()
 
         //search platforms for the query
@@ -35,11 +45,11 @@ module.exports = {
                 value: focusedValue.slice(0, 100),
             })
             if (isUrl(focusedValue)) {
-                result_search = await client.player.search(focusedValue, {
+                result_search = await player?.search(focusedValue, {
                     searchEngine: QueryType.AUTO,
                 })
             } else {
-                result_search = await client.player.search(focusedValue, {
+                result_search = await player?.search(focusedValue, {
                     searchEngine: QueryType.YOUTUBE_SEARCH,
                 })
             }
@@ -63,10 +73,13 @@ module.exports = {
         return await interaction.respond(choices.slice(0, 5))
     },
 
-    run: async ({ interaction }) => {
-        const client = interaction.client
+    run: async (interaction: CommandInteraction) => {
+        //error checking
+        if (!(interaction.member instanceof GuildMember)) {
+            return
+        }
 
-        if (!interaction.member.voice.channel)
+        if (!interaction.member?.voice?.channel)
             return interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
@@ -74,6 +87,10 @@ module.exports = {
                         .setDescription(`**You Must be in a VC!**`),
                 ],
             })
+
+        if (!interaction.guild?.members.me) {
+            return
+        }
 
         //verify permission to connect
         const voiceChannelPermissions =
@@ -97,7 +114,17 @@ module.exports = {
             })
         }
 
-        const queue = await client.player.nodes.create(interaction.guild, {
+        const player = useMainPlayer()
+
+        if (!player) {
+            return
+        }
+
+        if (!interaction.guild) {
+            return
+        }
+
+        const queue = player.nodes.create(interaction.guild, {
             metadata: {
                 interaction: interaction,
                 channel: interaction.channel,
@@ -109,7 +136,7 @@ module.exports = {
             leaveOnEmpty: true,
             leaveOnEnd: true,
             skipOnNoStream: true,
-        })
+        }) as GuildQueue
 
         let embed = new EmbedBuilder() //need to change this to embed builder for v14 (done)
 
@@ -118,7 +145,14 @@ module.exports = {
         if (interaction.isChatInputCommand()) {
             query = interaction.options.getString("query")
         } else if (interaction.isStringSelectMenu()) {
-            query = interaction.values[0]
+            const stringSelectMenuInteraction =
+                interaction as StringSelectMenuInteraction //switch to stringselect menu interaction to get value
+            query = stringSelectMenuInteraction.values[0]
+        }
+
+        //error check query
+        if (!query) {
+            return
         }
 
         let result_search
@@ -137,7 +171,7 @@ module.exports = {
                 ],
             })
 
-            result_search = await client.player.search(query, {
+            result_search = await player.search(query, {
                 requestedBy: interaction.user,
                 searchEngine: QueryType.AUTO,
             })
@@ -156,7 +190,7 @@ module.exports = {
                 ],
             })
 
-            result_search = await client.player.search(query, {
+            result_search = await player.search(query, {
                 requestedBy: interaction.user,
                 searchEngine: QueryType.YOUTUBE_SEARCH,
             })
@@ -175,7 +209,7 @@ module.exports = {
         }
 
         try {
-            await queue.addTrack(tracks)
+            queue.addTrack(tracks)
         } catch (error) {
             console.error(error)
         }
@@ -183,7 +217,7 @@ module.exports = {
         try {
             //verify vc connection
             if (!queue.connection) {
-                await queue.connect(interaction.member.voice.channel)
+                await queue.connect(interaction.member?.voice.channel)
             }
         } catch (error) {
             queue.delete()
@@ -210,7 +244,7 @@ module.exports = {
                 .setThumbnail(tracks[0].thumbnail)
                 .setFooter({
                     text: `${interaction.user.username}`,
-                    iconURL: interaction.user.avatarURL(),
+                    iconURL: interaction.user.avatarURL() || undefined,
                 })
                 .setTimestamp()
         } else {
@@ -225,7 +259,7 @@ module.exports = {
                     .setThumbnail(tracks[0].thumbnail)
                     .setFooter({
                         text: `${interaction.user.username}`,
-                        iconURL: interaction.user.avatarURL(),
+                        iconURL: interaction.user.avatarURL() || undefined,
                     })
                     .setTimestamp()
             } else {
@@ -239,7 +273,7 @@ module.exports = {
                     .setThumbnail(tracks[0].thumbnail)
                     .setFooter({
                         text: `${interaction.user.username}`,
-                        iconURL: interaction.user.avatarURL(),
+                        iconURL: interaction.user.avatarURL() || undefined,
                     })
                     .setTimestamp()
             }
@@ -250,7 +284,7 @@ module.exports = {
         await interaction.editReply({
             embeds: [embed],
             components: [
-                new ActionRowBuilder()
+                new ActionRowBuilder<ButtonBuilder>()
                     .addComponents(
                         new ButtonBuilder()
                             .setCustomId("pauseButton")

@@ -1,15 +1,18 @@
-const {
+import { Track, useMainPlayer } from "discord-player"
+import { CommandInteraction, GuildMember } from "discord.js"
+
+import {
     EmbedBuilder,
     ActionRowBuilder,
     StringSelectMenuBuilder,
     StringSelectMenuOptionBuilder,
     SlashCommandBuilder,
-} = require("discord.js")
-const { QueryType } = require("discord-player")
+} from "discord.js"
+import { QueryType } from "discord-player"
 
-const { isUrl } = require("./../../utils/isUrl")
+import isUrl from "./../../utils/isUrl"
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName("searchresults")
         .setDescription(
@@ -33,10 +36,13 @@ module.exports = {
                 .setRequired(true)
         ),
 
-    run: async ({ interaction }) => {
-        const client = interaction.client
-        
-        if (!interaction.member.voice.channel)
+    run: async (interaction: CommandInteraction) => {
+
+        if (!(interaction.member instanceof GuildMember)) {
+            return
+        }
+
+        if (!interaction.member?.voice?.channel)
             return interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
@@ -45,9 +51,17 @@ module.exports = {
                 ],
             })
 
+        const player = useMainPlayer()
+
+        if (!player) {
+            return
+        }
+
         //plays a search term or url if not in playlist
-        let query = interaction.options.getString("query")
-        let platform = interaction.options.getString("platform")
+        let query = interaction.options.get("query")?.value as string
+        let platform = interaction.options.get("platform")?.value as string
+
+
 
         if (isUrl(query))
             return interaction.editReply({
@@ -60,7 +74,7 @@ module.exports = {
                 ],
             })
 
-        let tracks
+        let track: Track[] = []
         if (platform == "YOUTUBE") {
             //auto searches the url
             console.log(`searching Youtube results for: ${query}`)
@@ -74,12 +88,12 @@ module.exports = {
                 ],
             })
 
-            const result_search = await client.player.search(query, {
+            const result_search = await player.search(query, {
                 requestedBy: interaction.user,
                 searchEngine: QueryType.YOUTUBE_SEARCH,
             })
 
-            tracks = result_search.tracks //add multiple tracks if playlist/album
+            track = result_search.tracks //add multiple tracks if playlist/album
         } else if (platform == "SPOTIFY") {
             //searches youtube if its not a url
             console.log(`searching Spotify results for: ${query}`)
@@ -93,12 +107,12 @@ module.exports = {
                 ],
             })
 
-            const result_search = await client.player.search(query, {
+            const result_search = await player.search(query, {
                 requestedBy: interaction.user,
                 searchEngine: QueryType.SPOTIFY_SEARCH,
             })
 
-            tracks = result_search.tracks //adds 1 track from search
+            track = result_search.tracks //adds 1 track from search
         } else if (platform == "SOUNDCLOUD") {
             console.log(`searching SoundCloud results for: ${query}`)
 
@@ -111,15 +125,15 @@ module.exports = {
                 ],
             })
 
-            const result_search = await client.player.search(query, {
+            const result_search = await player.search(query, {
                 requestedBy: interaction.user,
                 searchEngine: QueryType.SOUNDCLOUD_SEARCH,
             })
 
-            tracks = result_search.tracks
+            track = result_search.tracks
         }
 
-        if (tracks.length === 0) {
+        if (track.length === 0) {
             return interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
@@ -131,25 +145,9 @@ module.exports = {
 
         //console.log(tracks)
 
-        if (tracks.length == 0) {
-            console.log(
-                `cannot get tracks as all songs are removed or dont exist`
-            )
-            interaction.editReply({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor(0xff0000)
-                        .setTitle(
-                            `Could not get tracks as all tracks were removed or don't exist`
-                        ),
-                ],
-            })
-            return
-        }
-
-        const resultString = tracks
+        const resultString = track
             .slice(0, 10)
-            .map((song, i) => {
+            .map((song: Track, i) => {
                 return `**${i + 1}.** \`[${song.duration}]\` [${song.title}](${
                     song.url
                 })`
@@ -165,11 +163,11 @@ module.exports = {
 
         //build options based on results
         let options = []
-        for (let i = 0; i < Math.min(tracks.length, 10); i++) {
+        for (let i = 0; i < Math.min(track.length, 10); i++) {
             const option = new StringSelectMenuOptionBuilder()
-                .setLabel(`${tracks[i].title}`)
-                .setValue(`${tracks[i].url}`) //url of song is value
-                .setDescription(`By ${tracks[i].author}`)
+                .setLabel(`${track[i].title}`)
+                .setValue(`${track[i].url}`) //url of song is value
+                .setDescription(`By ${track[i].author}`)
 
             options.push(option)
         }
@@ -179,7 +177,7 @@ module.exports = {
             .setPlaceholder("Select Track")
             .addOptions(options)
 
-        const row = new ActionRowBuilder().addComponents(songOptions)
+        const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(songOptions)
 
         await interaction.editReply({
             embeds: [resultembed],

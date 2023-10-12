@@ -1,14 +1,26 @@
-const { EmbedBuilder } = require("@discordjs/builders")
-const { SlashCommandBuilder } = require("discord.js")
+import { useMainPlayer } from "discord-player"
+import { CommandInteraction } from "discord.js"
 
-module.exports = {
+import { EmbedBuilder } from "@discordjs/builders"
+import { SlashCommandBuilder } from "discord.js"
+
+export default {
     data: new SlashCommandBuilder()
         .setName("shuffle")
         .setDescription("shuffles the music queue"),
 
-    run: async ({ interaction }) => {
-        const client = interaction.client
-        const queue = client.player.nodes.get(interaction.guildId)
+    run: async ( interaction: CommandInteraction) => {
+        const player = useMainPlayer()
+
+        if (!player) {
+            return
+        }
+
+        if (!interaction.guildId) {
+            return
+        }
+        
+        const queue = player.nodes.get(interaction.guildId)
 
         if (!queue) {
             return await interaction.editReply({

@@ -1,4 +1,7 @@
 # flyctl launch added from .gitignore
+**\dist
+**\scripts
+**\assets
 **\node_modules
 **\.env.dev
 **\.env.prod

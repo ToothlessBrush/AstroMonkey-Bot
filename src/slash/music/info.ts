@@ -1,14 +1,32 @@
-const { SlashCommandBuilder } = require("@discordjs/builders")
-const { EmbedBuilder } = require("discord.js")
+import { useMainPlayer, useQueue } from "discord-player"
 
-module.exports = {
+import { SlashCommandBuilder } from "@discordjs/builders"
+import { EmbedBuilder, CommandInteraction } from "discord.js"
+
+export default {
     data: new SlashCommandBuilder()
         .setName("info")
         .setDescription("displays info of the current song"),
 
-    run: async ({ interaction }) => {
-        const client = interaction.client
-        const queue = client.player.nodes.get(interaction.guildId)
+    run: async ( interaction: CommandInteraction ) => {
+        
+        if (!interaction) {
+            return
+        }
+        if (interaction.isAutocomplete()) {
+            return
+        }
+        const player = useMainPlayer()
+
+        if (!player) {
+            return
+        }
+
+        if (!interaction.guild) {
+            return
+        }
+        
+        const queue = useQueue(interaction.guild)
 
         if (!queue) {
             return await interaction.editReply({

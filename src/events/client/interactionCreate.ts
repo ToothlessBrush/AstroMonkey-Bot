@@ -1,7 +1,10 @@
-module.exports = {
+import { Interaction } from "discord.js"
+import MyClient from "../../utils/MyClient"
+
+export default {
     name: "interactionCreate",
-    async execute(interaction) {
-        const client = interaction.client
+    async execute(interaction: Interaction) {
+        const client = interaction.client as MyClient
 
         if (interaction.isChatInputCommand()) {
             console.log(
@@ -14,13 +17,12 @@ module.exports = {
             if (!slashcmd) return interaction.reply("Not a valid slash command")
 
             await interaction.deferReply()
-            await slashcmd.run({ interaction })
+            await slashcmd.run(interaction)
         } else if (interaction.isAutocomplete()) {
             const command = client.slashcommands.get(interaction.commandName)
-            if (!command) return interaction.reply("Not a valid slash command")
 
             try {
-                await command.autocomplete({ interaction })
+                await command.autocomplete(interaction)
             } catch (error) {
                 console.error(error)
             }
@@ -189,14 +191,14 @@ module.exports = {
             }
 
             await interaction.deferReply()
-            await client.slashcommands.get(command).run({ interaction })
+            await client.slashcommands.get(command).run(interaction)
         } else if (interaction.isStringSelectMenu()) {
             const optionValue = interaction.values[0]
             const optionID = interaction.customId
             console.log(`option: ${optionID} value: ${optionValue}`)
             if (optionID == "select") {
                 await interaction.deferReply()
-                await client.slashcommands.get("play").run({ interaction })
+                await client.slashcommands.get("play").run(interaction)
             }
         } else {
             return
