@@ -236,6 +236,11 @@ export default {
 
                 user.playlists.splice(playlistIndex, 1)
 
+                //delete doc if likes and playlist dont exist
+                if (user.playlists.length == 0 && user.likes.length == 0) {
+                    return await User.deleteOne({ _id: user._id })
+                }
+
                 return user.save()
             }
 
@@ -308,6 +313,11 @@ export default {
                     })
 
                     server.playlists.splice(playlistIndex, 1)
+
+                    //delete server if no remaining playlists
+                    if (server.playlists.length == 0) {
+                        return await Server.deleteOne({ _id: server._id })
+                    }
 
                     return server.save()
                 }

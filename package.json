@@ -14,6 +14,7 @@
     "license": "MIT",
     "devDependencies": {
         "@types/node": "^20.8.4",
+        "@types/node-cron": "^3.0.9",
         "npm": "^10.2.0",
         "tslib": "^2.6.2",
         "tsx": "^3.13.0",
@@ -33,6 +34,7 @@
         "dotenv": "^16.3.1",
         "ffmpeg-static": "^5.2.0",
         "mongoose": "^7.6.1",
+        "node-cron": "^3.0.2",
         "youtube-ext": "^1.1.14"
     }
 }

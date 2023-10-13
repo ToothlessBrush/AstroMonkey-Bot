@@ -140,6 +140,11 @@ export default {
                 if (!user) {
                     return
                 }
+
+                //log access date
+                user.timestamps.updatedAt = new Date()
+                user.save()
+
                 return user.likes
             })
 
@@ -163,9 +168,15 @@ export default {
             if (!server) {
                 return
             }
+
+            //log access date
+            server.timestamps.updatedAt = new Date()
+            server.save()
+
             return server.playlists.find(
                 (playlist) => playlist.name == playlistName
             )
+            //log access time
         })
 
         const userPlaylist = await User.findOne({
@@ -174,6 +185,11 @@ export default {
             if (!user) {
                 return
             }
+
+            //log access date
+            user.timestamps.updatedAt = new Date()
+            user.save()
+
             return user.playlists.find(
                 (playlist) => playlist.name == playlistName
             )
@@ -232,7 +248,11 @@ export default {
                 if (!server) {
                     return
                 }
-                
+
+                //log access date
+                server.timestamps.updatedAt = new Date()
+                server.save()
+
                 return server.playlists.find(
                     (playlist) => playlist._id?.toString() == playlistId
                 )
@@ -243,6 +263,11 @@ export default {
                     if (!user) {
                         return
                     }
+
+                    //log access date
+                    user.timestamps.updatedAt = new Date()
+                    user.save()
+
                     return user.playlists.find(
                         (playlist) => playlist._id?.toString() == playlistId
                     )

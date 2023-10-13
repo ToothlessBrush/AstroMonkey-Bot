@@ -186,6 +186,15 @@ export default {
                     await interaction.deferReply()
                     client.slashcommands.get("like").run(interaction)
                     return
+                case "deleteUser":
+                    await interaction.deferReply()
+                    client.slashcommands
+                        .get("purge-info")
+                        .buttons(
+                            interaction,
+                            interaction.customId.split("~")[1]
+                        )
+                    return
                 default:
                     return
             }

@@ -135,6 +135,11 @@ export default {
                     if (!user) {
                         return
                     }
+
+                    //log access date
+                    user.timestamps.updatedAt = new Date()
+                    user.save()
+
                     return user.likes
                 })) || []
             //build fake playlist object for function
@@ -157,6 +162,11 @@ export default {
             if (!server) {
                 return
             }
+
+            //log access date
+            server.timestamps.updatedAt = new Date()
+            server.save()
+
             return server.playlists.find(
                 (playlist) => playlist.name == playlistName
             )
@@ -168,14 +178,17 @@ export default {
             if (!user) {
                 return
             }
+
+            //log access date
+            user.timestamps.updatedAt = new Date()
+            user.save()
+
             return user.playlists.find(
                 (playlist) => playlist.name == playlistName
             )
         })
 
         if (serverPlaylist && userPlaylist) {
-            console.log(serverPlaylist._id)
-
             return interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
@@ -231,6 +244,10 @@ export default {
                     return
                 }
 
+                //log access date
+                server.timestamps.updatedAt = new Date()
+                server.save()
+
                 return server.playlists.find(
                     (playlist) => playlist._id?.toString() == playlistId
                 )
@@ -241,6 +258,11 @@ export default {
                     if (!user) {
                         return
                     }
+
+                    //log access date
+                    user.timestamps.updatedAt = new Date()
+                    user.save()
+
                     return user.playlists.find(
                         (playlist) => playlist._id?.toString() == playlistId
                     )
