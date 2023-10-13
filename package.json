@@ -7,7 +7,8 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "start": "set NODE_ENV=prod&& node ./dist/index.js",
         "dev": "set NODE_ENV=dev&& npx tsx watch ./src/index.ts",
-        "build": "tsc"
+        "build": "tsc",
+        "deploy": "set NODE_ENV=prod&& npx tsx ./src/index.ts load global"
     },
     "keywords": [],
     "author": "",
