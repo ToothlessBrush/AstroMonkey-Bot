@@ -142,7 +142,6 @@ export default {
                 }
 
                 //log access date
-                user.timestamps.updatedAt = new Date()
                 user.save()
 
                 return user.likes

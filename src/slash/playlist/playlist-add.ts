@@ -187,7 +187,7 @@ export default {
                 } else if (interaction.customId == `addUserPL`) {
                     Schema = user
                 }
-                this.buttons(
+                this.button(
                     interaction,
                     Schema,
                     serverPL?._id?.toString() ?? userPL?._id?.toString(),
@@ -230,7 +230,7 @@ export default {
     },
 
     //need to switch to collector
-    buttons: async (
+    button: async (
         interaction: ButtonInteraction,
         schema: IUser | IServer | null,
         playlistID: string | undefined,
