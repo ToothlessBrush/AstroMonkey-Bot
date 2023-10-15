@@ -224,8 +224,6 @@ export default {
         const playlist = serverPlaylist || userPlaylist
 
         return await playTracks(interaction, playlist, shuffle)
-
-        //test webhook
     },
 
     //handle buttons on interaction
