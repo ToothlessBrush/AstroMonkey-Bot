@@ -3,6 +3,7 @@ import {
     ButtonInteraction,
     ChatInputCommandInteraction,
     CommandInteraction,
+    ComponentType,
 } from "discord.js"
 
 import {
@@ -17,10 +18,12 @@ import { QueryType, Track, useMainPlayer } from "discord-player"
 import path from "path"
 
 import { IServer, Server } from "./../../model/Server.js"
-import { User } from "./../../model/User.js"
+import { IUser, User } from "./../../model/User.js"
 
 import isUrl from "./../../utils/isUrl"
 import MyClient from "../../utils/MyClient.js"
+import { IPlaylist } from "../../model/Playlist.js"
+import { Schema } from "mongoose"
 
 export default {
     data: new SlashCommandBuilder()
@@ -86,7 +89,7 @@ export default {
         )
     },
 
-    run: async (interaction: ChatInputCommandInteraction) => {
+    async run(interaction: ChatInputCommandInteraction) {
         const client = interaction.client as MyClient
         const playlistName = interaction.options.get("playlist")
             ?.value as string
@@ -102,7 +105,7 @@ export default {
 
         const server = await Server.findOne({ "server.ID": serverID })
 
-        let serverPL
+        let serverPL: IPlaylist | undefined
         if (server) {
             serverPL = server.playlists.find(
                 (playlist) => playlist.name == playlistName
@@ -111,7 +114,7 @@ export default {
 
         const user = await User.findOne({ ID: userID })
 
-        let userPL
+        let userPL: IPlaylist | undefined
         if (user) {
             userPL = user.playlists.find(
                 (playlist) => playlist.name == playlistName
@@ -146,18 +149,7 @@ export default {
         }
 
         if (serverPL && userPL) {
-            //customId of button under 100 characters
-            let customIdTrack
-            if (track.url.length > 60) {
-                customIdTrack = track.title
-            } else {
-                customIdTrack = track.url
-            }
-
-            const serverCustomId = `addServerPL~${serverPL._id?.toString()}~${customIdTrack}`
-            const userCustomId = `addUserPL~${userPL._id?.toString()}~${customIdTrack}`
-
-            return interaction.editReply({
+            const reply = await interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0x00cbb7)
@@ -169,16 +161,41 @@ export default {
                 components: [
                     new ActionRowBuilder<ButtonBuilder>().addComponents(
                         new ButtonBuilder()
-                            .setCustomId(serverCustomId)
+                            .setCustomId(`addServerPL`)
                             .setLabel(`Server`)
                             .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
-                            .setCustomId(userCustomId)
+                            .setCustomId(`addUserPL`)
                             .setLabel(`Personal`)
                             .setStyle(ButtonStyle.Secondary)
                     ),
                 ],
             })
+
+            // const filter = (i: ButtonInteraction) => {
+            //     i.user.id == interaction.user.id
+            // }
+
+            const collector = reply.createMessageComponentCollector({
+                componentType: ComponentType.Button,
+            })
+
+            collector.on(`collect`, (interaction) => {
+                let Schema: IUser | IServer | null = null
+                if (interaction.customId == `addServerPL`) {
+                    Schema = server
+                } else if (interaction.customId == `addUserPL`) {
+                    Schema = user
+                }
+                this.buttons(
+                    interaction,
+                    Schema,
+                    serverPL?._id?.toString() ?? userPL?._id?.toString(),
+                    track
+                ) //typescript is saying this is undefined
+            })
+
+            return
         }
 
         //save to db
@@ -215,14 +232,14 @@ export default {
     //need to switch to collector
     buttons: async (
         interaction: ButtonInteraction,
-        docType: string,
-        playlistID: string,
-        query: string
+        schema: IUser | IServer | null,
+        playlistID: string | undefined,
+        track: Track | undefined
     ) => {
+        //await interaction.deferReply()
+
         const serverID = interaction.guild?.id
         const userID = interaction.user.id
-
-        const track = await searchQuery(query, interaction)
 
         if (!track) {
             return
@@ -230,86 +247,77 @@ export default {
 
         let playlistName
 
-        if (docType == "user") {
-            User.findOne({ ID: userID }).then((user) => {
-                if (!user) {
-                    return interaction.editReply({
-                        content: "User Data Not Found!",
-                        embeds: [],
-                        components: [],
-                    })
-                }
-                //find playlist based on doc id
-                let userPL = user.playlists.find(
-                    (playlist) => playlist._id?.toString() == playlistID
-                )
-
-                if (!userPL) {
-                    return interaction.editReply({
-                        content: "Playlist Data Not Found!",
-                        embeds: [],
-                        components: [],
-                    })
-                }
-
-                userPL.tracks.push(track.toJSON(true))
-                user.save()
-
-                return trackAddedReply(interaction, userPL.name, track)
-            })
-        } else if (docType == "server") {
-            Server.findOne({ "server.ID": serverID }).then((server) => {
-                if (!server) {
-                    return interaction.editReply({
-                        content: "Server Data Not Found!",
-                        embeds: [],
-                        components: [],
-                    })
-                }
-                //find playlist based on doc id
-                let serverPL = server.playlists.find(
-                    (playlist) => playlist._id?.toString() == playlistID
-                )
-
-                if (!serverPL) {
-                    return interaction.editReply({
-                        content: "Playlist Data Not Found!",
-                        embeds: [],
-                        components: [],
-                    })
-                }
-
-                serverPL.tracks.push(track.toJSON(true))
-                server.save()
-
-                return trackAddedReply(interaction, serverPL.name, track)
-            })
-        }
-
-        async function trackAddedReply(
-            interaction: CommandInteraction | ButtonInteraction,
-            playlistName: string,
-            track: Track | undefined
-        ) {
-            return await interaction.editReply({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor(0xa020f0)
-                        .setTitle(`Added to \`${playlistName}\``)
-                        .setDescription(
-                            `**[${track?.title}](${track?.url})** \n*By ${track?.author}* | ${track?.duration}`
-                        )
-                        .setThumbnail(track?.thumbnail || null)
-                        .setFooter({
-                            text: `${interaction.user.username}`,
-                            iconURL: interaction.user.avatarURL() || undefined,
-                        })
-                        .setTimestamp(),
-                ],
+        if (!schema) {
+            return interaction.reply({
+                content: "Playlist Data Not Found!",
+                embeds: [],
                 components: [],
             })
         }
+        //find playlist based on doc id
+        let playlist = schema.playlists.find(
+            (playlist) => playlist._id?.toString() == playlistID
+        )
+
+        if (!playlist) {
+            return interaction.reply({
+                content: "Playlist Data Not Found!",
+                embeds: [],
+                components: [],
+            })
+        }
+
+        playlist.tracks.push(track.toJSON(true))
+
+        if (`save` in schema) {
+            try {
+                await schema.save()
+            } catch (error) {
+                console.error(error)
+                return await interaction.reply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setColor(0xff0000)
+                            .setTitle(`Somthing went wrong!`),
+                    ],
+                })
+            }
+        } //Property 'save' does not exist on type 'IUser | IServer'.
+        //Property 'save' does not exist on type 'IUser'.ts(2339)
+
+        return trackAddedReply(interaction, playlist.name, track)
     },
+}
+
+async function trackAddedReply(
+    interaction: ChatInputCommandInteraction | ButtonInteraction,
+    playlistName: string,
+    track: Track | undefined
+) {
+    const embed = new EmbedBuilder()
+        .setColor(0xa020f0)
+        .setTitle(`Added to \`${playlistName}\``)
+        .setDescription(
+            `**[${track?.title}](${track?.url})** \n*By ${track?.author}* | ${track?.duration}`
+        )
+        .setThumbnail(track?.thumbnail || null)
+        .setFooter({
+            text: `${interaction.user.username}`,
+            iconURL: interaction.user.avatarURL() || undefined,
+        })
+        .setTimestamp()
+
+    if (interaction.isChatInputCommand()) {
+        return await interaction.editReply({
+            embeds: [embed],
+            components: [],
+        })
+    } else if (interaction.isButton()) {
+        return await interaction.update({
+            embeds: [embed],
+            components: [],
+        })
+    }
 }
 
 /** search youtube, spotify, or soundcloud for a track and returns it as an object

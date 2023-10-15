@@ -170,7 +170,6 @@ export default {
             }
 
             //log access date
-            server.timestamps.updatedAt = new Date()
             server.save()
 
             return server.playlists.find(
@@ -187,7 +186,6 @@ export default {
             }
 
             //log access date
-            user.timestamps.updatedAt = new Date()
             user.save()
 
             return user.playlists.find(

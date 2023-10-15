@@ -29,6 +29,10 @@ const userSchema = new Schema<IUser>(
     }
 )
 
+userSchema.pre(`save`, function () {
+    console.log(`Saved User Document`)
+})
+
 //updated updatedAt whenever .findOne is called //queries are strict
 // userSchema.pre("findOne", function (next) {
 //     // Attach a post-find hook to the query to update 'updatedAt'

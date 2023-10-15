@@ -31,6 +31,10 @@ const serverSchema = new Schema<IServer>(
     }
 )
 
+serverSchema.pre(`save`, function () {
+    console.log(`Saved Server Document`)
+})
+
 const Server = model<IServer>("Server", serverSchema)
 
 export { Server, IServer }

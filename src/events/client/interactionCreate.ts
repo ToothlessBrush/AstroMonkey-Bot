@@ -98,26 +98,26 @@ export default {
                             interaction.customId.split("~")[2]
                         )
                     return
-                case "addServerPL":
-                    client.slashcommands
-                        .get("playlist-add")
-                        .buttons(
-                            interaction,
-                            "server",
-                            interaction.customId.split("~")[1],
-                            interaction.customId.split("~")[2]
-                        )
-                    return
-                case "addUserPL":
-                    client.slashcommands
-                        .get("playlist-add")
-                        .buttons(
-                            interaction,
-                            "user",
-                            interaction.customId.split("~")[1],
-                            interaction.customId.split("~")[2]
-                        )
-                    return
+                // case "addServerPL":
+                //     client.slashcommands
+                //         .get("playlist-add")
+                //         .buttons(
+                //             interaction,
+                //             "server",
+                //             interaction.customId.split("~")[1],
+                //             interaction.customId.split("~")[2]
+                //         )
+                //     return
+                // case "addUserPL":
+                //     client.slashcommands
+                //         .get("playlist-add")
+                //         .buttons(
+                //             interaction,
+                //             "user",
+                //             interaction.customId.split("~")[1],
+                //             interaction.customId.split("~")[2]
+                //         )
+                //     return
                 case "showServerPL":
                     client.slashcommands
                         .get("view-playlist")
