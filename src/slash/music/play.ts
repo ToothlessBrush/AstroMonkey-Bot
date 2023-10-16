@@ -9,15 +9,18 @@ import {
     GuildMember,
     StringSelectMenuInteraction,
     ChatInputCommandInteraction,
+    ComponentType,
 } from "discord.js"
 import {
     GuildQueue,
     QueryType,
+    Track,
     useMainPlayer,
     useMetadata,
 } from "discord-player"
 
 import isUrl from "./../../utils/isUrl"
+import MyClient from "../../utils/MyClient"
 
 export default {
     data: new SlashCommandBuilder()
@@ -76,6 +79,7 @@ export default {
     run: async (
         interaction: ChatInputCommandInteraction | StringSelectMenuInteraction
     ) => {
+        const client = interaction.client as MyClient
         //error checking
         if (!(interaction.member instanceof GuildMember)) {
             return
@@ -159,7 +163,7 @@ export default {
 
         let result_search
 
-        let tracks
+        let tracks: Track[]
         if (isUrl(query)) {
             //auto searches the url
             console.log(`searching url: ${query}`)
@@ -283,7 +287,7 @@ export default {
 
         //console.log(queue.tracks.length)
 
-        await interaction.editReply({
+        const reply = await interaction.editReply({
             embeds: [embed],
             components: [
                 new ActionRowBuilder<ButtonBuilder>()
@@ -329,7 +333,7 @@ export default {
                     )
                     .addComponents(
                         new ButtonBuilder()
-                            .setCustomId(`like~${tracks[0].url}`)
+                            .setCustomId(`like`)
                             .setLabel("Like")
                             .setStyle(ButtonStyle.Primary)
                             .setEmoji({
@@ -338,6 +342,19 @@ export default {
                             })
                     ),
             ],
+        })
+
+        const collector = reply.createMessageComponentCollector({
+            componentType: ComponentType.Button,
+        })
+
+        collector.on(`collect`, (interaction) => {
+            //only use collector for like
+            if (interaction.customId != `like`) {
+                return
+            }
+
+            client.slashcommands.get(`like`).button(interaction, tracks[0])
         })
     },
 }

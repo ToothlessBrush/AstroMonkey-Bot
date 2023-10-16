@@ -3,8 +3,15 @@ import {
     SlashCommandBuilder,
     ActionRowBuilder,
 } from "@discordjs/builders"
-import { ButtonStyle, ChatInputCommandInteraction, CommandInteraction, EmbedBuilder } from "discord.js"
-import { useQueue } from "discord-player"
+import {
+    ButtonStyle,
+    ChatInputCommandInteraction,
+    CommandInteraction,
+    ComponentType,
+    EmbedBuilder,
+} from "discord.js"
+import { Track, useQueue } from "discord-player"
+import MyClient from "../../utils/MyClient"
 
 export default {
     data: new SlashCommandBuilder()
@@ -12,6 +19,8 @@ export default {
         .setDescription("Plays the Previously Played Song"),
 
     run: async (interaction: ChatInputCommandInteraction) => {
+        const client = interaction.client as MyClient
+
         if (!interaction.guild) {
             return
         }
@@ -33,9 +42,10 @@ export default {
 
         embed.setColor(0xa020f0)
 
+        let song: Track | null
         if (queue.history.previousTrack != null) {
             await queue.history.back()
-            let song = queue.currentTrack
+            song = queue.currentTrack
             embed
                 .setTitle(`**Playing**`)
                 .setDescription(`**[${song?.title}](${song?.url})**`)
@@ -85,7 +95,7 @@ export default {
                 )
                 .addComponents(
                     new ButtonBuilder()
-                        .setCustomId(`like~${song?.url}`)
+                        .setCustomId(`like`)
                         .setLabel("Like")
                         .setStyle(ButtonStyle.Primary)
                         .setEmoji({
@@ -99,9 +109,22 @@ export default {
                 .setDescription(`**There is no Previous Track**`)
         }
 
-        await interaction.editReply({
+        const reply = await interaction.editReply({
             embeds: [embed],
             components: [components],
+        })
+
+        const collector = reply.createMessageComponentCollector({
+            componentType: ComponentType.Button,
+        })
+
+        collector.on(`collect`, (interaction) => {
+            //only use collector for like
+            if (interaction.customId != `like`) {
+                return
+            }
+
+            client.slashcommands.get(`like`).button(interaction, song)
         })
     },
 }

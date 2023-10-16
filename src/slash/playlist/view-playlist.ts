@@ -38,10 +38,6 @@ export default {
                     return
                 }
 
-                //log access date
-                server.timestamps.updatedAt = new Date()
-                server.save()
-
                 if (server.playlists) {
                     server.playlists
                         .map((playlist) => playlist.name)
@@ -55,10 +51,6 @@ export default {
             if (!user) {
                 return
             }
-
-            //log access date
-            user.timestamps.updatedAt = new Date()
-            user.save()
 
             if (user.playlists) {
                 user.playlists

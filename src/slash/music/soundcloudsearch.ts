@@ -1,4 +1,4 @@
-import { useMainPlayer } from "discord-player"
+import { Track, useMainPlayer } from "discord-player"
 import {
     AutocompleteInteraction,
     CommandInteraction,
@@ -8,12 +8,14 @@ import {
     ButtonStyle,
     PermissionsBitField,
     ChatInputCommandInteraction,
+    ComponentType,
 } from "discord.js"
 
 import { SlashCommandBuilder, ButtonBuilder } from "@discordjs/builders"
 import { QueryType } from "discord-player"
 
 import isUrl from "../../utils/isUrl"
+import MyClient from "../../utils/MyClient"
 
 export default {
     data: new SlashCommandBuilder()
@@ -69,7 +71,7 @@ export default {
     },
 
     run: async (interaction: ChatInputCommandInteraction) => {
-        const client = interaction.client
+        const client = interaction.client as MyClient
 
         if (!(interaction.member instanceof GuildMember)) {
             return
@@ -147,7 +149,7 @@ export default {
                 ],
             })
 
-        let tracks = []
+        let tracks: Track[] = []
         console.log(`searching SoundCloud: ${query}`)
 
         interaction.editReply({
@@ -256,7 +258,7 @@ export default {
 
         //console.log(queue.tracks.length)
 
-        await interaction.editReply({
+        const reply = await interaction.editReply({
             embeds: [embed],
             components: [
                 new ActionRowBuilder<ButtonBuilder>()
@@ -302,7 +304,7 @@ export default {
                     )
                     .addComponents(
                         new ButtonBuilder()
-                            .setCustomId(`like~${tracks[0].url}`)
+                            .setCustomId(`like`)
                             .setLabel("Like")
                             .setStyle(ButtonStyle.Primary)
                             .setEmoji({
@@ -311,6 +313,19 @@ export default {
                             })
                     ),
             ],
+        })
+
+        const collector = reply.createMessageComponentCollector({
+            componentType: ComponentType.Button,
+        })
+
+        collector.on(`collect`, (interaction) => {
+            //only use collector for like
+            if (interaction.customId != `like`) {
+                return
+            }
+
+            client.slashcommands.get(`like`).button(interaction, tracks[0])
         })
     },
 }

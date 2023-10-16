@@ -182,10 +182,10 @@ export default {
                             interaction.customId.split("~")[1]
                         )
                     return
-                case "like":
-                    await interaction.deferReply()
-                    client.slashcommands.get("like").run(interaction)
-                    return
+                // case "like":
+                //     await interaction.deferReply()
+                //     client.slashcommands.get("like").run(interaction)
+                //     return
                 case "deleteUser":
                     await interaction.deferReply()
                     client.slashcommands
