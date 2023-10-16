@@ -136,26 +136,26 @@ export default {
                             interaction.customId.split("~")[1]
                         )
                     return
-                case "removeUserPL":
-                    client.slashcommands
-                        .get("playlist-remove")
-                        .buttons(
-                            interaction,
-                            "user",
-                            interaction.customId.split("~")[1],
-                            interaction.customId.split("~")[2]
-                        )
-                    return
-                case "removeServerPL":
-                    client.slashcommands
-                        .get("playlist-remove")
-                        .buttons(
-                            interaction,
-                            "server",
-                            interaction.customId.split("~")[1],
-                            interaction.customId.split("~")[2]
-                        )
-                    return
+                // case "removeUserPL":
+                //     client.slashcommands
+                //         .get("playlist-remove")
+                //         .buttons(
+                //             interaction,
+                //             "user",
+                //             interaction.customId.split("~")[1],
+                //             interaction.customId.split("~")[2]
+                //         )
+                //     return
+                // case "removeServerPL":
+                //     client.slashcommands
+                //         .get("playlist-remove")
+                //         .buttons(
+                //             interaction,
+                //             "server",
+                //             interaction.customId.split("~")[1],
+                //             interaction.customId.split("~")[2]
+                //         )
+                //     return
                 case "deleteServerPL":
                     client.slashcommands
                         .get("delete-playlist")

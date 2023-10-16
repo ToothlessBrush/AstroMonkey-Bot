@@ -181,18 +181,13 @@ export default {
             })
 
             collector.on(`collect`, (interaction) => {
-                let Schema: IUser | IServer | null = null
-                if (interaction.customId == `addServerPL`) {
-                    Schema = server
-                } else if (interaction.customId == `addUserPL`) {
-                    Schema = user
-                }
+                const isAddServerPL = interaction.customId == `addServerPL`
                 this.button(
                     interaction,
-                    Schema,
-                    serverPL?._id?.toString() ?? userPL?._id?.toString(),
+                    isAddServerPL ? server : user,
+                    isAddServerPL ? serverPL : userPL,
                     track
-                ) //typescript is saying this is undefined
+                )
             })
 
             return
@@ -233,19 +228,14 @@ export default {
     button: async (
         interaction: ButtonInteraction,
         schema: IUser | IServer | null,
-        playlistID: string | undefined,
+        playlist: IPlaylist | undefined,
         track: Track | undefined
     ) => {
         //await interaction.deferReply()
 
-        const serverID = interaction.guild?.id
-        const userID = interaction.user.id
-
         if (!track) {
             return
         }
-
-        let playlistName
 
         if (!schema) {
             return interaction.reply({
@@ -255,9 +245,9 @@ export default {
             })
         }
         //find playlist based on doc id
-        let playlist = schema.playlists.find(
-            (playlist) => playlist._id?.toString() == playlistID
-        )
+        // let playlist = schema.playlists.find(
+        //     (playlist) => playlist._id?.toString() == playlistID
+        // )
 
         if (!playlist) {
             return interaction.reply({
@@ -282,8 +272,7 @@ export default {
                     ],
                 })
             }
-        } //Property 'save' does not exist on type 'IUser | IServer'.
-        //Property 'save' does not exist on type 'IUser'.ts(2339)
+        }
 
         return trackAddedReply(interaction, playlist.name, track)
     },
