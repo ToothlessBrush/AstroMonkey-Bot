@@ -139,6 +139,8 @@ export default {
             choice.startsWith(focusedOption.value)
         )
 
+        filtered.slice(0, 25)
+
         return await interaction.respond(
             filtered.map((choice) => ({ name: choice, value: choice }))
         )

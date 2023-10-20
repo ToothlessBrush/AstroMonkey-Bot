@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose"
+import { Schema, model, Document } from "mongoose"
 import { playlistSchema, IPlaylist } from "./Playlist"
 import { TrackJSON } from "discord-player"
 import cron from "node-cron"

@@ -347,14 +347,17 @@ export default {
         const collector = reply.createMessageComponentCollector({
             componentType: ComponentType.Button,
         })
-
-        collector.on(`collect`, (interaction) => {
+        
+        collector.on(`collect`, async (interaction) => {
             //only use collector for like
             if (interaction.customId != `like`) {
                 return
             }
 
-            client.slashcommands.get(`like`).button(interaction, tracks[0])
+            await client.slashcommands
+                .get(`like`)
+                .button(interaction, tracks[0])
+
         })
     },
 }

@@ -64,14 +64,16 @@ export default {
             }
         })
 
-        choices = removeDuplicates(choices)
-        function removeDuplicates<T>(arr: T[]) {
+        choices = removeDuplicates<string>(choices)
+        function removeDuplicates<T>(arr: T[]): T[] {
             return arr.filter((item, index) => arr.indexOf(item) === index)
         }
 
         const filtered = choices.filter((choice) =>
             choice.startsWith(focusedValue)
         )
+
+        filtered.slice(0, 25)
 
         await interaction.respond(
             filtered.map((choice) => ({ name: choice, value: choice }))
