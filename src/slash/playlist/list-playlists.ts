@@ -1,7 +1,4 @@
-import { CommandInteraction } from "discord.js"
-import { IServer } from "../../model/Server"
-import { IUser } from "../../model/User"
-
+import { ChatInputCommandInteraction, CommandInteraction } from "discord.js"
 import {
     EmbedBuilder,
     SlashCommandBuilder,
@@ -12,8 +9,8 @@ import {
 import { QueryType } from "discord-player"
 
 import path from "path"
-import { Server } from "./../../model/Server.js"
-import { User } from "./../../model/User.js"
+import { Server, IServer } from "./../../model/Server.js"
+import { User, IUser } from "./../../model/User.js"
 import { IPlaylist } from "../../model/Playlist"
 
 export default {
@@ -21,23 +18,21 @@ export default {
         .setName("list-playlists")
         .setDescription("lists your playlists and server playlists"),
 
-    run: async (interaction: CommandInteraction) => {
+    run: async (interaction: ChatInputCommandInteraction) => {
         const serverID = interaction.guild?.id
         const userID = interaction.user.id
 
         let serverPlaylists
 
-        await Server.findOne({ "server.ID": serverID }).then(
-            (server: IServer | null) => {
-                if (server) {
-                    serverPlaylists = server.playlists
-                }
+        await Server.findOne({ "server.ID": serverID }).then((server) => {
+            if (server) {
+                serverPlaylists = server.playlists
             }
-        )
+        })
 
         let userPlaylists
 
-        await User.findOne({ ID: userID }).then((user: IUser | null) => {
+        await User.findOne({ ID: userID }).then((user) => {
             if (user) {
                 userPlaylists = user.playlists
             }

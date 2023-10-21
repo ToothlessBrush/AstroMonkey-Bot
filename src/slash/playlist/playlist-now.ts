@@ -1,6 +1,7 @@
 import {
     AutocompleteInteraction,
     ButtonInteraction,
+    ChatInputCommandInteraction,
     CommandInteraction,
     GuildMember,
 } from "discord.js"
@@ -78,12 +79,14 @@ export default {
             choice.startsWith(focusedValue)
         )
 
+        filtered.slice(0, 25)
+
         await interaction.respond(
             filtered.map((choice) => ({ name: choice, value: choice }))
         )
     },
 
-    run: async (interaction: CommandInteraction) => {
+    run: async (interaction: ChatInputCommandInteraction) => {
         if (!(interaction.member instanceof GuildMember)) {
             return
         }
@@ -139,6 +142,10 @@ export default {
                 if (!user) {
                     return
                 }
+
+                //log access date
+                user.save()
+
                 return user.likes
             })
 
@@ -162,9 +169,14 @@ export default {
             if (!server) {
                 return
             }
+
+            //log access date
+            server.save()
+
             return server.playlists.find(
                 (playlist) => playlist.name == playlistName
             )
+            //log access time
         })
 
         const userPlaylist = await User.findOne({
@@ -173,6 +185,10 @@ export default {
             if (!user) {
                 return
             }
+
+            //log access date
+            user.save()
+
             return user.playlists.find(
                 (playlist) => playlist.name == playlistName
             )
@@ -231,7 +247,11 @@ export default {
                 if (!server) {
                     return
                 }
-                
+
+                //log access date
+                server.timestamps.updatedAt = new Date()
+                server.save()
+
                 return server.playlists.find(
                     (playlist) => playlist._id?.toString() == playlistId
                 )
@@ -242,6 +262,11 @@ export default {
                     if (!user) {
                         return
                     }
+
+                    //log access date
+                    user.timestamps.updatedAt = new Date()
+                    user.save()
+
                     return user.playlists.find(
                         (playlist) => playlist._id?.toString() == playlistId
                     )

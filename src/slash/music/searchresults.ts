@@ -1,5 +1,5 @@
 import { Track, useMainPlayer } from "discord-player"
-import { CommandInteraction, GuildMember } from "discord.js"
+import { ChatInputCommandInteraction, CommandInteraction, GuildMember } from "discord.js"
 
 import {
     EmbedBuilder,
@@ -36,7 +36,7 @@ export default {
                 .setRequired(true)
         ),
 
-    run: async (interaction: CommandInteraction) => {
+    run: async (interaction: ChatInputCommandInteraction) => {
 
         if (!(interaction.member instanceof GuildMember)) {
             return

@@ -1,5 +1,5 @@
 import { useQueue } from "discord-player"
-import { CommandInteraction } from "discord.js"
+import { ChatInputCommandInteraction, CommandInteraction } from "discord.js"
 
 import { SlashCommandBuilder, ActionRowBuilder } from "@discordjs/builders"
 import { EmbedBuilder, ButtonBuilder, ButtonStyle } from "discord.js"
@@ -9,7 +9,7 @@ export default {
         .setName("resume")
         .setDescription("resumes the music queue"),
 
-    run: async (interaction: CommandInteraction) => {
+    run: async (interaction: ChatInputCommandInteraction) => {
         if (!interaction.guild) {
             return
         }

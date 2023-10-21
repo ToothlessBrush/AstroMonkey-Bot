@@ -1,5 +1,5 @@
 import { useMainPlayer } from "discord-player"
-import { CommandInteraction } from "discord.js"
+import { ChatInputCommandInteraction, CommandInteraction } from "discord.js"
 
 import { EmbedBuilder } from "@discordjs/builders"
 import { SlashCommandBuilder } from "discord.js"
@@ -9,7 +9,7 @@ export default {
         .setName("shuffle")
         .setDescription("shuffles the music queue"),
 
-    run: async ( interaction: CommandInteraction) => {
+    run: async ( interaction: ChatInputCommandInteraction) => {
         const player = useMainPlayer()
 
         if (!player) {

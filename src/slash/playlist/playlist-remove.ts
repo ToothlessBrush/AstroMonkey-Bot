@@ -8,12 +8,12 @@ import {
     ButtonInteraction,
     CommandInteraction,
     AutocompleteInteraction,
+    ChatInputCommandInteraction,
+    ComponentType,
 } from "discord.js"
 
-import path from "path"
-import { Server } from "./../../model/Server.js"
-import { User } from "./../../model/User.js"
-import { trusted } from "mongoose"
+import { Server, IServer } from "./../../model/Server.js"
+import { IUser, User } from "./../../model/User.js"
 import { IPlaylist } from "../../model/Playlist.js"
 
 export default {
@@ -70,7 +70,8 @@ export default {
         }
 
         if (focusedOption.name == "track") {
-            const playlistName = interaction.options.get(`playlist`)?.value as string //hope this will work
+            const playlistName = interaction.options.get(`playlist`)
+                ?.value as string //hope this will work
 
             //const playlistName = interaction.options._hoistedOptions[0].value
 
@@ -138,13 +139,16 @@ export default {
             choice.startsWith(focusedOption.value)
         )
 
+        filtered.slice(0, 25)
+
         return await interaction.respond(
             filtered.map((choice) => ({ name: choice, value: choice }))
         )
     },
 
-    run: async (interaction: CommandInteraction ) => {
-        const playlistName = interaction.options.get("playlist")?.value as string
+    async run(interaction: ChatInputCommandInteraction) {
+        const playlistName = interaction.options.get("playlist")
+            ?.value as string
         const query = interaction.options.get("track")?.value as string
         const serverID = interaction.guild?.id
         const userID = interaction.user.id
@@ -165,7 +169,6 @@ export default {
                 )
 
                 if (trackIndex == -1) {
-                    console.log("here")
                     return interaction.editReply({
                         embeds: [
                             new EmbedBuilder()
@@ -191,7 +194,7 @@ export default {
         }
 
         const server = await Server.findOne({ "server.ID": serverID })
-        let serverPL
+        let serverPL: IPlaylist | undefined
         if (server) {
             serverPL = server.playlists.find(
                 (playlist) => playlist.name == playlistName
@@ -199,7 +202,7 @@ export default {
         }
 
         const user = await User.findOne({ ID: userID })
-        let userPL
+        let userPL: IPlaylist | undefined
         if (user) {
             userPL = user.playlists.find(
                 (playlist) => playlist.name == playlistName
@@ -207,11 +210,7 @@ export default {
         }
 
         if (serverPL && userPL) {
-            const trackId =
-                serverPL?.tracks.find((track) => track.title == query)?.id ||
-                userPL?.tracks.find((track) => track.title == query)?.id
-
-            return interaction.editReply({
+            const reply = await interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0x00cbb7)
@@ -223,20 +222,32 @@ export default {
                 components: [
                     new ActionRowBuilder<ButtonBuilder>().addComponents(
                         new ButtonBuilder()
-                            .setCustomId(
-                                `removeServerPL~${serverPL._id?.toString()}~${trackId}`
-                            )
+                            .setCustomId(`removeServerPL`)
                             .setLabel(`Server`)
                             .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
-                            .setCustomId(
-                                `removeUserPL~${userPL._id?.toString()}~${trackId}`
-                            )
+                            .setCustomId(`removeUserPL`)
                             .setLabel(`Personal`)
                             .setStyle(ButtonStyle.Secondary)
                     ),
                 ],
             })
+
+            const collector = reply.createMessageComponentCollector({
+                componentType: ComponentType.Button,
+            })
+
+            collector.on(`collect`, (interaction) => {
+                const isRemoveServerPL =
+                    interaction.customId == `removeServerPL`
+                this.button(
+                    interaction,
+                    isRemoveServerPL ? server : user,
+                    isRemoveServerPL ? serverPL : userPL,
+                    query
+                )
+            })
+            return
         }
 
         if (!serverPL && !userPL) {
@@ -260,64 +271,51 @@ export default {
         }
     },
 
-    //need to switch to collector
-    buttons: async (interaction: ButtonInteraction, docType: string, playlistId: string, query: string) => {
-        if (docType == "server") {
-            await Server.findOne({ "server.ID": interaction.guild?.id }).then(
-                async (server) => {
-                    if (!server) {
-                        return await interaction.update({
-                            content: "Server Data not found!",
-                            embeds: [],
-                            components: [],
-                        })
-                    }
+    /**
+     *
+     * @param interaction | ButtonInteraction
+     * @param schema IUser | IServer | null
+     * @param playlist IPlaylist | undefined
+     * @param query string
+     * @returns void
+     */
+    button: async (
+        interaction: ButtonInteraction,
+        schema: IUser | IServer | null,
+        playlist: IPlaylist | undefined,
+        query: string
+    ) => {
+        if (!schema) {
+            return interaction.reply({
+                content: "Playlist Data Not Found!",
+                embeds: [],
+                components: [],
+            })
+        }
 
-                    let playlist = server.playlists.find(
-                        (playlist) => playlist._id?.toString() == playlistId
-                    )
+        if (!playlist) {
+            return interaction.reply({
+                content: "Playlist Data Not Found!",
+                embeds: [],
+                components: [],
+            })
+        }
 
-                    if (!playlist) {
-                        return await interaction.update({
-                            content: "Playlist Data Not Found!",
-                            embeds: [],
-                            components: [],
-                        })
-                    }
+        removeTrack(interaction, playlist, query)
 
-                    removeTrack(interaction, playlist, query)
-
-                    server.save()
-                }
-            )
-        } else if (docType == "user") {
-            await User.findOne({ ID: interaction.user.id }).then(
-                async (user) => {
-                    if (!user) {
-                        return await interaction.update({
-                            content: "User Data not found!",
-                            embeds: [],
-                            components: [],
-                        })
-                    }
-
-                    let playlist = user.playlists.find(
-                        (playlist) => playlist._id?.toString() == playlistId
-                    )
-
-                    if (!playlist) {
-                        return await interaction.update({
-                            content: "Playlist Data Not Found!",
-                            embeds: [],
-                            components: [],
-                        })
-                    }
-
-                    removeTrack(interaction, playlist, query)
-
-                    user.save()
-                }
-            )
+        if (`save` in schema) {
+            try {
+                await schema.save()
+            } catch (error) {
+                console.error(error)
+                return await interaction.reply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setColor(0xff0000)
+                            .setTitle(`Somthing went wrong!`),
+                    ],
+                })
+            }
         }
     },
 }
@@ -329,7 +327,11 @@ export default {
  * @param {String} query the name of track to remove
  * @returns {void} points to playlist array
  */
-async function removeTrack(interaction: CommandInteraction | ButtonInteraction, playlist: IPlaylist, query: string) {
+async function removeTrack(
+    interaction: CommandInteraction | ButtonInteraction,
+    playlist: IPlaylist,
+    query: string
+): Promise<void> {
     const buttonInteraction = interaction.isButton()
 
     const trackIndex = playlist.tracks.findIndex(
@@ -346,9 +348,11 @@ async function removeTrack(interaction: CommandInteraction | ButtonInteraction, 
             components: [],
         }
         if (buttonInteraction) {
-            return await interaction.update(noTrackFoundEmbed)
+            await interaction.update(noTrackFoundEmbed)
+            return
         } else {
-            return await interaction.editReply(noTrackFoundEmbed)
+            await interaction.editReply(noTrackFoundEmbed)
+            return
         }
     }
 
@@ -363,8 +367,10 @@ async function removeTrack(interaction: CommandInteraction | ButtonInteraction, 
         components: [],
     }
     if (buttonInteraction) {
-        return await interaction.update(removedTrackEmbed)
+        await interaction.update(removedTrackEmbed)
+        return
     } else {
-        return await interaction.editReply(removedTrackEmbed)
+        await interaction.editReply(removedTrackEmbed)
+        return
     }
 }

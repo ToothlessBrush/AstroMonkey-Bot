@@ -1,9 +1,9 @@
-import { ActivityType } from "discord.js"
+import { ActivityType, Events } from "discord.js"
 import chalk from "chalk"
 import MyClient from "../../utils/MyClient"
 
 export default {
-    name: "ready",
+    name: Events.ClientReady,
     once: true,
     execute(client: MyClient) {
         if (!client.user) {
@@ -13,7 +13,7 @@ export default {
         console.log(chalk.green(`Logged in as ${client.user.tag}`))
         client.user.setActivity({
             name: "/help",
-            type: ActivityType.Streaming,
+            type: ActivityType.Listening,
         })
     },
 }

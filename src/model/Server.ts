@@ -8,15 +8,31 @@ interface IServer extends Document {
     }
     djrole: string
     playlists: IPlaylist[]
+    timestamps: {
+        createdAt: Date
+        updatedAt: Date
+    }
 }
 
-const serverSchema = new Schema<IServer>({
-    server: {
-        name: String,
-        ID: String,
+const serverSchema = new Schema<IServer>(
+    {
+        server: {
+            name: String,
+            ID: String,
+        },
+        djrole: String,
+        playlists: [playlistSchema],
     },
-    djrole: String,
-    playlists: [playlistSchema],
+    {
+        timestamps: {
+            createdAt: "createdAt",
+            updatedAt: "updatedAt",
+        },
+    }
+)
+
+serverSchema.pre(`save`, function () {
+    console.log(`Saved Server Document`)
 })
 
 const Server = model<IServer>("Server", serverSchema)

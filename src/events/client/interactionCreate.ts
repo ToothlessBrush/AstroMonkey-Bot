@@ -1,8 +1,8 @@
-import { Interaction } from "discord.js"
+import { Interaction, Events } from "discord.js"
 import MyClient from "../../utils/MyClient"
 
 export default {
-    name: "interactionCreate",
+    name: Events.InteractionCreate,
     async execute(interaction: Interaction) {
         const client = interaction.client as MyClient
 
@@ -98,26 +98,26 @@ export default {
                             interaction.customId.split("~")[2]
                         )
                     return
-                case "addServerPL":
-                    client.slashcommands
-                        .get("playlist-add")
-                        .buttons(
-                            interaction,
-                            "server",
-                            interaction.customId.split("~")[1],
-                            interaction.customId.split("~")[2]
-                        )
-                    return
-                case "addUserPL":
-                    client.slashcommands
-                        .get("playlist-add")
-                        .buttons(
-                            interaction,
-                            "user",
-                            interaction.customId.split("~")[1],
-                            interaction.customId.split("~")[2]
-                        )
-                    return
+                // case "addServerPL":
+                //     client.slashcommands
+                //         .get("playlist-add")
+                //         .buttons(
+                //             interaction,
+                //             "server",
+                //             interaction.customId.split("~")[1],
+                //             interaction.customId.split("~")[2]
+                //         )
+                //     return
+                // case "addUserPL":
+                //     client.slashcommands
+                //         .get("playlist-add")
+                //         .buttons(
+                //             interaction,
+                //             "user",
+                //             interaction.customId.split("~")[1],
+                //             interaction.customId.split("~")[2]
+                //         )
+                //     return
                 case "showServerPL":
                     client.slashcommands
                         .get("view-playlist")
@@ -136,26 +136,26 @@ export default {
                             interaction.customId.split("~")[1]
                         )
                     return
-                case "removeUserPL":
-                    client.slashcommands
-                        .get("playlist-remove")
-                        .buttons(
-                            interaction,
-                            "user",
-                            interaction.customId.split("~")[1],
-                            interaction.customId.split("~")[2]
-                        )
-                    return
-                case "removeServerPL":
-                    client.slashcommands
-                        .get("playlist-remove")
-                        .buttons(
-                            interaction,
-                            "server",
-                            interaction.customId.split("~")[1],
-                            interaction.customId.split("~")[2]
-                        )
-                    return
+                // case "removeUserPL":
+                //     client.slashcommands
+                //         .get("playlist-remove")
+                //         .buttons(
+                //             interaction,
+                //             "user",
+                //             interaction.customId.split("~")[1],
+                //             interaction.customId.split("~")[2]
+                //         )
+                //     return
+                // case "removeServerPL":
+                //     client.slashcommands
+                //         .get("playlist-remove")
+                //         .buttons(
+                //             interaction,
+                //             "server",
+                //             interaction.customId.split("~")[1],
+                //             interaction.customId.split("~")[2]
+                //         )
+                //     return
                 case "deleteServerPL":
                     client.slashcommands
                         .get("delete-playlist")
@@ -182,9 +182,18 @@ export default {
                             interaction.customId.split("~")[1]
                         )
                     return
-                case "like":
+                // case "like":
+                //     await interaction.deferReply()
+                //     client.slashcommands.get("like").run(interaction)
+                //     return
+                case "deleteUser":
                     await interaction.deferReply()
-                    client.slashcommands.get("like").run({ interaction })
+                    client.slashcommands
+                        .get("purge-info")
+                        .buttons(
+                            interaction,
+                            interaction.customId.split("~")[1]
+                        )
                     return
                 default:
                     return

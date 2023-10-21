@@ -1,5 +1,5 @@
 import { useQueue } from "discord-player"
-import { CommandInteraction } from "discord.js"
+import { ChatInputCommandInteraction, CommandInteraction } from "discord.js"
 
 import { SlashCommandBuilder } from "@discordjs/builders"
 import { EmbedBuilder } from "discord.js"
@@ -9,12 +9,11 @@ export default {
         .setName("quit")
         .setDescription("clears queue and stops bot"),
 
-    run: async (interaction: CommandInteraction) => {
-        
+    run: async (interaction: ChatInputCommandInteraction) => {
         if (!interaction.guild) {
             return
         }
-    
+
         const queue = useQueue(interaction.guild)
 
         if (!queue)
@@ -27,10 +26,16 @@ export default {
             })
 
         queue.delete()
+        
         await interaction.editReply({
             embeds: [
                 new EmbedBuilder().setColor(0xff0000).setTitle(`**Quitting**`),
             ],
         })
+
+        const used2 = process.memoryUsage().heapUsed / 1024 / 1024
+        console.log(
+            `The script uses approximately ${Math.round(used2 * 100) / 100} MB`
+        )
     },
 }

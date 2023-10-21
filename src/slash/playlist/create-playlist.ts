@@ -1,4 +1,5 @@
 import {
+    ChatInputCommandInteraction,
     CommandInteraction,
     EmbedBuilder,
     SlashCommandBuilder,
@@ -34,7 +35,7 @@ export default {
                 .setMaxLength(100)
         ),
 
-    run: async (interaction: CommandInteraction) => {
+    run: async (interaction: ChatInputCommandInteraction) => {
         const serverType =
             (interaction.options.get("type")?.value as string) == "SERVER"
 

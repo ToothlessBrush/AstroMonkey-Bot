@@ -46,6 +46,12 @@ We do not sell, trade, or rent your personal data to third parties. Data collect
 
 We retain your data for as long as it is necessary to fulfill the purposes mentioned in this Privacy Policy. Data that is no longer required is deleted or anonymized.
 
+1. **Inactive User Information:** We retain user information for up to 30 days. If a user has been inactive for this period, their data will be deleted or anonymized to protect their privacy.
+
+2. **Server Removal:** When our bot is removed from a server, we will delete any data associated with that server to ensure the security and privacy of server members.
+
+Please note that this data retention policy is subject to any applicable legal requirements, and we may retain data for a longer period if required by law or for legitimate business purposes. If you have any questions about our data retention practices or wish to request the deletion of your data, please contact us using the information provided in this Privacy Policy.
+
 ## Cookie Policy
 
 Astromonkey does not collect cookies.

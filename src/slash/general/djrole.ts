@@ -1,5 +1,9 @@
 import { SlashCommandBuilder, EmbedBuilder } from "@discordjs/builders"
-import { CommandInteraction, PermissionFlagsBits } from "discord.js"
+import {
+    ChatInputCommandInteraction,
+    CommandInteraction,
+    PermissionFlagsBits,
+} from "discord.js"
 
 export default {
     data: new SlashCommandBuilder()
@@ -14,8 +18,7 @@ export default {
                 .setRequired(true)
         )
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-    run: async (interaction: CommandInteraction ) => {
-        
+    run: async (interaction: ChatInputCommandInteraction) => {
         if (interaction.isAutocomplete()) {
             return
         }

@@ -1,28 +1,38 @@
 import {
     AutocompleteInteraction,
     ButtonInteraction,
+    ChatInputCommandInteraction,
     CommandInteraction,
-} from "discord.js"
-
-import {
+    ComponentType,
+    Message,
     EmbedBuilder,
     SlashCommandBuilder,
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
 } from "discord.js"
+
 import { QueryType, Track, useMainPlayer } from "discord-player"
 
-import path from "path"
-
 import { IServer, Server } from "./../../model/Server.js"
-import { User } from "./../../model/User.js"
+import { IUser, User } from "./../../model/User.js"
+import { IPlaylist } from "../../model/Playlist.js"
 
 import isUrl from "./../../utils/isUrl"
 import MyClient from "../../utils/MyClient.js"
 
-export default {
-    data: new SlashCommandBuilder()
+export class PlaylistAdd {
+    private track: Track | undefined
+    private userDoc: IUser | null
+    private serverDoc: IServer | null
+
+    constructor() {
+        this.track = undefined
+        this.userDoc = null
+        this.serverDoc = null
+    }
+
+    data = new SlashCommandBuilder()
         .setName("playlist-add")
         .setDescription("add tracks to a playlist")
         .addStringOption((option) =>
@@ -39,9 +49,9 @@ export default {
                     "song you want to search for and add to playlist"
                 )
                 .setRequired(true)
-        ),
+        )
 
-    autocomplete: async (interaction: AutocompleteInteraction) => {
+    async autocomplete(interaction: AutocompleteInteraction) {
         const focusedValue = interaction.options.getFocused()
         let choices = ["Likes"]
         await Server.findOne({ "server.ID": interaction.guild?.id }).then(
@@ -80,12 +90,14 @@ export default {
             choice.startsWith(focusedValue)
         )
 
+        filtered.slice(0, 25)
+
         await interaction.respond(
             filtered.map((choice) => ({ name: choice, value: choice }))
         )
-    },
+    }
 
-    run: async (interaction: CommandInteraction) => {
+    async run(interaction: ChatInputCommandInteraction) {
         const client = interaction.client as MyClient
         const playlistName = interaction.options.get("playlist")
             ?.value as string
@@ -94,25 +106,23 @@ export default {
         const userID = interaction.user.id
 
         if (playlistName == "Likes") {
-            return client.slashcommands
-                .get("like")
-                .likeFromAdd(interaction, query)
+            return client.commands.get("like").likeFromAdd(interaction, query)
         }
 
-        const server = await Server.findOne({ "server.ID": serverID })
+        this.serverDoc = await Server.findOne({ "server.ID": serverID })
 
-        let serverPL
-        if (server) {
-            serverPL = server.playlists.find(
+        let serverPL: IPlaylist | undefined
+        if (this.serverDoc) {
+            serverPL = this.serverDoc.playlists.find(
                 (playlist) => playlist.name == playlistName
             )
         }
 
-        const user = await User.findOne({ ID: userID })
+        this.userDoc = await User.findOne({ ID: userID })
 
-        let userPL
-        if (user) {
-            userPL = user.playlists.find(
+        let userPL: IPlaylist | undefined
+        if (this.userDoc) {
+            userPL = this.userDoc.playlists.find(
                 (playlist) => playlist.name == playlistName
             )
         }
@@ -132,9 +142,9 @@ export default {
             })
         }
 
-        let track = await searchQuery(query, interaction)
+        await this.searchQuery(query, interaction)
 
-        if (!track) {
+        if (!this.track) {
             return interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
@@ -145,18 +155,7 @@ export default {
         }
 
         if (serverPL && userPL) {
-            //customId of button under 100 characters
-            let customIdTrack
-            if (track.url.length > 60) {
-                customIdTrack = track.title
-            } else {
-                customIdTrack = track.url
-            }
-
-            const serverCustomId = `addServerPL~${serverPL._id?.toString()}~${customIdTrack}`
-            const userCustomId = `addUserPL~${userPL._id?.toString()}~${customIdTrack}`
-
-            return interaction.editReply({
+            const reply = await interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0x00cbb7)
@@ -168,27 +167,35 @@ export default {
                 components: [
                     new ActionRowBuilder<ButtonBuilder>().addComponents(
                         new ButtonBuilder()
-                            .setCustomId(serverCustomId)
+                            .setCustomId(`addServerPL`)
                             .setLabel(`Server`)
                             .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
-                            .setCustomId(userCustomId)
+                            .setCustomId(`addUserPL`)
                             .setLabel(`Personal`)
                             .setStyle(ButtonStyle.Secondary)
                     ),
                 ],
             })
+
+            // const filter = (i: ButtonInteraction) => {
+            //     i.user.id == interaction.user.id
+            // }
+
+            this.createDuplicateButtonsCollector(reply, serverPL, userPL)
+
+            return
         }
 
         //save to db
-        if (userPL && user) {
-            userPL.tracks.push(track.toJSON(true))
-            user.save()
+        if (userPL && this.userDoc) {
+            userPL.tracks.push(this.track.toJSON(true))
+            this.userDoc.save()
         }
 
-        if (serverPL && server) {
-            serverPL.tracks.push(track.toJSON(true))
-            server.save()
+        if (serverPL && this.serverDoc) {
+            serverPL.tracks.push(this.track.toJSON(true))
+            this.serverDoc.save()
         }
 
         return interaction.editReply({
@@ -199,9 +206,9 @@ export default {
                         `Added to \`${userPL ? userPL.name : serverPL?.name}\``
                     )
                     .setDescription(
-                        `**[${track.title}](${track.url})** \n*By ${track.author}* | ${track.duration}`
+                        `**[${this.track.title}](${this.track.url})** \n*By ${this.track.author}* | ${this.track.duration}`
                     )
-                    .setThumbnail(track.thumbnail)
+                    .setThumbnail(this.track.thumbnail)
                     .setFooter({
                         text: `${interaction.user.username}`,
                         iconURL: interaction.user.avatarURL() || undefined,
@@ -209,177 +216,183 @@ export default {
                     .setTimestamp(),
             ],
         })
-    },
+    }
 
-    //need to switch to collector
-    buttons: async (
+    async button(
         interaction: ButtonInteraction,
-        docType: string,
-        playlistID: string,
-        query: string
-    ) => {
-        const serverID = interaction.guild?.id
-        const userID = interaction.user.id
-
-        const track = await searchQuery(query, interaction)
+        schema: IUser | IServer | null,
+        playlist: IPlaylist | undefined
+    ) {
+        const track = this.track
+        //await interaction.deferReply()
 
         if (!track) {
             return
         }
 
-        let playlistName
-
-        if (docType == "user") {
-            User.findOne({ ID: userID }).then((user) => {
-                if (!user) {
-                    return interaction.editReply({
-                        content: "User Data Not Found!",
-                        embeds: [],
-                        components: [],
-                    })
-                }
-                //find playlist based on doc id
-                let userPL = user.playlists.find(
-                    (playlist) => playlist._id?.toString() == playlistID
-                )
-
-                if (!userPL) {
-                    return interaction.editReply({
-                        content: "Playlist Data Not Found!",
-                        embeds: [],
-                        components: [],
-                    })
-                }
-
-                userPL.tracks.push(track.toJSON(true))
-                user.save()
-
-                return trackAddedReply(interaction, userPL.name, track)
-            })
-        } else if (docType == "server") {
-            Server.findOne({ "server.ID": serverID }).then((server) => {
-                if (!server) {
-                    return interaction.editReply({
-                        content: "Server Data Not Found!",
-                        embeds: [],
-                        components: [],
-                    })
-                }
-                //find playlist based on doc id
-                let serverPL = server.playlists.find(
-                    (playlist) => playlist._id?.toString() == playlistID
-                )
-
-                if (!serverPL) {
-                    return interaction.editReply({
-                        content: "Playlist Data Not Found!",
-                        embeds: [],
-                        components: [],
-                    })
-                }
-
-                serverPL.tracks.push(track.toJSON(true))
-                server.save()
-
-                return trackAddedReply(interaction, serverPL.name, track)
-            })
-        }
-
-        async function trackAddedReply(
-            interaction: CommandInteraction | ButtonInteraction,
-            playlistName: string,
-            track: Track | undefined
-        ) {
-            return await interaction.editReply({
-                embeds: [
-                    new EmbedBuilder()
-                        .setColor(0xa020f0)
-                        .setTitle(`Added to \`${playlistName}\``)
-                        .setDescription(
-                            `**[${track?.title}](${track?.url})** \n*By ${track?.author}* | ${track?.duration}`
-                        )
-                        .setThumbnail(track?.thumbnail || null)
-                        .setFooter({
-                            text: `${interaction.user.username}`,
-                            iconURL: interaction.user.avatarURL() || undefined,
-                        })
-                        .setTimestamp(),
-                ],
+        if (!schema) {
+            return interaction.reply({
+                content: "Playlist Data Not Found!",
+                embeds: [],
                 components: [],
             })
         }
-    },
-}
+        //find playlist based on doc id
+        // let playlist = schema.playlists.find(
+        //     (playlist) => playlist._id?.toString() == playlistID
+        // )
 
-/** search youtube, spotify, or soundcloud for a track and returns it as an object
- *
- * Note: updates button interaction
- *
- * @param {String} query query to search for
- * @param {object} interaction discord interaction object
- * @returns {object} track object to add to db
- */
-async function searchQuery(
-    query: string,
-    interaction: CommandInteraction | ButtonInteraction
-) {
-    const buttonInteraction = interaction.isButton()
-
-    const player = useMainPlayer()
-    if (!player) {
-        return
-    }
-    let result_search
-    if (isUrl(query)) {
-        console.log(`searching url: ${query}`)
-
-        const URLembed = new EmbedBuilder()
-            .setColor(0x00cbb7)
-            .setTitle("Searching...")
-            .setDescription("searching URL ")
-
-        if (buttonInteraction) {
-            await interaction.update({
-                embeds: [URLembed],
-            })
-        } else {
-            await interaction.editReply({
-                embeds: [URLembed],
+        if (!playlist) {
+            return interaction.reply({
+                content: "Playlist Data Not Found!",
+                embeds: [],
+                components: [],
             })
         }
 
-        result_search = await player.search(query, {
-            requestedBy: interaction.user,
-            searchEngine: QueryType.AUTO,
+        playlist.tracks.push(track?.toJSON(true))
+
+        if (`save` in schema) {
+            try {
+                await schema.save()
+            } catch (error) {
+                console.error(error)
+                return await interaction.reply({
+                    embeds: [
+                        new EmbedBuilder()
+                            .setColor(0xff0000)
+                            .setTitle(`Somthing went wrong!`),
+                    ],
+                })
+            }
+        }
+
+        return this.trackAddedReply(interaction, playlist.name)
+    }
+
+    private async createDuplicateButtonsCollector(
+        reply: Message,
+        serverPL: IPlaylist,
+        userPL: IPlaylist
+    ) {
+        const collector = reply.createMessageComponentCollector({
+            componentType: ComponentType.Button,
         })
-    } else {
-        //searches youtube if its not a url
-        console.log(`searching prompt: ${query}`)
 
-        const YTembed = new EmbedBuilder()
-            .setColor(0x00cbb7)
-            .setTitle("Searching...")
-            .setDescription(`searching youtube for ${query}`)
+        collector.on(`collect`, (interaction) => {
+            const isAddServerPL = interaction.customId == `addServerPL`
+            this.button(
+                interaction,
+                isAddServerPL ? this.serverDoc : this.userDoc,
+                isAddServerPL ? serverPL : userPL
+            )
+            collector.stop()
+        })
+    }
 
-        if (buttonInteraction) {
-            await interaction.update({
-                embeds: [YTembed],
+    private async trackAddedReply(
+        interaction: ChatInputCommandInteraction | ButtonInteraction,
+        playlistName: string
+    ) {
+        const track = this.track
+
+        const embed = new EmbedBuilder()
+            .setColor(0xa020f0)
+            .setTitle(`Added to \`${playlistName}\``)
+            .setDescription(
+                `**[${track?.title}](${track?.url})** \n*By ${track?.author}* | ${track?.duration}`
+            )
+            .setThumbnail(track?.thumbnail || null)
+            .setFooter({
+                text: `${interaction.user.username}`,
+                iconURL: interaction.user.avatarURL() || undefined,
+            })
+            .setTimestamp()
+
+        if (interaction.isChatInputCommand()) {
+            return await interaction.editReply({
+                embeds: [embed],
+                components: [],
+            })
+        } else if (interaction.isButton()) {
+            return await interaction.update({
+                embeds: [embed],
+                components: [],
+            })
+        }
+    }
+
+    /** search youtube, spotify, or soundcloud for a track and returns it as an object
+     *
+     * Note: updates button interaction
+     *
+     * @param {String} query query to search for
+     * @param {object} interaction discord interaction object
+     * @returns {object} track object to add to db
+     */
+    private async searchQuery(
+        query: string,
+        interaction: CommandInteraction | ButtonInteraction
+    ): Promise<void> {
+        const buttonInteraction = interaction.isButton()
+
+        const player = useMainPlayer()
+        if (!player) {
+            return
+        }
+        let result_search
+        if (isUrl(query)) {
+            console.log(`searching url: ${query}`)
+
+            const URLembed = new EmbedBuilder()
+                .setColor(0x00cbb7)
+                .setTitle("Searching...")
+                .setDescription("searching URL ")
+
+            if (buttonInteraction) {
+                await interaction.update({
+                    embeds: [URLembed],
+                })
+            } else {
+                await interaction.editReply({
+                    embeds: [URLembed],
+                })
+            }
+
+            result_search = await player.search(query, {
+                requestedBy: interaction.user,
+                searchEngine: QueryType.AUTO,
             })
         } else {
-            await interaction.editReply({
-                embeds: [YTembed],
+            //searches youtube if its not a url
+            console.log(`searching prompt: ${query}`)
+
+            const YTembed = new EmbedBuilder()
+                .setColor(0x00cbb7)
+                .setTitle("Searching...")
+                .setDescription(`searching youtube for ${query}`)
+
+            if (buttonInteraction) {
+                await interaction.update({
+                    embeds: [YTembed],
+                })
+            } else {
+                await interaction.editReply({
+                    embeds: [YTembed],
+                })
+            }
+
+            result_search = await player.search(query, {
+                requestedBy: interaction.user,
+                searchEngine: QueryType.YOUTUBE_SEARCH,
             })
         }
 
-        result_search = await player.search(query, {
-            requestedBy: interaction.user,
-            searchEngine: QueryType.YOUTUBE_SEARCH,
-        })
-    }
+        if (!result_search) {
+            return
+        }
 
-    if (!result_search) {
+        this.track = result_search.tracks[0]
         return
     }
-
-    return result_search.tracks[0]
 }

@@ -7,6 +7,8 @@ export const registerPlayerEvents = (player: Player) => {
             `[${queue.guild.name}] Error emitted from the queue: ${error.message}`
         )
 
+        console.log(queue.currentTrack, queue.tracks)
+
         type metaDataType = {
             interaction: Interaction
         }
@@ -14,6 +16,11 @@ export const registerPlayerEvents = (player: Player) => {
         const [getMetadata] = useMetadata<metaDataType>(queue)
         const metadata = getMetadata()
         const interaction = metadata?.interaction
+
+        if (queue.tracks.data.length == 0) {
+            //destroy queue if no other tracks
+            queue.delete()
+        }
 
         if (interaction.isAutocomplete()) {
             //shouldnt be autocomplete but to be safe
@@ -44,8 +51,6 @@ export const registerPlayerEvents = (player: Player) => {
                 console.error(voiceTextErr)
             }
         }
-
-        console.log(queue.tracks)
     })
     player.events.on(
         "playerError",
@@ -61,6 +66,11 @@ export const registerPlayerEvents = (player: Player) => {
             const [getMetadata] = useMetadata<metaDataType>(queue)
             const metadata = getMetadata()
             const interaction = metadata?.interaction
+
+            if (queue.tracks.data.length == 0) {
+                //destroy queue if no other tracks
+                queue.delete()
+            }
 
             if (interaction.isAutocomplete()) {
                 //shouldnt be autocomplete but to be safe
@@ -91,8 +101,6 @@ export const registerPlayerEvents = (player: Player) => {
                     console.error(voiceTextErr)
                 }
             }
-
-            console.log(queue.tracks)
         }
     )
 

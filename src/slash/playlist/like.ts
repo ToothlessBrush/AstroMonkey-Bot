@@ -1,5 +1,6 @@
 import {
     ButtonInteraction,
+    ChatInputCommandInteraction,
     CommandInteraction,
     EmbedBuilder,
     SlashCommandBuilder,
@@ -20,36 +21,37 @@ export default {
                 .setRequired(true)
         ),
 
-    run: async (interaction: CommandInteraction | ButtonInteraction) => {
-        let query
-        const isButton = interaction.isButton()
+    run: async (interaction: ChatInputCommandInteraction) => {
+        const track = await searchQuery(
+            interaction.options.get("query")?.value as string,
+            interaction
+        )
 
-        if (!isButton) {
-            query = interaction.options.get("query")?.value as string
-        } else if (isButton) {
-            query = (interaction as ButtonInteraction).customId.split("~")[1]
-        }
+        // if (!query) {
+        //     return
+        // }
 
-        if (!query) {
-            return
-        }
+        return addLikedTrack(interaction, track)
+    },
 
-        return addLikedTrack(interaction, query)
+    button: async (interaction: ButtonInteraction, track: Track) => {
+        await interaction.deferReply()
+        return addLikedTrack(interaction, track)
     },
 }
 
 async function addLikedTrack(
-    interaction: CommandInteraction | ButtonInteraction,
-    query: string
+    interaction: ChatInputCommandInteraction | ButtonInteraction,
+    track: Track | undefined
 ) {
-    const track = await searchQuery(query, interaction)
+    // const track = await searchQuery(query, interaction)
 
     if (!track) {
-        return interaction.editReply({
-            embeds: [
-                new EmbedBuilder().setColor(0xff0000).setTitle("No Results!"),
-            ],
-        })
+        const embed = new EmbedBuilder()
+            .setColor(0xff0000)
+            .setTitle("No Results!")
+
+        return interaction.editReply({ embeds: [embed] })
     }
 
     User.findOne({ ID: interaction.user.id }).then(async (user) => {
@@ -67,25 +69,25 @@ async function addLikedTrack(
             newUser.save()
         }
 
+        const embed = new EmbedBuilder()
+            .setColor(0xa020f0)
+            // .setAuthor({
+            //     name: interaction.user.username,
+            //     iconURL: interaction.user.avatarURL(),
+            // })
+            .setTitle(`Added to Likes Playlist`)
+            .setDescription(
+                `**[${track.title}](${track.url})** \n*By ${track.author}* | ${track.duration}`
+            )
+            .setThumbnail(track.thumbnail)
+            .setFooter({
+                text: `${interaction.user.username}`,
+                iconURL: interaction.user.avatarURL() || undefined,
+            })
+            .setTimestamp()
+
         return interaction.editReply({
-            embeds: [
-                new EmbedBuilder()
-                    .setColor(0xa020f0)
-                    // .setAuthor({
-                    //     name: interaction.user.username,
-                    //     iconURL: interaction.user.avatarURL(),
-                    // })
-                    .setTitle(`Added to Likes Playlist`)
-                    .setDescription(
-                        `**[${track.title}](${track.url})** \n*By ${track.author}* | ${track.duration}`
-                    )
-                    .setThumbnail(track.thumbnail)
-                    .setFooter({
-                        text: `${interaction.user.username}`,
-                        iconURL: interaction.user.avatarURL() || undefined,
-                    })
-                    .setTimestamp(),
-            ],
+            embeds: [embed],
         })
     })
 }

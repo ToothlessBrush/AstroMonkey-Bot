@@ -54,9 +54,10 @@ const client = new Client({
                 member.id === client.user?.id,
         },
     }),
+    sweepers: Options.DefaultSweeperSettings,
 }) as MyClient
 
-client.slashcommands = new Collection<string, any>()
+client.commands = new Collection<string, any>()
 client.player = new Player(client, {
     ytdlOptions: {
         quality: "highestaudio",
@@ -74,7 +75,7 @@ client.player.extractors.loadDefault()
 
 registerPlayerEvents(client.player) //register player events
 
-let commands = []
+let commands: any[] = []
 
 const slashDirectory = path.join(__dirname, "slash")
 const subDir = fs
@@ -90,10 +91,11 @@ for (const dir of subDir) {
         .filter((file: string) => file.endsWith(".ts") || file.endsWith(`.js`))
     for (const file of slashFiles) {
         //console.log(slashDirectory + "/" + dir + "/" + file)
-        const slashcmd = require(path.join(slashDirectory, dir, file)).default
-        client.slashcommands.set(slashcmd.data.name, slashcmd)
+        const commandClass = require(path.join(slashDirectory, dir, file)).default
+        const commandInstance = new commandClass()
+        client.commands.set(commandInstance.data.name, commandInstance)
         if (LOAD_SLASH) {
-            commands.push(slashcmd.data.toJSON())
+            commands.push(commandInstance.data.toJSON())
         }
     }
 }

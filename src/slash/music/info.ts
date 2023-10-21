@@ -1,14 +1,14 @@
 import { useMainPlayer, useQueue } from "discord-player"
 
 import { SlashCommandBuilder } from "@discordjs/builders"
-import { EmbedBuilder, CommandInteraction } from "discord.js"
+import { EmbedBuilder, CommandInteraction, ChatInputCommandInteraction } from "discord.js"
 
 export default {
     data: new SlashCommandBuilder()
         .setName("info")
         .setDescription("displays info of the current song"),
 
-    run: async ( interaction: CommandInteraction ) => {
+    run: async ( interaction: ChatInputCommandInteraction ) => {
         
         if (!interaction) {
             return

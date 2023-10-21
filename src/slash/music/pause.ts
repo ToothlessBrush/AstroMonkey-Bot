@@ -4,6 +4,7 @@ import {
     ButtonBuilder,
     ButtonStyle,
     CommandInteraction,
+    ChatInputCommandInteraction,
 } from "discord.js"
 import { useQueue } from "discord-player"
 
@@ -12,7 +13,7 @@ export default {
         .setName("pause")
         .setDescription("pauses the music queue"),
 
-    run: async (interaction: CommandInteraction) => {
+    run: async (interaction: ChatInputCommandInteraction) => {
         if (!interaction.guild) {
             return
         }
