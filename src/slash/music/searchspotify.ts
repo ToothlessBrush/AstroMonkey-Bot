@@ -134,7 +134,6 @@ export default class SearchSpotify {
             volume: 80,
             leaveOnEmpty: true,
             leaveOnEnd: true,
-            skipOnNoStream: true,
         })
 
         let embed = new EmbedBuilder() //need to change this to embed builder for v14 (done)

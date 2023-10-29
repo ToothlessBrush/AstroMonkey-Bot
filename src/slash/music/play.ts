@@ -17,7 +17,7 @@ import MyClient from "../../utils/MyClient"
 
 export default class Play {
     constructor() {}
-    
+
     data = new SlashCommandBuilder()
         .setName("play")
         .setDescription("plays a song from youtube or spotify")
@@ -136,7 +136,6 @@ export default class Play {
             volume: 80,
             leaveOnEmpty: true,
             leaveOnEnd: true,
-            skipOnNoStream: true,
         }) as GuildQueue
 
         let embed = new EmbedBuilder() //need to change this to embed builder for v14 (done)

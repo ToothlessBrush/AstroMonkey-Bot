@@ -281,7 +281,6 @@ async function queueTracks(
         volume: 80,
         leaveOnEmpty: true,
         leaveOnEnd: true,
-        skipOnNoStream: true,
     })
 
     const buttonInteraction = interaction.isButton() //if we update or reply

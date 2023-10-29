@@ -134,7 +134,6 @@ export default class SoundCloudSearch {
             volume: 80,
             leaveOnEmpty: true,
             leaveOnEnd: true,
-            skipOnNoStream: true,
         })
 
         //plays a search term or url if not in playlist
