@@ -4,26 +4,21 @@ import {
     ActionRowBuilder,
     ButtonStyle,
     PermissionsBitField,
-    CommandInteraction,
     AutocompleteInteraction,
     GuildMember,
     StringSelectMenuInteraction,
     ChatInputCommandInteraction,
     ComponentType,
 } from "discord.js"
-import {
-    GuildQueue,
-    QueryType,
-    Track,
-    useMainPlayer,
-    useMetadata,
-} from "discord-player"
+import { GuildQueue, QueryType, Track, useMainPlayer } from "discord-player"
 
 import isUrl from "./../../utils/isUrl"
 import MyClient from "../../utils/MyClient"
 
-export default {
-    data: new SlashCommandBuilder()
+export default class Play {
+    constructor() {}
+    
+    data = new SlashCommandBuilder()
         .setName("play")
         .setDescription("plays a song from youtube or spotify")
         .addStringOption((option) =>
@@ -32,9 +27,9 @@ export default {
                 .setDescription("a search term, share link, or URL of the song")
                 .setRequired(true)
                 .setAutocomplete(true)
-        ),
+        )
 
-    autocomplete: async (interaction: AutocompleteInteraction) => {
+    async autocomplete(interaction: AutocompleteInteraction) {
         const player = useMainPlayer()
         const focusedValue = interaction.options.getFocused()
 
@@ -74,11 +69,11 @@ export default {
         }
 
         return await interaction.respond(choices.slice(0, 5))
-    },
+    }
 
-    run: async (
+    async run(
         interaction: ChatInputCommandInteraction | StringSelectMenuInteraction
-    ) => {
+    ) {
         const client = interaction.client as MyClient
         //error checking
         if (!(interaction.member instanceof GuildMember)) {
@@ -346,23 +341,20 @@ export default {
 
         const collector = reply.createMessageComponentCollector({
             componentType: ComponentType.Button,
-            time: 86400000 //24 hours
+            time: 86400000, //24 hours
         })
-        
+
         collector.on(`collect`, async (interaction) => {
             //only use collector for like
             if (interaction.customId != `like`) {
                 return
             }
 
-            await client.commands
-                .get(`like`)
-                .button(interaction, tracks[0])
-
+            await client.commands.get(`like`).button(interaction, tracks[0])
         })
 
         collector.on(`end`, (interaction) => {
             //delete self here
         })
-    },
+    }
 }

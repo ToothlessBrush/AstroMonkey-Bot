@@ -4,12 +4,14 @@ import { ChatInputCommandInteraction, CommandInteraction } from "discord.js"
 import { SlashCommandBuilder } from "@discordjs/builders"
 import { EmbedBuilder } from "discord.js"
 
-export default {
-    data: new SlashCommandBuilder()
-        .setName("skip")
-        .setDescription("skips the current song"),
+export default class Skip {
+    constructor() {}
 
-    run: async ( interaction: ChatInputCommandInteraction ) => {
+    data = new SlashCommandBuilder()
+        .setName("skip")
+        .setDescription("skips the current song")
+
+    async run(interaction: ChatInputCommandInteraction) {
         const player = useMainPlayer()
 
         if (!player) {
@@ -49,5 +51,5 @@ export default {
                     .setTimestamp(),
             ],
         })
-    },
+    }
 }

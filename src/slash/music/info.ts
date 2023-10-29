@@ -1,15 +1,20 @@
 import { useMainPlayer, useQueue } from "discord-player"
 
 import { SlashCommandBuilder } from "@discordjs/builders"
-import { EmbedBuilder, CommandInteraction, ChatInputCommandInteraction } from "discord.js"
+import {
+    EmbedBuilder,
+    CommandInteraction,
+    ChatInputCommandInteraction,
+} from "discord.js"
 
-export default {
-    data: new SlashCommandBuilder()
+export default class Info {
+    constructor() {}
+
+    data = new SlashCommandBuilder()
         .setName("info")
-        .setDescription("displays info of the current song"),
+        .setDescription("displays info of the current song")
 
-    run: async ( interaction: ChatInputCommandInteraction ) => {
-        
+    async run(interaction: ChatInputCommandInteraction) {
         if (!interaction) {
             return
         }
@@ -25,7 +30,7 @@ export default {
         if (!interaction.guild) {
             return
         }
-        
+
         const queue = useQueue(interaction.guild)
 
         if (!queue) {
@@ -57,10 +62,15 @@ export default {
                     .setTitle(`Currently Playing`)
                     .setDescription(
                         currentSong
-                            ? `[${currentSong.title}](${currentSong.url})\n${bar}\n**Requested by: <@${currentSong.requestedBy?.id ?? currentSong.requestedBy}>**`
+                            ? `[${currentSong.title}](${
+                                  currentSong.url
+                              })\n${bar}\n**Requested by: <@${
+                                  currentSong.requestedBy?.id ??
+                                  currentSong.requestedBy
+                              }>**`
                             : "None"
                     ),
             ],
         })
-    },
+    }
 }

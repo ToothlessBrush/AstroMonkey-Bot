@@ -16,8 +16,10 @@ import { Server, IServer } from "./../../model/Server.js"
 import { User, IUser } from "./../../model/User.js"
 import { IPlaylist } from "../../model/Playlist.js"
 
-export default {
-    data: new SlashCommandBuilder()
+export default class QueuePlaylist {
+    constructor() {}
+
+    data = new SlashCommandBuilder()
         .setName("queue-playlist")
         .setDescription("add the tracks from a playlist to queue")
         .addStringOption((option) =>
@@ -32,9 +34,9 @@ export default {
                 .setName("shuffle")
                 .setDescription("add the music to the playlist shuffled or not")
                 .setRequired(false)
-        ),
+        )
 
-    autocomplete: async (interaction: AutocompleteInteraction) => {
+    async autocomplete(interaction: AutocompleteInteraction) {
         const focusedValue = interaction.options.getFocused()
         let choices = ["Likes"]
         await Server.findOne({ "server.ID": interaction.guild?.id }).then(
@@ -78,9 +80,9 @@ export default {
         await interaction.respond(
             filtered.map((choice) => ({ name: choice, value: choice }))
         )
-    },
+    }
 
-    run: async (interaction: ChatInputCommandInteraction) => {
+    async run(interaction: ChatInputCommandInteraction) {
         if (!(interaction.member instanceof GuildMember)) {
             return
         }
@@ -219,18 +221,18 @@ export default {
         const playlist = serverPlaylist || userPlaylist
 
         return await queueTracks(interaction, playlist, shuffle)
-    },
+    }
 
     //handle buttons on interaction
     //buttons for case when 2 playlists found
 
     //need to switch to collector
-    buttons: async (
+    async buttons(
         interaction: ButtonInteraction,
         docType: String,
         playlistId: string,
         shuffle: boolean
-    ) => {
+    ) {
         let playlist
 
         console.log(interaction.customId)
@@ -270,7 +272,7 @@ export default {
         }
 
         return await queueTracks(interaction, playlist, shuffle)
-    },
+    }
 }
 
 /** queues tracks from playlist

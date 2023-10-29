@@ -13,12 +13,14 @@ import {
 import { Track, useQueue } from "discord-player"
 import MyClient from "../../utils/MyClient"
 
-export default {
-    data: new SlashCommandBuilder()
+export default class PlayLast {
+    constructor() {}
+    
+    data = new SlashCommandBuilder()
         .setName("playlast")
-        .setDescription("Plays the Previously Played Song"),
+        .setDescription("Plays the Previously Played Song")
 
-    run: async (interaction: ChatInputCommandInteraction) => {
+    async run(interaction: ChatInputCommandInteraction) {
         const client = interaction.client as MyClient
 
         if (!interaction.guild) {
@@ -124,7 +126,7 @@ export default {
                 return
             }
 
-            client.slashcommands.get(`like`).button(interaction, song)
+            client.commands.get(`like`).button(interaction, song)
         })
-    },
+    }
 }

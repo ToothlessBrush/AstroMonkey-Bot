@@ -1,5 +1,9 @@
 import { Track, useMainPlayer } from "discord-player"
-import { ChatInputCommandInteraction, CommandInteraction, GuildMember } from "discord.js"
+import {
+    ChatInputCommandInteraction,
+    CommandInteraction,
+    GuildMember,
+} from "discord.js"
 
 import {
     EmbedBuilder,
@@ -12,8 +16,10 @@ import { QueryType } from "discord-player"
 
 import isUrl from "./../../utils/isUrl"
 
-export default {
-    data: new SlashCommandBuilder()
+export default class SearchResults {
+    constructor() {}
+
+    data = new SlashCommandBuilder()
         .setName("searchresults")
         .setDescription(
             "get the search results for a prompts and choose which out of them to play"
@@ -34,10 +40,9 @@ export default {
                 .setName("query")
                 .setDescription("search term (use /play for url)")
                 .setRequired(true)
-        ),
+        )
 
-    run: async (interaction: ChatInputCommandInteraction) => {
-
+    async run(interaction: ChatInputCommandInteraction) {
         if (!(interaction.member instanceof GuildMember)) {
             return
         }
@@ -60,8 +65,6 @@ export default {
         //plays a search term or url if not in playlist
         let query = interaction.options.get("query")?.value as string
         let platform = interaction.options.get("platform")?.value as string
-
-
 
         if (isUrl(query))
             return interaction.editReply({
@@ -177,11 +180,14 @@ export default {
             .setPlaceholder("Select Track")
             .addOptions(options)
 
-        const row = new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(songOptions)
+        const row =
+            new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
+                songOptions
+            )
 
         await interaction.editReply({
             embeds: [resultembed],
             components: [row],
         })
-    },
+    }
 }

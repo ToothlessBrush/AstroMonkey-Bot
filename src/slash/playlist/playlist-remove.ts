@@ -16,8 +16,10 @@ import { Server, IServer } from "./../../model/Server.js"
 import { IUser, User } from "./../../model/User.js"
 import { IPlaylist } from "../../model/Playlist.js"
 
-export default {
-    data: new SlashCommandBuilder()
+export default class PlaylistRemove {
+    constructor() {}
+
+    data = new SlashCommandBuilder()
         .setName("playlist-remove")
         .setDescription("remove a track from a playlist")
         .addStringOption((option) =>
@@ -33,9 +35,9 @@ export default {
                 .setDescription("name of track to remove")
                 .setAutocomplete(true)
                 .setRequired(true)
-        ),
+        )
 
-    autocomplete: async (interaction: AutocompleteInteraction) => {
+    async autocomplete(interaction: AutocompleteInteraction) {
         const focusedOption = interaction.options.getFocused(true)
 
         let choices = []
@@ -144,7 +146,7 @@ export default {
         return await interaction.respond(
             filtered.map((choice) => ({ name: choice, value: choice }))
         )
-    },
+    }
 
     async run(interaction: ChatInputCommandInteraction) {
         const playlistName = interaction.options.get("playlist")
@@ -269,7 +271,7 @@ export default {
             removeTrack(interaction, userPL, query)
             user.save()
         }
-    },
+    }
 
     /**
      *
@@ -279,12 +281,12 @@ export default {
      * @param query string
      * @returns void
      */
-    button: async (
+    async button(
         interaction: ButtonInteraction,
         schema: IUser | IServer | null,
         playlist: IPlaylist | undefined,
         query: string
-    ) => {
+    ) {
         if (!schema) {
             return interaction.reply({
                 content: "Playlist Data Not Found!",
@@ -317,7 +319,7 @@ export default {
                 })
             }
         }
-    },
+    }
 }
 
 /** searches and removes track from a playlist (doesnt save db)

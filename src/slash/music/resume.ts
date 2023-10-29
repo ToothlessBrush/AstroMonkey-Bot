@@ -4,12 +4,14 @@ import { ChatInputCommandInteraction, CommandInteraction } from "discord.js"
 import { SlashCommandBuilder, ActionRowBuilder } from "@discordjs/builders"
 import { EmbedBuilder, ButtonBuilder, ButtonStyle } from "discord.js"
 
-export default {
-    data: new SlashCommandBuilder()
-        .setName("resume")
-        .setDescription("resumes the music queue"),
+export default class Resume {
+    constructor() {}
 
-    run: async (interaction: ChatInputCommandInteraction) => {
+    data = new SlashCommandBuilder()
+        .setName("resume")
+        .setDescription("resumes the music queue")
+
+    async run(interaction: ChatInputCommandInteraction) {
         if (!interaction.guild) {
             return
         }
@@ -57,5 +59,5 @@ export default {
         })
 
         //queue.setPause()
-    },
+    }
 }

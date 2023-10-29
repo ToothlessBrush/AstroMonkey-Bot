@@ -1,9 +1,11 @@
 import { SlashCommandBuilder } from "@discordjs/builders"
 import { QueueRepeatMode, useQueue } from "discord-player"
-import { EmbedBuilder, CommandInteraction, ChatInputCommandInteraction } from "discord.js"
+import { EmbedBuilder, ChatInputCommandInteraction } from "discord.js"
 
-export default {
-    data: new SlashCommandBuilder()
+export default class Loop {
+    constructor() {}
+
+    data = new SlashCommandBuilder()
         .setName("loop")
         .setDescription("loops current song or queue")
         .addStringOption((option) =>
@@ -16,9 +18,9 @@ export default {
                     { name: "Queue", value: "QUEUE" },
                     { name: "Track", value: "TRACK" }
                 )
-        ),
+        )
 
-    run: async (interaction: ChatInputCommandInteraction) => {
+    async run(interaction: ChatInputCommandInteraction) {
         if (!interaction.guild) {
             //somethings gone horrible if this is true
             return
@@ -58,5 +60,5 @@ export default {
         await interaction.editReply({
             embeds: [embed],
         })
-    },
+    }
 }

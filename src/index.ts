@@ -62,11 +62,11 @@ client.player = new Player(client, {
     ytdlOptions: {
         quality: "highestaudio",
         highWaterMark: 1 << 25,
-        requestOptions: {
-            headers: {
-                cookie: process.env.YT_COOKIES || "",
-            },
-        },
+        // requestOptions: {
+        //     headers: {
+        //         cookie: process.env.YT_COOKIES || "",
+        //     },
+        // },
     },
 })
 
@@ -91,7 +91,11 @@ for (const dir of subDir) {
         .filter((file: string) => file.endsWith(".ts") || file.endsWith(`.js`))
     for (const file of slashFiles) {
         //console.log(slashDirectory + "/" + dir + "/" + file)
-        const commandClass = require(path.join(slashDirectory, dir, file)).default
+        const commandClass = require(path.join(
+            slashDirectory,
+            dir,
+            file
+        )).default
         const commandInstance = new commandClass()
         client.commands.set(commandInstance.data.name, commandInstance)
         if (LOAD_SLASH) {

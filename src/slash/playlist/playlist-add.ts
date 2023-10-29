@@ -21,7 +21,7 @@ import { IPlaylist } from "../../model/Playlist.js"
 import isUrl from "./../../utils/isUrl"
 import MyClient from "../../utils/MyClient.js"
 
-export class PlaylistAdd {
+export default class PlaylistAdd {
     private track: Track | undefined
     private userDoc: IUser | null
     private serverDoc: IServer | null
@@ -106,7 +106,7 @@ export class PlaylistAdd {
         const userID = interaction.user.id
 
         if (playlistName == "Likes") {
-            return client.commands.get("like").likeFromAdd(interaction, query)
+            return client.commands.get("like").button(interaction, query)
         }
 
         this.serverDoc = await Server.findOne({ "server.ID": serverID })
@@ -221,9 +221,9 @@ export class PlaylistAdd {
     async button(
         interaction: ButtonInteraction,
         schema: IUser | IServer | null,
-        playlist: IPlaylist | undefined
+        playlist: IPlaylist | undefined,
+        track: Track | undefined
     ) {
-        const track = this.track
         //await interaction.deferReply()
 
         if (!track) {
@@ -267,6 +267,8 @@ export class PlaylistAdd {
             }
         }
 
+        this.track = track
+
         return this.trackAddedReply(interaction, playlist.name)
     }
 
@@ -275,6 +277,11 @@ export class PlaylistAdd {
         serverPL: IPlaylist,
         userPL: IPlaylist
     ) {
+        //set it to local variables to avoid getting overwritten during the time it takes the user to press the button
+        const ServerDoc = this.serverDoc
+        const UserDoc = this.userDoc
+        const track = this.track
+
         const collector = reply.createMessageComponentCollector({
             componentType: ComponentType.Button,
         })
@@ -283,8 +290,9 @@ export class PlaylistAdd {
             const isAddServerPL = interaction.customId == `addServerPL`
             this.button(
                 interaction,
-                isAddServerPL ? this.serverDoc : this.userDoc,
-                isAddServerPL ? serverPL : userPL
+                isAddServerPL ? ServerDoc : UserDoc,
+                isAddServerPL ? serverPL : userPL,
+                track
             )
             collector.stop()
         })

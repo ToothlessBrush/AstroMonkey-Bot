@@ -9,28 +9,30 @@ import { EmbedBuilder, ButtonBuilder, ButtonStyle } from "discord.js"
 
 import { useQueue } from "discord-player"
 
-export default {
-    data: new SlashCommandBuilder()
+export default class Queue {
+    constructor() {}
+
+    data = new SlashCommandBuilder()
         .setName("queue")
         .setDescription("display the current songs in queue")
         .addNumberOption((option) =>
             option.setName("page").setDescription("page number").setMinValue(1)
-        ),
+        )
 
-    run: async (interaction: ChatInputCommandInteraction) => {
+    async run(interaction: ChatInputCommandInteraction) {
         const page =
             ((interaction.options.get("page")?.value as number) || 1) - 1
 
         return await displayQueue(interaction, page, false)
-    },
+    }
 
-    button: async (
+    async button(
         interaction: ButtonInteraction,
         pageNumber: number,
         updateMessage: boolean
-    ) => {
+    ) {
         return await displayQueue(interaction, pageNumber, updateMessage)
-    },
+    }
 }
 
 /**

@@ -1,19 +1,13 @@
-import { ChatInputCommandInteraction, CommandInteraction } from "discord.js"
-import {
-    EmbedBuilder,
-    SlashCommandBuilder,
-    ActionRowBuilder,
-    ButtonBuilder,
-    ButtonStyle,
-} from "discord.js"
-import { QueryType } from "discord-player"
+import { ChatInputCommandInteraction } from "discord.js"
+import { EmbedBuilder, SlashCommandBuilder } from "discord.js"
 
-import path from "path"
-import { Server, IServer } from "./../../model/Server.js"
-import { User, IUser } from "./../../model/User.js"
+import { Server } from "./../../model/Server.js"
+import { User } from "./../../model/User.js"
 import { IPlaylist } from "../../model/Playlist"
 
-export class ListPlaylists {
+export default class ListPlaylists {
+    constructor() {}
+
     data = new SlashCommandBuilder()
         .setName("list-playlists")
         .setDescription("lists your playlists and server playlists")

@@ -4,12 +4,14 @@ import { ChatInputCommandInteraction, CommandInteraction } from "discord.js"
 import { SlashCommandBuilder } from "@discordjs/builders"
 import { EmbedBuilder } from "discord.js"
 
-export default {
-    data: new SlashCommandBuilder()
-        .setName("quit")
-        .setDescription("clears queue and stops bot"),
+export default class Quit {
+    constructor() {}
 
-    run: async (interaction: ChatInputCommandInteraction) => {
+    data = new SlashCommandBuilder()
+        .setName("quit")
+        .setDescription("clears queue and stops bot")
+
+    async run(interaction: ChatInputCommandInteraction) {
         if (!interaction.guild) {
             return
         }
@@ -26,7 +28,7 @@ export default {
             })
 
         queue.delete()
-        
+
         await interaction.editReply({
             embeds: [
                 new EmbedBuilder().setColor(0xff0000).setTitle(`**Quitting**`),
@@ -37,5 +39,5 @@ export default {
         console.log(
             `The script uses approximately ${Math.round(used2 * 100) / 100} MB`
         )
-    },
+    }
 }

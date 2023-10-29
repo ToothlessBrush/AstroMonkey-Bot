@@ -16,8 +16,10 @@ import { QueryType, SearchResult, Track, useMainPlayer } from "discord-player"
 import isUrl from "./../../utils/isUrl"
 import MyClient from "../../utils/MyClient"
 
-export default {
-    data: new SlashCommandBuilder()
+export default class PlayNow {
+    constructor() {}
+
+    data = new SlashCommandBuilder()
         .setName("playnow")
         .setDescription(
             "skips current queue and plays a track from youtube or spotify"
@@ -28,9 +30,9 @@ export default {
                 .setDescription("a search term, share link, or URL of the song")
                 .setRequired(true)
                 .setAutocomplete(true)
-        ),
+        )
 
-    autocomplete: async (interaction: AutocompleteInteraction) => {
+    async autocomplete(interaction: AutocompleteInteraction) {
         const player = useMainPlayer()
         const focusedValue = interaction.options.getFocused()
 
@@ -70,9 +72,9 @@ export default {
         }
 
         return await interaction.respond(choices.slice(0, 5))
-    },
+    }
 
-    run: async (interaction: ChatInputCommandInteraction) => {
+    async run(interaction: ChatInputCommandInteraction) {
         const client = interaction.client as MyClient
 
         //error checking
@@ -360,7 +362,7 @@ export default {
                 return
             }
 
-            client.slashcommands.get(`like`).button(interaction, tracks[0])
+            client.commands.get(`like`).button(interaction, tracks[0])
         })
-    },
+    }
 }

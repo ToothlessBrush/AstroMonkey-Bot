@@ -9,7 +9,7 @@ import { User } from "./../../model/User.js"
 import { IPlaylist } from "../../model/Playlist.js"
 import mongoose from "mongoose"
 
-export class CreatePlaylist {
+export default class CreatePlaylist {
     constructor() {}
 
     data = new SlashCommandBuilder()

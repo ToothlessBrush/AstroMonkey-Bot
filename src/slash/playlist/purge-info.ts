@@ -13,11 +13,14 @@ import {
     EmbedBuilder,
 } from "@discordjs/builders"
 
-export default {
-    data: new SlashCommandBuilder()
+export default class PurgeInfo {
+    constructor() {}
+
+    data = new SlashCommandBuilder()
         .setName("purge-info")
-        .setDescription("Remove all your discord info from the database"),
-    run: async (interaction: ChatInputCommandInteraction) => {
+        .setDescription("Remove all your discord info from the database")
+
+    async run(interaction: ChatInputCommandInteraction) {
         User.findOne({ ID: interaction.user.id }).then((user) => {
             if (!user) {
                 return interaction.editReply({
@@ -50,8 +53,8 @@ export default {
                 ],
             })
         })
-    },
-    buttons: async (interaction: ButtonInteraction, docId: string) => {
+    }
+    async buttons(interaction: ButtonInteraction, docId: string) {
         const userDoc = await User.findById(docId)
 
         if (!userDoc) {
@@ -89,5 +92,5 @@ export default {
                 ],
             })
         }
-    },
+    }
 }

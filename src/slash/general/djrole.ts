@@ -5,8 +5,9 @@ import {
     PermissionFlagsBits,
 } from "discord.js"
 
-export default {
-    data: new SlashCommandBuilder()
+export default class djrole {
+    constructor() {}
+    data = new SlashCommandBuilder()
         .setName("djrole")
         .setDescription(
             "set the djrole which restricts certain features of music commands to that role"
@@ -17,8 +18,9 @@ export default {
                 .setDescription("the role to set the djrole")
                 .setRequired(true)
         )
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
-    run: async (interaction: ChatInputCommandInteraction) => {
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+
+    async run(interaction: ChatInputCommandInteraction) {
         if (interaction.isAutocomplete()) {
             return
         }
@@ -30,5 +32,5 @@ export default {
                     .setDescription(`djrole is currently WIP`),
             ],
         })
-    },
+    }
 }

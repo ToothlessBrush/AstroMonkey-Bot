@@ -9,9 +9,9 @@ import {
 import { QueryType, Track, useMainPlayer } from "discord-player"
 import isUrl from "./../../utils/isUrl"
 import { User } from "./../../model/User.js"
-export class Like {
+export default class Like {
     constructor() {}
-    
+
     data = new SlashCommandBuilder()
         .setName("like")
         .setDescription("Like a song (same as playlist-add Likes")

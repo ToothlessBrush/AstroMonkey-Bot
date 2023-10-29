@@ -18,8 +18,10 @@ import { QueryType, Track, useMainPlayer } from "discord-player"
 import isUrl from "./../../utils/isUrl"
 import MyClient from "../../utils/MyClient"
 
-export default {
-    data: new SlashCommandBuilder()
+export default class SearchSpotify {
+    constructor() {}
+
+    data = new SlashCommandBuilder()
         .setName("spotifysearch")
         .setDescription(
             "searches spotify with a prompt and adds first result to queue"
@@ -30,9 +32,9 @@ export default {
                 .setDescription("search term for spotify (use /play for url)")
                 .setRequired(true)
                 .setAutocomplete(true)
-        ),
+        )
 
-    autocomplete: async (interaction: AutocompleteInteraction) => {
+    async autocomplete(interaction: AutocompleteInteraction) {
         const player = useMainPlayer()
 
         if (!player) {
@@ -67,9 +69,9 @@ export default {
         }
 
         return await interaction.respond(choices.slice(0, 6))
-    },
+    }
 
-    run: async (interaction: ChatInputCommandInteraction) => {
+    async run(interaction: ChatInputCommandInteraction) {
         const client = interaction.client as MyClient
 
         if (!(interaction.member instanceof GuildMember)) {
@@ -326,7 +328,7 @@ export default {
                 return
             }
 
-            client.slashcommands.get(`like`).button(interaction, tracks[0])
+            client.commands.get(`like`).button(interaction, tracks[0])
         })
-    },
+    }
 }

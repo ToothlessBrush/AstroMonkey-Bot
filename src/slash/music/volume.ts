@@ -1,9 +1,15 @@
 import { EmbedBuilder } from "@discordjs/builders"
 import { useQueue } from "discord-player"
-import { ChatInputCommandInteraction, CommandInteraction, SlashCommandBuilder } from "discord.js"
+import {
+    ChatInputCommandInteraction,
+    CommandInteraction,
+    SlashCommandBuilder,
+} from "discord.js"
 
-export default {
-    data: new SlashCommandBuilder()
+export default class Volume {
+    constructor() {}
+
+    data = new SlashCommandBuilder()
         .setName("volume")
         .setDescription("change the volume of the music")
         .addNumberOption((option) =>
@@ -15,9 +21,9 @@ export default {
                 .setRequired(true)
                 .setMinValue(1)
                 .setMaxValue(100)
-        ),
+        )
 
-    run: async (interaction: ChatInputCommandInteraction) => {
+    async run(interaction: ChatInputCommandInteraction) {
         if (!interaction.guild) {
             return
         }
@@ -45,5 +51,5 @@ export default {
                     .setTitle(`Volume set to \`${volume}%\``),
             ],
         })
-    },
+    }
 }

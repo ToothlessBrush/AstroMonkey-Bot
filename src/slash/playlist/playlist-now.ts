@@ -20,8 +20,10 @@ import { Track, TrackJSON, useMainPlayer } from "discord-player"
 import { IPlaylist } from "../../model/Playlist.js"
 import mongoose from "mongoose"
 
-export default {
-    data: new SlashCommandBuilder()
+export default class PlaylistNow {
+    constructor() {}
+
+    data = new SlashCommandBuilder()
         .setName("playlist-now")
         .setDescription(
             "play tracks from a playlist while skipping current queue"
@@ -38,9 +40,9 @@ export default {
                 .setName("shuffle")
                 .setDescription("add the music to the playlist shuffled or not")
                 .setRequired(false)
-        ),
+        )
 
-    autocomplete: async (interaction: AutocompleteInteraction) => {
+    async autocomplete(interaction: AutocompleteInteraction) {
         const focusedValue = interaction.options.getFocused()
         let choices = ["Likes"]
         await Server.findOne({ "server.ID": interaction.guild?.id }).then(
@@ -84,9 +86,9 @@ export default {
         await interaction.respond(
             filtered.map((choice) => ({ name: choice, value: choice }))
         )
-    },
+    }
 
-    run: async (interaction: ChatInputCommandInteraction) => {
+    async run(interaction: ChatInputCommandInteraction) {
         if (!(interaction.member instanceof GuildMember)) {
             return
         }
@@ -226,18 +228,18 @@ export default {
         const playlist = serverPlaylist || userPlaylist
 
         return await playTracks(interaction, playlist, shuffle)
-    },
+    }
 
     //handle buttons on interaction
     //buttons for case when 2 playlists found
 
     //need to switch to collector
-    buttons: async (
+    async buttons(
         interaction: ButtonInteraction,
         docType: String,
         playlistId: String,
         shuffle: boolean
-    ) => {
+    ) {
         let playlist
 
         if (docType == "server") {
@@ -275,7 +277,7 @@ export default {
         }
 
         return await playTracks(interaction, playlist, shuffle)
-    },
+    }
 }
 
 /** queues tracks from playlist

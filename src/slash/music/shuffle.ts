@@ -4,12 +4,14 @@ import { ChatInputCommandInteraction, CommandInteraction } from "discord.js"
 import { EmbedBuilder } from "@discordjs/builders"
 import { SlashCommandBuilder } from "discord.js"
 
-export default {
-    data: new SlashCommandBuilder()
-        .setName("shuffle")
-        .setDescription("shuffles the music queue"),
+export default class Shuffle {
+    constructor() {}
 
-    run: async ( interaction: ChatInputCommandInteraction) => {
+    data = new SlashCommandBuilder()
+        .setName("shuffle")
+        .setDescription("shuffles the music queue")
+
+    async run(interaction: ChatInputCommandInteraction) {
         const player = useMainPlayer()
 
         if (!player) {
@@ -19,7 +21,7 @@ export default {
         if (!interaction.guildId) {
             return
         }
-        
+
         const queue = player.nodes.get(interaction.guildId)
 
         if (!queue) {
@@ -41,5 +43,5 @@ export default {
                     .setTitle("**Shuffled the Queue**"),
             ],
         })
-    },
+    }
 }

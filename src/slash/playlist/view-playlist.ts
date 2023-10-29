@@ -17,7 +17,7 @@ import { Server } from "./../../model/Server.js"
 import { User } from "./../../model/User.js"
 import { IPlaylist } from "../../model/Playlist.js"
 
-export class ViewPlaylist {
+export default class ViewPlaylist {
     playlist: IPlaylist | undefined
 
     constructor() {
@@ -107,7 +107,7 @@ export class ViewPlaylist {
                 tracks: likedTracks,
             }
 
-            this.showTracks(interaction)
+            return this.showTracks(interaction)
         }
 
         const server = await Server.findOne({ "server.ID": serverID })
@@ -141,13 +141,11 @@ export class ViewPlaylist {
                 components: [
                     new ActionRowBuilder<ButtonBuilder>().addComponents(
                         new ButtonBuilder()
-                            .setCustomId(
-                                `showServerPL~${serverPL._id?.toString()}`
-                            )
+                            .setCustomId(`showServerPL`)
                             .setLabel(`Server`)
                             .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
-                            .setCustomId(`showUserPL~${userPL._id?.toString()}`)
+                            .setCustomId(`showUserPL`)
                             .setLabel(`Personal`)
                             .setStyle(ButtonStyle.Secondary)
                     ),
@@ -241,10 +239,14 @@ export class ViewPlaylist {
         }
 
         let reply: InteractionResponse | Message
-        if (buttonInteraction) {
-            reply = await interaction.update(viewPlaylistEmbed)
-        } else {
-            reply = await interaction.editReply(viewPlaylistEmbed)
+        try {
+            if (buttonInteraction) {
+                reply = await interaction.update(viewPlaylistEmbed)
+            } else {
+                reply = await interaction.editReply(viewPlaylistEmbed)
+            }
+        } catch (e) {
+            console.error(e)
         }
     }
 }

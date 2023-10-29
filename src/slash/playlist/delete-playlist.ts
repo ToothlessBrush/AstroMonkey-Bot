@@ -18,15 +18,13 @@ import { User, IUser } from "./../../model/User.js"
 import { IPlaylist } from "../../model/Playlist.js"
 import { Schema } from "mongoose"
 
-export class DeletePlaylist {
+export default class DeletePlaylist {
     private UserDoc: IUser | null
     private ServerDoc: IServer | null
-    private playlistID: string | undefined
 
     constructor() {
         this.UserDoc = null
         this.ServerDoc = null
-        this.playlistID = undefined
     }
 
     data = new SlashCommandBuilder()
@@ -141,7 +139,7 @@ export class DeletePlaylist {
                 ],
             })
 
-            this.handleDuplicateCollector(reply, userPL, serverPL)
+            return this.handleDuplicateCollector(reply, userPL, serverPL)
         }
 
         if (!serverPL && !userPL) {
@@ -168,6 +166,9 @@ export class DeletePlaylist {
         userPL: IPlaylist,
         serverPL: IPlaylist
     ) {
+        const ServerDoc = this.ServerDoc
+        const UserDoc = this.UserDoc
+
         const collector = reply.createMessageComponentCollector({
             componentType: ComponentType.Button,
         })
@@ -179,21 +180,17 @@ export class DeletePlaylist {
             ) {
                 const isDeleteServer = interaction.customId == "deleteServerPL"
 
-                this.playlistID = isDeleteServer
-                    ? serverPL._id?.toString()
-                    : userPL._id?.toString()
-
                 this.askConfirmDelete(
                     interaction,
                     isDeleteServer ? serverPL : userPL,
-                    isDeleteServer ? this.ServerDoc : this.UserDoc
+                    isDeleteServer ? ServerDoc : UserDoc
                 )
             }
         })
     }
 
     /** asks the user to confirm if they want to delete the playlist
-     * 
+     *
      * @param interaction interaction to edit
      * @param playlist  playlist to delete
      * @param Schema the schema to delete the playlist from
@@ -237,7 +234,11 @@ export class DeletePlaylist {
 
         collector.on("collect", async (interaction) => {
             if (interaction.customId == "DeletePL") {
-                this.deletePlaylist(interaction, Schema)
+                this.deletePlaylist(
+                    interaction,
+                    Schema,
+                    playlist?._id?.toString()
+                )
             }
         })
     }
@@ -249,7 +250,8 @@ export class DeletePlaylist {
      */
     async deletePlaylist(
         interaction: ButtonInteraction,
-        schema: IUser | IServer | null
+        schema: IUser | IServer | null,
+        playlistID: string | undefined
     ) {
         if (!schema) {
             return interaction.editReply({
@@ -263,10 +265,10 @@ export class DeletePlaylist {
 
         //check so that the interaction.user == playlist.creater.id before deleting
         const playlist = schema.playlists.find(
-            (playlist) => playlist._id?.toString() == this.playlistID
+            (playlist) => playlist._id?.toString() == playlistID
         )
         if (playlist?.creater.ID != interaction.user.id) {
-            return interaction.editReply({
+            return interaction.reply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
@@ -277,7 +279,7 @@ export class DeletePlaylist {
 
         //playlist without playlist with playlistID
         const updatedPlaylists = schema.playlists.filter(
-            (playlist) => playlist._id?.toString() != this.playlistID
+            (playlist) => playlist._id?.toString() != playlistID
         )
 
         schema.playlists = updatedPlaylists
@@ -285,7 +287,7 @@ export class DeletePlaylist {
         try {
             await schema.save()
         } catch {
-            return interaction.editReply({
+            return interaction.reply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
@@ -294,12 +296,13 @@ export class DeletePlaylist {
             })
         }
 
-        return interaction.editReply({
+        return interaction.update({
             embeds: [
                 new EmbedBuilder()
                     .setColor(0x00cbb7)
                     .setTitle(`Deleted Playlist!`),
             ],
+            components: [],
         })
     }
 }

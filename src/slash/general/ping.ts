@@ -1,18 +1,24 @@
 import { SlashCommandBuilder } from "@discordjs/builders"
-import { EmbedBuilder, CommandInteraction, ChatInputCommandInteraction } from "discord.js"
+import {
+    EmbedBuilder,
+    CommandInteraction,
+    ChatInputCommandInteraction,
+} from "discord.js"
 
-export default {
-    data: new SlashCommandBuilder()
+export default class ping {
+    constructor() {}
+
+    data = new SlashCommandBuilder()
         .setName("ping")
-        .setDescription("replies with the latency of the bot"),
+        .setDescription("replies with the latency of the bot")
 
-    run: async ( interaction: ChatInputCommandInteraction ) => {
+    async run(interaction: ChatInputCommandInteraction) {
         if (interaction.isAutocomplete()) {
             return
         }
-        
+
         const client = interaction.client
-        
+
         const mesg = await interaction.editReply({
             embeds: [new EmbedBuilder().setColor(0xa020f0).setTitle(`Pong!`)],
         })
@@ -29,5 +35,5 @@ export default {
                     ),
             ],
         })
-    },
+    }
 }

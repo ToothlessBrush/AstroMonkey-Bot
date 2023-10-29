@@ -3,17 +3,18 @@ import {
     EmbedBuilder,
     ButtonBuilder,
     ButtonStyle,
-    CommandInteraction,
     ChatInputCommandInteraction,
 } from "discord.js"
 import { useQueue } from "discord-player"
 
-export default {
-    data: new SlashCommandBuilder()
+export default class Pause {
+    constructor() {}
+    
+    data = new SlashCommandBuilder()
         .setName("pause")
-        .setDescription("pauses the music queue"),
+        .setDescription("pauses the music queue")
 
-    run: async (interaction: ChatInputCommandInteraction) => {
+    async run(interaction: ChatInputCommandInteraction) {
         if (!interaction.guild) {
             return
         }
@@ -63,5 +64,5 @@ export default {
             ],
         }) //("Paused! Use /resume to resume")
         //queue.setPause()
-    },
+    }
 }
