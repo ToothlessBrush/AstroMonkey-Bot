@@ -4,8 +4,7 @@ Easy to use Music and Playlist Bot for YouTube, Spotify, and SoundCloud!
 
 ## Invite Link
 
-https://discord.com/api/oauth2/authorize?client_id=1046617120408080475&permissions=277062471232&scope=bot%20applications.commands
-
+https://discord.com/application-directory/1046617120408080475
 ## Commands
 
 /help\

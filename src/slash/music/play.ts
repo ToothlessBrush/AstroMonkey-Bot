@@ -346,6 +346,7 @@ export default {
 
         const collector = reply.createMessageComponentCollector({
             componentType: ComponentType.Button,
+            time: 86400000 //24 hours
         })
         
         collector.on(`collect`, async (interaction) => {
@@ -354,10 +355,14 @@ export default {
                 return
             }
 
-            await client.slashcommands
+            await client.commands
                 .get(`like`)
                 .button(interaction, tracks[0])
 
+        })
+
+        collector.on(`end`, (interaction) => {
+            //delete self here
         })
     },
 }

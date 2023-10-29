@@ -8,13 +8,27 @@ import {
     AutocompleteInteraction,
     ButtonInteraction,
     ChatInputCommandInteraction,
+    Message,
+    ComponentType,
+    InteractionResponse,
 } from "discord.js"
 
 import { Server, IServer } from "./../../model/Server.js"
 import { User, IUser } from "./../../model/User.js"
+import { IPlaylist } from "../../model/Playlist.js"
 
-export default {
-    data: new SlashCommandBuilder()
+export class DeletePlaylist {
+    private UserDoc: IUser | null
+    private ServerDoc: IServer | null
+    private playlistID: string | undefined
+
+    constructor() {
+        this.UserDoc = null
+        this.ServerDoc = null
+        this.playlistID = undefined
+    }
+
+    data = new SlashCommandBuilder()
         .setName("delete-playlist")
         .setDescription("delete a playlist")
         .addStringOption((option) =>
@@ -23,8 +37,9 @@ export default {
                 .setDescription("name of the playlist you want to delete")
                 .setAutocomplete(true)
                 .setRequired(true)
-        ),
-    autocomplete: async (interaction: AutocompleteInteraction) => {
+        )
+
+    async autocomplete(interaction: AutocompleteInteraction) {
         const focusedValue = interaction.options.getFocused()
         let choices: string[] = []
 
@@ -70,9 +85,9 @@ export default {
         await interaction.respond(
             filtered.map((choice) => ({ name: choice, value: choice }))
         )
-    },
+    }
 
-    run: async (interaction: ChatInputCommandInteraction) => {
+    async run(interaction: ChatInputCommandInteraction) {
         const playlistQuery = interaction.options.get("playlist")
             ?.value as string
 
@@ -83,26 +98,26 @@ export default {
         const userID = interaction.user.id
 
         //check if playlist exists
-        const server = await Server.findOne({ "server.ID": serverID })
+        this.ServerDoc = await Server.findOne({ "server.ID": serverID })
 
-        let serverPL
-        if (server) {
-            serverPL = server.playlists.find(
+        let serverPL: IPlaylist | undefined
+        if (this.ServerDoc) {
+            serverPL = this.ServerDoc.playlists.find(
                 (playlist) => playlist.name == playlistQuery
             )
         }
 
-        const user = await User.findOne({ ID: userID })
+        this.UserDoc = await User.findOne({ ID: userID })
 
-        let userPL
-        if (user) {
-            userPL = user.playlists.find(
+        let userPL: IPlaylist | undefined
+        if (this.UserDoc) {
+            userPL = this.UserDoc.playlists.find(
                 (playlist) => playlist.name == playlistQuery
             )
         }
 
         if (serverPL && userPL) {
-            return interaction.editReply({
+            const reply = await interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0x00cbb7)
@@ -115,19 +130,21 @@ export default {
                     new ActionRowBuilder<ButtonBuilder>().addComponents(
                         new ButtonBuilder()
                             .setCustomId(
-                                `deleteServerPL~${serverPL._id?.toString()}`
+                                `deleteServerPL`
                             )
                             .setLabel(`Server`)
                             .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
                             .setCustomId(
-                                `deleteUserPL~${userPL._id?.toString()}`
+                                `deleteUserPL`
                             )
                             .setLabel(`Personal`)
                             .setStyle(ButtonStyle.Secondary)
                     ),
                 ],
             })
+
+            this.handleDuplicateCollector(reply, userPL, serverPL)
         }
 
         if (!serverPL && !userPL) {
@@ -155,67 +172,73 @@ export default {
                 userPL.name
             )
         }
-    },
+    }
 
-    //need to switch to collector
-    duplicateButton: async (
-        interaction: ButtonInteraction,
-        docType: string,
-        playlistID: string
-    ) => {
-        const serverID = interaction.guild?.id
-        const userID = interaction.user.id
+    async handleDuplicateCollector(reply: Message, userPL: IPlaylist, serverPL: IPlaylist) {
+        const collector = reply.createMessageComponentCollector({
+            componentType: ComponentType.Button
+        })
 
-        let playlist
-        //get PlaylistName
-        if (docType == "user") {
-            const user = await User.findOne({ ID: userID })
+        collector.on("collect", async (interaction) => {
+            if (interaction.customId == "deleteServerPL" || interaction.customId == "deleteUserPL") {
 
-            if (!user) {
-                return interaction.update({
-                    content: "User Data Not Found!",
-                })
+                const isDeleteServer = interaction.customId == "deleteServerPL"
+                this.playlistID = isDeleteServer ? serverPL._id?.toString() : userPL._id?.toString()
+                this.askConfirmDelete(interaction, isDeleteServer ? this.ServerDoc : this.UserDoc, isDeleteServer ? serverPL : userPL)
             }
+        }
+    }
 
-            playlist = user.playlists.find(
-                (playlist) => playlist._id?.toString() == playlistID
-            )
-        } else if (docType == "server") {
-            const server = await Server.findOne({ "server.ID": serverID })
-
-            if (!server) {
-                return interaction.update({
-                    content: "Server Data Not Found!",
-                })
-            }
-
-            playlist = server.playlists.find(
-                (playlist) => playlist._id?.toString() == playlistID
-            )
+    async function askConfirmDelete(
+        interaction: CommandInteraction | ButtonInteraction,
+        playlist: IPlaylist | null
+    ) {
+        const buttonInteraction = interaction.isButton()
+    
+        const askToConfirmEmbed = {
+            embeds: [
+                new EmbedBuilder()
+                    .setColor(0xff0000)
+                    .setTitle("Are You Sure?")
+                    .setDescription(
+                        `you are about to delete \`${playlist?.name}\`!\n\nPress Delete to Delete the Playlist!`
+                    ),
+            ],
+            components: [
+                new ActionRowBuilder<ButtonBuilder>().addComponents(
+                    new ButtonBuilder()
+                        .setCustomId(`DeletePL`)
+                        .setLabel(`Delete`)
+                        .setStyle(ButtonStyle.Danger)
+                ),
+            ],
+        }
+    
+        let reply: Message | InteractionResponse
+        if (buttonInteraction) {
+            reply = await interaction.update(askToConfirmEmbed)
+        } else {
+            reply = await interaction.editReply(askToConfirmEmbed)
         }
 
-        if (!playlist) {
-            return interaction.update({
-                content: "Playlist Data Not Found",
-                embeds: [],
-                components: [],
-            })
-        }
 
-        await askConfirmDelete(interaction, playlistID, playlist.name)
-    },
+    }
+    
+
+
 
     //search through both User and Server and delete the playlist with playlistID also check if interaction and playlist creater is the same
-    deleteButton: async (
+    /** deletes a playlist from the database using the playlistID
+     * 
+     * @param interaction 
+     * @param playlistID 
+     */
+    async deleteButton(
         interaction: ButtonInteraction,
         playlistID: string
-    ) => {
+    ) {
         const userID = interaction.user.id
 
-        await User.findOne({ ID: userID }).then(async (user) => {
-            if (!user) {
-                return await checkServer(interaction)
-            }
 
             let playlistIndex = user.playlists.findIndex(
                 (playlist) => playlist._id?.toString() == playlistID
@@ -233,8 +256,6 @@ export default {
                     ],
                     components: [],
                 })
-
-                user.playlists.splice(playlistIndex, 1)
 
                 //delete doc if likes and playlist dont exist
                 if (user.playlists.length == 0 && user.likes.length == 0) {
@@ -323,45 +344,6 @@ export default {
                 }
             )
         }
-    },
-}
-
-/** build a confirm to delete embed
- *
- * @param {object} interaction discord Interaction
- * @param {String} playlistID ID of playlist to delete
- * @param {String} playlistName name of playlist to delete
- * @returns
- */
-async function askConfirmDelete(
-    interaction: CommandInteraction | ButtonInteraction,
-    playlistID: string | undefined,
-    playlistName: string
-) {
-    const buttonInteraction = interaction.isButton()
-
-    const askToConfirmEmbed = {
-        embeds: [
-            new EmbedBuilder()
-                .setColor(0xff0000)
-                .setTitle("Are You Sure?")
-                .setDescription(
-                    `you are about to delete \`${playlistName}\`!\n\nPress Delete to Delete the Playlist!`
-                ),
-        ],
-        components: [
-            new ActionRowBuilder<ButtonBuilder>().addComponents(
-                new ButtonBuilder()
-                    .setCustomId(`DeletePL~${playlistID}`)
-                    .setLabel(`Delete`)
-                    .setStyle(ButtonStyle.Danger)
-            ),
-        ],
-    }
-
-    if (buttonInteraction) {
-        return interaction.update(askToConfirmEmbed)
-    } else {
-        return interaction.editReply(askToConfirmEmbed)
     }
 }
+

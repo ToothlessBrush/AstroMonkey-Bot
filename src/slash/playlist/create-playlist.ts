@@ -9,8 +9,12 @@ import { User } from "./../../model/User.js"
 import { IPlaylist } from "../../model/Playlist.js"
 import mongoose from "mongoose"
 
-export default {
-    data: new SlashCommandBuilder()
+export class CreatePlaylist {
+    constructor () {
+
+    }
+    
+    data = new SlashCommandBuilder()
         .setName("create-playlist")
         .setDescription(
             "create a playlist which you can add songs to and play in queue"
@@ -33,9 +37,9 @@ export default {
                 .setDescription("name of the playlist you want to create")
                 .setRequired(true)
                 .setMaxLength(100)
-        ),
+        )
 
-    run: async (interaction: ChatInputCommandInteraction) => {
+    async run(interaction: ChatInputCommandInteraction) {
         const serverType =
             (interaction.options.get("type")?.value as string) == "SERVER"
 
@@ -172,5 +176,5 @@ export default {
                 return newUser.save()
             }
         }
-    },
+    }
 }
