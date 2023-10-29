@@ -9,6 +9,7 @@ import {
 import { QueryType, Track, useMainPlayer } from "discord-player"
 import isUrl from "./../../utils/isUrl"
 import { User } from "./../../model/User.js"
+import { Query } from "mongoose"
 export default class Like {
     constructor() {}
 

@@ -106,7 +106,7 @@ export default class PlaylistAdd {
         const userID = interaction.user.id
 
         if (playlistName == "Likes") {
-            return client.commands.get("like").button(interaction, query)
+            return client.commands.get("like").run(interaction)
         }
 
         this.serverDoc = await Server.findOne({ "server.ID": serverID })

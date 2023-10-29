@@ -3,6 +3,7 @@ import {
     ButtonInteraction,
     ButtonStyle,
     ChatInputCommandInteraction,
+    ComponentType,
     Embed,
     SlashCommandBuilder,
 } from "discord.js"
@@ -21,7 +22,7 @@ export default class PurgeInfo {
         .setDescription("Remove all your discord info from the database")
 
     async run(interaction: ChatInputCommandInteraction) {
-        User.findOne({ ID: interaction.user.id }).then((user) => {
+        User.findOne({ ID: interaction.user.id }).then(async (user) => {
             if (!user) {
                 return interaction.editReply({
                     embeds: [
@@ -32,7 +33,7 @@ export default class PurgeInfo {
                 })
             }
 
-            interaction.editReply({
+            const reply = await interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setTitle(
@@ -46,12 +47,24 @@ export default class PurgeInfo {
                 components: [
                     new ActionRowBuilder<ButtonBuilder>().addComponents(
                         new ButtonBuilder()
-                            .setCustomId(`deleteUser~${user?._id.toString()}`)
+                            .setCustomId(`deleteUser`)
                             .setLabel(`PURGE`)
                             .setStyle(ButtonStyle.Danger)
                     ),
                 ],
             })
+
+            const collector = reply.createMessageComponentCollector({
+                componentType: ComponentType.Button,
+            })
+
+            collector.on("collect", async (buttonInteraction) => {
+                if (buttonInteraction.customId == "deleteUser") {
+                    this.buttons(buttonInteraction, user._id.toString())
+                }
+            })
+
+            return
         })
     }
     async buttons(interaction: ButtonInteraction, docId: string) {
@@ -62,7 +75,7 @@ export default class PurgeInfo {
         }
 
         if (userDoc.ID != interaction.user.id) {
-            return interaction.editReply({
+            return interaction.reply({
                 embeds: [
                     new EmbedBuilder()
                         .setDescription(
@@ -76,20 +89,22 @@ export default class PurgeInfo {
         const deletedUser = await User.findByIdAndRemove(docId)
 
         if (deletedUser) {
-            interaction.editReply({
+            interaction.update({
                 embeds: [
                     new EmbedBuilder()
                         .setDescription(`**deleted user profile**`)
                         .setColor(0xff0000),
                 ],
+                components: [],
             })
         } else {
-            interaction.editReply({
+            interaction.update({
                 embeds: [
                     new EmbedBuilder()
                         .setDescription(`**could not deleted account**`)
                         .setColor(0xff0000),
                 ],
+                components: [],
             })
         }
     }

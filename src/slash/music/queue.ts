@@ -2,6 +2,9 @@ import {
     ButtonInteraction,
     ChatInputCommandInteraction,
     CommandInteraction,
+    ComponentType,
+    InteractionResponse,
+    Message,
 } from "discord.js"
 
 import { SlashCommandBuilder, ActionRowBuilder } from "@discordjs/builders"
@@ -75,6 +78,10 @@ async function displayQueue(
         }
     }
 
+    if (page < 0) {
+        page = 0
+    }
+
     let totalPages = Math.ceil(queue.tracks.size / 10)
     if (totalPages == 0) {
         //set pages to 1 when song playing but no queue
@@ -146,7 +153,7 @@ async function displayQueue(
     if (page != 0) {
         components.addComponents(
             new ButtonBuilder()
-                .setCustomId(`prevPageButton~${prevPage}`)
+                .setCustomId(`QueuePrevPageButton`)
                 .setLabel(`<`)
                 .setStyle(ButtonStyle.Secondary)
         )
@@ -162,23 +169,45 @@ async function displayQueue(
     if (page != totalPages - 1)
         components.addComponents(
             new ButtonBuilder()
-                .setCustomId(`nextPageButton~${nextPage}`)
+                .setCustomId(`QueueNextPageButton`)
                 .setLabel(`>`)
                 .setStyle(ButtonStyle.Secondary)
         )
 
+    let reply: InteractionResponse | Message | undefined
     if (updateMessage) {
         if (!button) {
             return
         }
-        return await interaction.update({
+        reply = await interaction.update({
             embeds: [embed],
             components: [components],
         })
     } else {
-        return await interaction.editReply({
+        reply = await interaction.editReply({
             embeds: [embed],
             components: [components],
+        })
+    }
+
+    if (components.components.length != 0) {
+        const collector = reply.createMessageComponentCollector({
+            componentType: ComponentType.Button,
+        })
+
+        collector.on(`collect`, (buttonInteraction) => {
+            const isPrevPage =
+                buttonInteraction.customId == `QueuePrevPageButton`
+            const isNextPage =
+                buttonInteraction.customId == `QueueNextPageButton`
+
+            if (isPrevPage) {
+                displayQueue(buttonInteraction, page - 1, true)
+            } else if (isNextPage) {
+                displayQueue(buttonInteraction, page + 1, true)
+            }
+
+            collector.stop()
         })
     }
 }

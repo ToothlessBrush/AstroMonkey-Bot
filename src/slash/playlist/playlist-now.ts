@@ -3,6 +3,7 @@ import {
     ButtonInteraction,
     ChatInputCommandInteraction,
     CommandInteraction,
+    ComponentType,
     GuildMember,
 } from "discord.js"
 
@@ -161,7 +162,7 @@ export default class PlaylistNow {
                 tracks: likedTracks || [],
             }
 
-            return playTracks(interaction, playlist, shuffle)
+            return queueTracks(interaction, playlist, shuffle)
         }
 
         //find playlist
@@ -197,7 +198,7 @@ export default class PlaylistNow {
         })
 
         if (serverPlaylist && userPlaylist) {
-            return interaction.editReply({
+            const reply = await interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0x00cbb7)
@@ -209,74 +210,42 @@ export default class PlaylistNow {
                 components: [
                     new ActionRowBuilder<ButtonBuilder>().addComponents(
                         new ButtonBuilder()
-                            .setCustomId(
-                                `serverPlaylistButton~${serverPlaylist._id?.toString()}~${shuffle}`
-                            )
+                            .setCustomId(`serverPlaylistButton`)
                             .setLabel(`Server`)
                             .setStyle(ButtonStyle.Secondary),
                         new ButtonBuilder()
-                            .setCustomId(
-                                `userPlaylistButton~${userPlaylist._id?.toString()}~${shuffle}`
-                            )
+                            .setCustomId(`userPlaylistButton`)
                             .setLabel(`Personal`)
                             .setStyle(ButtonStyle.Secondary)
                     ),
                 ],
             })
+
+            const collector = reply.createMessageComponentCollector({
+                componentType: ComponentType.Button,
+            })
+
+            collector.on(`collect`, async (interaction) => {
+                const isServerPlaylist =
+                    interaction.customId == `serverPlaylistButton`
+                const isUserPlaylist =
+                    interaction.customId == `userPlaylistButton`
+
+                if (isServerPlaylist) {
+                    await queueTracks(interaction, serverPlaylist, shuffle)
+                } else if (isUserPlaylist) {
+                    await queueTracks(interaction, userPlaylist, shuffle)
+                }
+
+                collector.stop()
+            })
+
+            return
         }
 
         const playlist = serverPlaylist || userPlaylist
 
-        return await playTracks(interaction, playlist, shuffle)
-    }
-
-    //handle buttons on interaction
-    //buttons for case when 2 playlists found
-
-    //need to switch to collector
-    async buttons(
-        interaction: ButtonInteraction,
-        docType: String,
-        playlistId: String,
-        shuffle: boolean
-    ) {
-        let playlist
-
-        if (docType == "server") {
-            playlist = await Server.findOne({
-                "server.ID": interaction.guild?.id,
-            }).then((server) => {
-                if (!server) {
-                    return
-                }
-
-                //log access date
-                server.timestamps.updatedAt = new Date()
-                server.save()
-
-                return server.playlists.find(
-                    (playlist) => playlist._id?.toString() == playlistId
-                )
-            })
-        } else if (docType == "user") {
-            playlist = await User.findOne({ ID: interaction.user.id }).then(
-                (user) => {
-                    if (!user) {
-                        return
-                    }
-
-                    //log access date
-                    user.timestamps.updatedAt = new Date()
-                    user.save()
-
-                    return user.playlists.find(
-                        (playlist) => playlist._id?.toString() == playlistId
-                    )
-                }
-            )
-        }
-
-        return await playTracks(interaction, playlist, shuffle)
+        return await queueTracks(interaction, playlist, shuffle)
     }
 }
 
@@ -287,7 +256,7 @@ export default class PlaylistNow {
  * @param {boolean} shuffle whether to shuffle queue or not before adding
  * @returns nothing
  */
-async function playTracks(
+async function queueTracks(
     interaction: CommandInteraction | ButtonInteraction,
     playlist: IPlaylist | undefined,
     shuffle: boolean

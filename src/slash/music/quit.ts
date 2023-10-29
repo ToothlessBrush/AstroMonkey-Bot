@@ -34,10 +34,5 @@ export default class Quit {
                 new EmbedBuilder().setColor(0xff0000).setTitle(`**Quitting**`),
             ],
         })
-
-        const used2 = process.memoryUsage().heapUsed / 1024 / 1024
-        console.log(
-            `The script uses approximately ${Math.round(used2 * 100) / 100} MB`
-        )
     }
 }

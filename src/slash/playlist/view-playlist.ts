@@ -34,6 +34,13 @@ export default class ViewPlaylist {
                 .setAutocomplete(true)
                 .setRequired(true)
         )
+        .addNumberOption((option) =>
+            option
+                .setName("page")
+                .setDescription("page number")
+                .setRequired(false)
+                .setMinValue(1)
+        )
 
     async autocomplete(interaction: AutocompleteInteraction) {
         const focusedValue = interaction.options.getFocused()
@@ -87,6 +94,8 @@ export default class ViewPlaylist {
         const userID = interaction.user.id
         const playlistName = interaction.options.get("playlist")
             ?.value as string
+        const page =
+            ((interaction.options.get("page")?.value as number) || 1) - 1
 
         if (playlistName == "Likes") {
             const likedTracks =
@@ -107,7 +116,7 @@ export default class ViewPlaylist {
                 tracks: likedTracks,
             }
 
-            return this.showTracks(interaction)
+            return this.showTracks(interaction, page)
         }
 
         const server = await Server.findOne({ "server.ID": serverID })
@@ -152,18 +161,19 @@ export default class ViewPlaylist {
                 ],
             })
 
-            return this.handleDuplicateButton(reply, serverPL, userPL)
+            return this.handleDuplicateButton(reply, serverPL, userPL, page)
         }
 
         this.playlist = serverPL || userPL
 
-        this.showTracks(interaction)
+        this.showTracks(interaction, page)
     }
 
     private async handleDuplicateButton(
         reply: Message,
         serverPL: IPlaylist,
-        userPL: IPlaylist
+        userPL: IPlaylist,
+        page: number
     ) {
         const collector = reply.createMessageComponentCollector({
             componentType: ComponentType.Button,
@@ -172,14 +182,19 @@ export default class ViewPlaylist {
         collector.on(`collect`, (interaction) => {
             const isServerPL = interaction.customId == `showServerPL`
             this.playlist = isServerPL ? serverPL : userPL //set the playlist to the one specifed
-            this.showTracks(interaction)
+            this.showTracks(interaction, page)
             collector.stop()
         })
     }
 
     private async showTracks(
-        interaction: CommandInteraction | ButtonInteraction
+        interaction: CommandInteraction | ButtonInteraction,
+        page: number
     ) {
+        if (page < 0) {
+            page = 0
+        }
+
         const buttonInteraction = interaction.isButton()
         const playlist = this.playlist
 
@@ -219,8 +234,18 @@ export default class ViewPlaylist {
             }
         }
 
+        let totalPages = Math.ceil(playlist.tracks.length / 10)
+        if (totalPages == 0) {
+            //set pages to 1 when song playing but no queue
+            totalPages = 1
+        }
+
+        if (page > totalPages - 1) {
+            page = totalPages - 1
+        }
+
         const tracksString = playlist.tracks
-            .slice()
+            .slice(page * 10, page * 10 + 10)
             .map((track, i) => {
                 return `**${i + 1}.** \`[${track.duration}]\` [${
                     track.title
@@ -228,17 +253,38 @@ export default class ViewPlaylist {
             })
             .join("\n")
 
+        const components = new ActionRowBuilder<ButtonBuilder>()
+
+        if (page != 0) {
+            components.addComponents(
+                new ButtonBuilder()
+                    .setCustomId(`viewPrevPageButton`)
+                    .setLabel(`<`)
+                    .setStyle(ButtonStyle.Secondary)
+            )
+        }
+
+        if (page != totalPages - 1) {
+            components.addComponents(
+                new ButtonBuilder()
+                    .setCustomId(`viewNextPageButton`)
+                    .setLabel(`>`)
+                    .setStyle(ButtonStyle.Secondary)
+            )
+        }
+
         const viewPlaylistEmbed = {
             embeds: [
                 new EmbedBuilder()
                     .setColor(0xa020f0)
                     .setTitle(`**${playlist.name}**`)
-                    .setDescription(tracksString),
+                    .setDescription(tracksString)
+                    .setFooter({ text: `Page ${page + 1} of ${totalPages}` }),
             ],
-            components: [],
+            components: [components],
         }
 
-        let reply: InteractionResponse | Message
+        let reply: InteractionResponse | Message | undefined
         try {
             if (buttonInteraction) {
                 reply = await interaction.update(viewPlaylistEmbed)
@@ -247,6 +293,31 @@ export default class ViewPlaylist {
             }
         } catch (e) {
             console.error(e)
+        }
+
+        if (!reply) {
+            return
+        }
+
+        if (components.components.length != 0) {
+            const collector = reply.createMessageComponentCollector({
+                componentType: ComponentType.Button,
+            })
+
+            collector.on(`collect`, (buttonInteraction) => {
+                const isPrevPage =
+                    buttonInteraction.customId == `viewPrevPageButton`
+                const isNextPage =
+                    buttonInteraction.customId == `viewNextPageButton`
+
+                if (isPrevPage) {
+                    this.showTracks(buttonInteraction, page - 1)
+                } else if (isNextPage) {
+                    this.showTracks(buttonInteraction, page + 1)
+                }
+
+                collector.stop()
+            })
         }
     }
 }

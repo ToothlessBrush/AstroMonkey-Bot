@@ -186,6 +186,8 @@ export default class DeletePlaylist {
                     isDeleteServer ? ServerDoc : UserDoc
                 )
             }
+
+            collector.stop()
         })
     }
 
