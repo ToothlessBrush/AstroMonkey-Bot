@@ -8,10 +8,11 @@ import {
 
 import { QueryType, Track, useMainPlayer } from "discord-player"
 import isUrl from "./../../utils/isUrl"
-import path from "path"
 import { User } from "./../../model/User.js"
-export default {
-    data: new SlashCommandBuilder()
+export class Like {
+    constructor() {}
+    
+    data = new SlashCommandBuilder()
         .setName("like")
         .setDescription("Like a song (same as playlist-add Likes")
         .addStringOption((option) =>
@@ -19,9 +20,9 @@ export default {
                 .setName("query")
                 .setDescription("Song you want to like")
                 .setRequired(true)
-        ),
+        )
 
-    run: async (interaction: ChatInputCommandInteraction) => {
+    async run(interaction: ChatInputCommandInteraction) {
         const track = await searchQuery(
             interaction.options.get("query")?.value as string,
             interaction
@@ -32,12 +33,12 @@ export default {
         // }
 
         return addLikedTrack(interaction, track)
-    },
+    }
 
-    button: async (interaction: ButtonInteraction, track: Track) => {
+    async button(interaction: ButtonInteraction, track: Track) {
         await interaction.deferReply()
         return addLikedTrack(interaction, track)
-    },
+    }
 }
 
 async function addLikedTrack(

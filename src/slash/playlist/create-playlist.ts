@@ -10,10 +10,8 @@ import { IPlaylist } from "../../model/Playlist.js"
 import mongoose from "mongoose"
 
 export class CreatePlaylist {
-    constructor () {
+    constructor() {}
 
-    }
-    
     data = new SlashCommandBuilder()
         .setName("create-playlist")
         .setDescription(
@@ -61,7 +59,7 @@ export class CreatePlaylist {
             },
             length: 0,
             tracks: [],
-            _id: new mongoose.Types.ObjectId()
+            _id: new mongoose.Types.ObjectId(),
         }
 
         if (serverType) {

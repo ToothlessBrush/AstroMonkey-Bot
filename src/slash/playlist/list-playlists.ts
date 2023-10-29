@@ -13,12 +13,12 @@ import { Server, IServer } from "./../../model/Server.js"
 import { User, IUser } from "./../../model/User.js"
 import { IPlaylist } from "../../model/Playlist"
 
-export default {
-    data: new SlashCommandBuilder()
+export class ListPlaylists {
+    data = new SlashCommandBuilder()
         .setName("list-playlists")
-        .setDescription("lists your playlists and server playlists"),
+        .setDescription("lists your playlists and server playlists")
 
-    run: async (interaction: ChatInputCommandInteraction) => {
+    async run(interaction: ChatInputCommandInteraction) {
         const serverID = interaction.guild?.id
         const userID = interaction.user.id
 
@@ -63,5 +63,5 @@ export default {
                 })
                 .join("\n")
         }
-    },
+    }
 }
