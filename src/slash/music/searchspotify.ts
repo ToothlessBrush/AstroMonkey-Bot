@@ -317,8 +317,12 @@ export default class SearchSpotify {
             ],
         })
 
+        const trackJson = tracks[0].toJSON(true)
+
         const collector = reply.createMessageComponentCollector({
             componentType: ComponentType.Button,
+            time: 3_600_000, //1 hour
+            dispose: true,
         })
 
         collector.on(`collect`, (interaction) => {
@@ -327,7 +331,7 @@ export default class SearchSpotify {
                 return
             }
 
-            client.commands.get(`like`).button(interaction, tracks[0])
+            client.commands.get(`like`).button(interaction, trackJson)
         })
     }
 }

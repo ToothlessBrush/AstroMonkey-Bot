@@ -1,14 +1,12 @@
-# fly.toml app configuration file generated for astromonkey on 2023-04-28T00:33:54+09:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
 app = "astromonkey"
 primary_region = "ord"
 
-[build]
-  builder = "heroku/buildpacks:20"
-
 [[services]]
+  internal_port = 3000
   protocol = "tcp"
-  internal_port = 8080
+
+[deploy]
+  strategy = "rolling"  # Choose your preferred deployment strategy
+
+[experimental]
+  dockerfile = "Dockerfile"

@@ -1,25 +1,23 @@
 import {
-    ActionRow,
     ButtonInteraction,
     ButtonStyle,
     ChatInputCommandInteraction,
     ComponentType,
-    Embed,
     SlashCommandBuilder,
-} from "discord.js"
-import { User } from "./../../model/User"
+} from "discord.js";
+import { User } from "./../../model/User";
 import {
     ActionRowBuilder,
     ButtonBuilder,
     EmbedBuilder,
-} from "@discordjs/builders"
+} from "@discordjs/builders";
 
 export default class PurgeInfo {
     constructor() {}
 
     data = new SlashCommandBuilder()
         .setName("purge-info")
-        .setDescription("Remove all your discord info from the database")
+        .setDescription("Remove all your discord info from the database");
 
     async run(interaction: ChatInputCommandInteraction) {
         User.findOne({ ID: interaction.user.id }).then(async (user) => {
@@ -30,7 +28,7 @@ export default class PurgeInfo {
                             .setDescription(`**No info found**`)
                             .setColor(0xff0000),
                     ],
-                })
+                });
             }
 
             const reply = await interaction.editReply({
@@ -52,26 +50,26 @@ export default class PurgeInfo {
                             .setStyle(ButtonStyle.Danger)
                     ),
                 ],
-            })
+            });
 
             const collector = reply.createMessageComponentCollector({
                 componentType: ComponentType.Button,
-            })
+            });
 
             collector.on("collect", async (buttonInteraction) => {
                 if (buttonInteraction.customId == "deleteUser") {
-                    this.buttons(buttonInteraction, user._id.toString())
+                    this.buttons(buttonInteraction, user._id.toString());
                 }
-            })
+            });
 
-            return
-        })
+            return;
+        });
     }
     async buttons(interaction: ButtonInteraction, docId: string) {
-        const userDoc = await User.findById(docId)
+        const userDoc = await User.findById(docId);
 
         if (!userDoc) {
-            return
+            return;
         }
 
         if (userDoc.ID != interaction.user.id) {
@@ -83,10 +81,10 @@ export default class PurgeInfo {
                         )
                         .setColor(0xff0000),
                 ],
-            })
+            });
         }
 
-        const deletedUser = await User.findByIdAndRemove(docId)
+        const deletedUser = await User.findByIdAndRemove(docId, { lean: true });
 
         if (deletedUser) {
             interaction.update({
@@ -96,7 +94,7 @@ export default class PurgeInfo {
                         .setColor(0xff0000),
                 ],
                 components: [],
-            })
+            });
         } else {
             interaction.update({
                 embeds: [
@@ -105,7 +103,7 @@ export default class PurgeInfo {
                         .setColor(0xff0000),
                 ],
                 components: [],
-            })
+            });
         }
     }
 }

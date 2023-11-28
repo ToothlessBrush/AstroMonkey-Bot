@@ -6,7 +6,7 @@ import {
     SlashCommandBuilder,
 } from "discord.js"
 
-import { QueryType, Track, useMainPlayer } from "discord-player"
+import { QueryType, Track, TrackJSON, useMainPlayer } from "discord-player"
 import isUrl from "./../../utils/isUrl"
 import { User } from "./../../model/User.js"
 import { Query } from "mongoose"
@@ -33,10 +33,10 @@ export default class Like {
         //     return
         // }
 
-        return addLikedTrack(interaction, track)
+        return addLikedTrack(interaction, track?.toJSON(true))
     }
 
-    async button(interaction: ButtonInteraction, track: Track) {
+    async button(interaction: ButtonInteraction, track: TrackJSON) {
         await interaction.deferReply()
         return addLikedTrack(interaction, track)
     }
@@ -44,7 +44,7 @@ export default class Like {
 
 async function addLikedTrack(
     interaction: ChatInputCommandInteraction | ButtonInteraction,
-    track: Track | undefined
+    track: TrackJSON | undefined
 ) {
     // const track = await searchQuery(query, interaction)
 
@@ -58,14 +58,14 @@ async function addLikedTrack(
 
     User.findOne({ ID: interaction.user.id }).then(async (user) => {
         if (user) {
-            user.likes.push(track.toJSON(true))
+            user.likes.push(track)
             user.save()
         } else {
             console.log("Creating new user")
             const newUser = new User({
                 name: interaction.user.username,
                 ID: interaction.user.id,
-                likes: [track.toJSON(true)],
+                likes: [track],
                 playlists: [],
             })
             newUser.save()

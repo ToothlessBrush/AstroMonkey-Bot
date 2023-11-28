@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, ButtonBuilder } from "@discordjs/builders"
+import { SlashCommandBuilder, ButtonBuilder } from "@discordjs/builders";
 import {
     EmbedBuilder,
     ActionRowBuilder,
@@ -9,11 +9,11 @@ import {
     StringSelectMenuInteraction,
     ChatInputCommandInteraction,
     ComponentType,
-} from "discord.js"
-import { GuildQueue, QueryType, Track, useMainPlayer } from "discord-player"
+} from "discord.js";
+import { GuildQueue, QueryType, Track, useMainPlayer } from "discord-player";
 
-import isUrl from "./../../utils/isUrl"
-import MyClient from "../../utils/MyClient"
+import isUrl from "./../../utils/isUrl";
+import MyClient from "../../utils/MyClient";
 
 export default class Play {
     constructor() {}
@@ -27,29 +27,29 @@ export default class Play {
                 .setDescription("a search term, share link, or URL of the song")
                 .setRequired(true)
                 .setAutocomplete(true)
-        )
+        );
 
     async autocomplete(interaction: AutocompleteInteraction) {
-        const player = useMainPlayer()
-        const focusedValue = interaction.options.getFocused()
+        const player = useMainPlayer();
+        const focusedValue = interaction.options.getFocused();
 
         //search platforms for the query
-        let result_search
+        let result_search;
 
-        let choices = []
+        let choices = [];
         if (focusedValue) {
             choices.push({
                 name: focusedValue.slice(0, 100),
                 value: focusedValue.slice(0, 100),
-            })
+            });
             if (isUrl(focusedValue)) {
                 result_search = await player?.search(focusedValue, {
                     searchEngine: QueryType.AUTO,
-                })
+                });
             } else {
                 result_search = await player?.search(focusedValue, {
                     searchEngine: QueryType.YOUTUBE_SEARCH,
-                })
+                });
             }
         }
 
@@ -58,26 +58,26 @@ export default class Play {
             choices.push({
                 name: result_search.playlist.title.slice(0, 100),
                 value: result_search.playlist.url.slice(0, 100),
-            })
+            });
         } else {
             result_search?.tracks?.forEach((track: any) =>
                 choices.push({
                     name: track.title.slice(0, 100),
                     value: track.url.slice(0, 100),
                 })
-            )
+            );
         }
 
-        return await interaction.respond(choices.slice(0, 5))
+        return await interaction.respond(choices.slice(0, 5));
     }
 
     async run(
         interaction: ChatInputCommandInteraction | StringSelectMenuInteraction
     ) {
-        const client = interaction.client as MyClient
+        const client = interaction.client as MyClient;
         //error checking
         if (!(interaction.member instanceof GuildMember)) {
-            return
+            return;
         }
 
         if (!interaction.member?.voice?.channel)
@@ -87,23 +87,23 @@ export default class Play {
                         .setColor(0xff0000)
                         .setDescription(`**You Must be in a VC!**`),
                 ],
-            })
+            });
 
         if (!interaction.guild?.members.me) {
-            return
+            return;
         }
 
         //verify permission to connect
         const voiceChannelPermissions =
             interaction.member.voice.channel.permissionsFor(
                 interaction.guild.members.me
-            )
+            );
 
         if (
             !voiceChannelPermissions.has(PermissionsBitField.Flags.Connect) ||
             !voiceChannelPermissions.has(PermissionsBitField.Flags.Speak)
         ) {
-            console.log("no connect/speak permission")
+            console.log("no connect/speak permission");
             return await interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
@@ -112,17 +112,17 @@ export default class Play {
                         )
                         .setColor(0xff0000),
                 ],
-            })
+            });
         }
 
-        const player = useMainPlayer()
+        const player = useMainPlayer();
 
         if (!player) {
-            return
+            return;
         }
 
         if (!interaction.guild) {
-            return
+            return;
         }
 
         const queue = player.nodes.create(interaction.guild, {
@@ -136,31 +136,31 @@ export default class Play {
             volume: 80,
             leaveOnEmpty: true,
             leaveOnEnd: true,
-        }) as GuildQueue
+        }) as GuildQueue;
 
-        let embed = new EmbedBuilder() //need to change this to embed builder for v14 (done)
+        let embed = new EmbedBuilder(); //need to change this to embed builder for v14 (done)
 
         //grabs query string differently depending on which interaction type it is
-        let query
+        let query;
         if (interaction.isChatInputCommand()) {
-            query = interaction.options.getString("query")
+            query = interaction.options.getString("query");
         } else if (interaction.isStringSelectMenu()) {
             const stringSelectMenuInteraction =
-                interaction as StringSelectMenuInteraction //switch to stringselect menu interaction to get value
-            query = stringSelectMenuInteraction.values[0]
+                interaction as StringSelectMenuInteraction; //switch to stringselect menu interaction to get value
+            query = stringSelectMenuInteraction.values[0];
         }
 
         //error check query
         if (!query) {
-            return
+            return;
         }
 
-        let result_search
+        let result_search;
 
-        let tracks: Track[]
+        let tracks: Track[];
         if (isUrl(query)) {
             //auto searches the url
-            console.log(`searching url: ${query}`)
+            console.log(`searching url: ${query}`);
 
             interaction.editReply({
                 embeds: [
@@ -169,17 +169,17 @@ export default class Play {
                         .setTitle("Searching...")
                         .setDescription("searching URL "),
                 ],
-            })
+            });
 
             result_search = await player.search(query, {
                 requestedBy: interaction.user,
                 searchEngine: QueryType.AUTO,
-            })
+            });
 
-            tracks = result_search.tracks //add multiple tracks if playlist/album
+            tracks = result_search.tracks; //add multiple tracks if playlist/album
         } else {
             //searches youtube if its not a url
-            console.log(`searching prompt: ${query}`)
+            console.log(`searching prompt: ${query}`);
 
             interaction.editReply({
                 embeds: [
@@ -188,14 +188,14 @@ export default class Play {
                         .setTitle("Searching...")
                         .setDescription(`searching youtube for ${query}`),
                 ],
-            })
+            });
 
             result_search = await player.search(query, {
                 requestedBy: interaction.user,
                 searchEngine: QueryType.YOUTUBE_SEARCH,
-            })
+            });
 
-            tracks = [result_search.tracks[0]] //adds 1 track from search
+            tracks = [result_search.tracks[0]]; //adds 1 track from search
         }
 
         if (tracks.length === 0) {
@@ -205,30 +205,30 @@ export default class Play {
                         .setColor(0xff0000)
                         .setDescription(`**No Results!**`),
                 ],
-            })
+            });
         }
 
         try {
-            queue.addTrack(tracks)
+            queue.addTrack(tracks);
         } catch (error) {
-            console.error(error)
+            console.error(error);
         }
 
         try {
             //verify vc connection
             if (!queue.connection) {
-                await queue.connect(interaction.member?.voice.channel)
+                await queue.connect(interaction.member?.voice.channel);
             }
         } catch (error) {
-            queue.delete()
-            console.log(error)
+            queue.delete();
+            console.log(error);
             return await interaction.editReply({
                 content: "could not join voice channel",
-            })
+            });
         }
 
         if (!queue.node.isPlaying()) {
-            await queue.node.play() //play if not already playing
+            await queue.node.play(); //play if not already playing
         }
 
         //build embed based on info
@@ -246,7 +246,7 @@ export default class Play {
                     text: `${interaction.user.username}`,
                     iconURL: interaction.user.avatarURL() || undefined,
                 })
-                .setTimestamp()
+                .setTimestamp();
         } else {
             if (queue.tracks.size == 0) {
                 //added 1 track and no tracks in queue
@@ -261,7 +261,7 @@ export default class Play {
                         text: `${interaction.user.username}`,
                         iconURL: interaction.user.avatarURL() || undefined,
                     })
-                    .setTimestamp()
+                    .setTimestamp();
             } else {
                 //added 1 track and other tracks in queue
                 embed
@@ -275,7 +275,7 @@ export default class Play {
                         text: `${interaction.user.username}`,
                         iconURL: interaction.user.avatarURL() || undefined,
                     })
-                    .setTimestamp()
+                    .setTimestamp();
             }
         }
 
@@ -336,24 +336,28 @@ export default class Play {
                             })
                     ),
             ],
-        })
+        });
+
+        //want to pass json version of track to button to decrease size
+        const trackJson = tracks[0].toJSON(true);
 
         const collector = reply.createMessageComponentCollector({
             componentType: ComponentType.Button,
-            time: 86400000, //24 hours
-        })
+            time: 3_600_000, //1 hour
+            dispose: true,
+        });
 
         collector.on(`collect`, async (interaction) => {
             //only use collector for like
             if (interaction.customId != `like`) {
-                return
+                return;
             }
 
-            await client.commands.get(`like`).button(interaction, tracks[0])
-        })
+            await client.commands.get(`like`).button(interaction, trackJson);
+        });
 
         collector.on(`end`, (interaction) => {
             //delete self here
-        })
+        });
     }
 }
