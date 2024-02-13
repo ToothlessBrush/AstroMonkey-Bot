@@ -84,18 +84,24 @@ export const registerPlayerEvents = (player: Player) => {
                 return;
             }
 
-            if (error.message.includes("Sign in to confirm your age")) {
-                return await interaction.followUp({
-                    embeds: [
-                        new EmbedBuilder()
-                            .setColor(0xff0000)
-                            .setTitle(`Somthing went wrong!`)
-                            .setDescription(
-                                "Cannot play age-restricted content!"
-                            ),
-                    ],
-                });
-            }
+            const userMessage = error.message.includes(
+                "Sign in to confirm your age"
+            )
+                ? "Cannot play age-restricted content!"
+                : error.message.split("\n")[0];
+
+            // if (error.message.includes("Sign in to confirm your age")) {
+            //     return await interaction.followUp({
+            //         embeds: [
+            //             new EmbedBuilder()
+            //                 .setColor(0xff0000)
+            //                 .setTitle(`Somthing went wrong!`)
+            //                 .setDescription(
+            //                     "Cannot play age-restricted content!"
+            //                 ),
+            //         ],
+            //     });
+            // }
 
             try {
                 await interaction.followUp({
@@ -103,7 +109,7 @@ export const registerPlayerEvents = (player: Player) => {
                         new EmbedBuilder()
                             .setColor(0xff0000)
                             .setTitle(`Somthing went wrong!`)
-                            .setDescription(error.message.split("\n")[0]),
+                            .setDescription(userMessage),
                     ],
                 });
             } catch (err) {
@@ -114,7 +120,7 @@ export const registerPlayerEvents = (player: Player) => {
                             new EmbedBuilder()
                                 .setColor(0xff0000)
                                 .setTitle(`Somthing went wrong!`)
-                                .setDescription(error.message.split("\n")[0]),
+                                .setDescription(userMessage),
                         ],
                     });
                 } catch (voiceTextErr) {
