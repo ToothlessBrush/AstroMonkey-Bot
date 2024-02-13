@@ -11,17 +11,17 @@ import {
     InteractionResponse,
     Message,
     ComponentType,
-} from "discord.js"
+} from "discord.js";
 
-import { Server } from "./../../model/Server.js"
-import { User } from "./../../model/User.js"
-import { IPlaylist } from "../../model/Playlist.js"
+import { Server } from "./../../model/Server.js";
+import { User } from "./../../model/User.js";
+import { IPlaylist } from "../../model/Playlist.js";
 
 export default class ViewPlaylist {
-    playlist: IPlaylist | undefined
+    playlist: IPlaylist | undefined;
 
     constructor() {
-        this.playlist = undefined
+        this.playlist = undefined;
     }
 
     data = new SlashCommandBuilder()
@@ -40,72 +40,72 @@ export default class ViewPlaylist {
                 .setDescription("page number")
                 .setRequired(false)
                 .setMinValue(1)
-        )
+        );
 
     async autocomplete(interaction: AutocompleteInteraction) {
-        const focusedValue = interaction.options.getFocused()
+        const focusedValue = interaction.options.getFocused();
 
-        let choices = ["Likes"]
+        let choices = ["Likes"];
         await Server.findOne({ "server.ID": interaction.guild?.id }).then(
             (server) => {
                 if (!server) {
-                    return
+                    return;
                 }
 
                 if (server.playlists) {
                     server.playlists
                         .map((playlist) => playlist.name)
                         .forEach((name) => {
-                            choices.push(name)
-                        })
+                            choices.push(name);
+                        });
                 }
             }
-        )
+        );
         await User.findOne({ ID: interaction.user.id }).then((user) => {
             if (!user) {
-                return
+                return;
             }
 
             if (user.playlists) {
                 user.playlists
                     .map((playlist) => playlist.name)
                     .forEach((name) => {
-                        choices.push(name)
-                    })
+                        choices.push(name);
+                    });
             }
-        })
+        });
 
-        choices = removeDuplicates(choices)
+        choices = removeDuplicates(choices);
         function removeDuplicates<T>(arr: T[]): T[] {
-            return arr.filter((item, index) => arr.indexOf(item) === index)
+            return arr.filter((item, index) => arr.indexOf(item) === index);
         }
 
         const filtered = choices.filter((choice) =>
             choice.startsWith(focusedValue)
-        )
+        );
 
         await interaction.respond(
             filtered.map((choice) => ({ name: choice, value: choice }))
-        )
+        );
     }
 
     async run(interaction: ChatInputCommandInteraction) {
-        const serverID = interaction.guild?.id
-        const userID = interaction.user.id
+        const serverID = interaction.guild?.id;
+        const userID = interaction.user.id;
         const playlistName = interaction.options.get("playlist")
-            ?.value as string
+            ?.value as string;
         const page =
-            ((interaction.options.get("page")?.value as number) || 1) - 1
+            ((interaction.options.get("page")?.value as number) || 1) - 1;
 
         if (playlistName == "Likes") {
             const likedTracks =
                 (await User.findOne({ ID: userID }).then((user) => {
                     if (!user) {
-                        return
+                        return;
                     }
 
-                    return user.likes
-                })) || []
+                    return user.likes;
+                })) || [];
 
             this.playlist = {
                 name: "Likes",
@@ -114,27 +114,27 @@ export default class ViewPlaylist {
                     ID: interaction.user.id,
                 },
                 tracks: likedTracks,
-            }
+            };
 
-            return this.showTracks(interaction, page)
+            return this.showTracks(interaction, page);
         }
 
-        const server = await Server.findOne({ "server.ID": serverID })
+        const server = await Server.findOne({ "server.ID": serverID });
 
-        let serverPL
+        let serverPL;
         if (server) {
             serverPL = server.playlists.find(
                 (playlist) => playlist.name == playlistName
-            )
+            );
         }
 
-        const user = await User.findOne({ ID: userID })
+        const user = await User.findOne({ ID: userID });
 
-        let userPL
+        let userPL;
         if (user) {
             userPL = user.playlists.find(
                 (playlist) => playlist.name == playlistName
-            )
+            );
         }
 
         if (serverPL && userPL) {
@@ -159,14 +159,14 @@ export default class ViewPlaylist {
                             .setStyle(ButtonStyle.Secondary)
                     ),
                 ],
-            })
+            });
 
-            return this.handleDuplicateButton(reply, serverPL, userPL, page)
+            return this.handleDuplicateButton(reply, serverPL, userPL, page);
         }
 
-        this.playlist = serverPL || userPL
+        this.playlist = serverPL || userPL;
 
-        this.showTracks(interaction, page)
+        this.showTracks(interaction, page);
     }
 
     private async handleDuplicateButton(
@@ -177,14 +177,14 @@ export default class ViewPlaylist {
     ) {
         const collector = reply.createMessageComponentCollector({
             componentType: ComponentType.Button,
-        })
+        });
 
         collector.on(`collect`, (interaction) => {
-            const isServerPL = interaction.customId == `showServerPL`
-            this.playlist = isServerPL ? serverPL : userPL //set the playlist to the one specifed
-            this.showTracks(interaction, page)
-            collector.stop()
-        })
+            const isServerPL = interaction.customId == `showServerPL`;
+            this.playlist = isServerPL ? serverPL : userPL; //set the playlist to the one specifed
+            this.showTracks(interaction, page);
+            collector.stop();
+        });
     }
 
     private async showTracks(
@@ -192,11 +192,11 @@ export default class ViewPlaylist {
         page: number
     ) {
         if (page < 0) {
-            page = 0
+            page = 0;
         }
 
-        const buttonInteraction = interaction.isButton()
-        const playlist = this.playlist
+        const buttonInteraction = interaction.isButton();
+        const playlist = this.playlist;
 
         if (!playlist) {
             const noPlaylistEmbed = {
@@ -206,12 +206,12 @@ export default class ViewPlaylist {
                         .setTitle(`Playlist was not found!`),
                 ],
                 components: [],
-            }
+            };
 
             if (buttonInteraction) {
-                return await interaction.update(noPlaylistEmbed)
+                return await interaction.update(noPlaylistEmbed);
             } else {
-                return await interaction.editReply(noPlaylistEmbed)
+                return await interaction.editReply(noPlaylistEmbed);
             }
         }
 
@@ -226,22 +226,22 @@ export default class ViewPlaylist {
                         ),
                 ],
                 components: [],
-            }
+            };
             if (buttonInteraction) {
-                return await interaction.update(noTracksEmbed)
+                return await interaction.update(noTracksEmbed);
             } else {
-                return await interaction.editReply(noTracksEmbed)
+                return await interaction.editReply(noTracksEmbed);
             }
         }
 
-        let totalPages = Math.ceil(playlist.tracks.length / 10)
+        let totalPages = Math.ceil(playlist.tracks.length / 10);
         if (totalPages == 0) {
             //set pages to 1 when song playing but no queue
-            totalPages = 1
+            totalPages = 1;
         }
 
         if (page > totalPages - 1) {
-            page = totalPages - 1
+            page = totalPages - 1;
         }
 
         const tracksString = playlist.tracks
@@ -249,11 +249,11 @@ export default class ViewPlaylist {
             .map((track, i) => {
                 return `**${i + 1}.** \`[${track.duration}]\` [${
                     track.title
-                }](${track.url})\n**Added By: <@${track.requestedBy}>**`
+                }](${track.url})\n**Added By: <@${track.requestedBy}>**`;
             })
-            .join("\n")
+            .join("\n");
 
-        const components = new ActionRowBuilder<ButtonBuilder>()
+        const components = new ActionRowBuilder<ButtonBuilder>();
 
         if (page != 0) {
             components.addComponents(
@@ -261,7 +261,7 @@ export default class ViewPlaylist {
                     .setCustomId(`viewPrevPageButton`)
                     .setLabel(`<`)
                     .setStyle(ButtonStyle.Secondary)
-            )
+            );
         }
 
         if (page != totalPages - 1) {
@@ -270,7 +270,7 @@ export default class ViewPlaylist {
                     .setCustomId(`viewNextPageButton`)
                     .setLabel(`>`)
                     .setStyle(ButtonStyle.Secondary)
-            )
+            );
         }
 
         const viewPlaylistEmbed = {
@@ -281,43 +281,44 @@ export default class ViewPlaylist {
                     .setDescription(tracksString)
                     .setFooter({ text: `Page ${page + 1} of ${totalPages}` }),
             ],
-            components: [components],
-        }
+            components:
+                components.components.length > 0 ? [components] : undefined, //components[0].componets.length mush not be empty otherwise undefined
+        };
 
-        let reply: InteractionResponse | Message | undefined
+        let reply: InteractionResponse | Message | undefined;
         try {
             if (buttonInteraction) {
-                reply = await interaction.update(viewPlaylistEmbed)
+                reply = await interaction.update(viewPlaylistEmbed);
             } else {
-                reply = await interaction.editReply(viewPlaylistEmbed)
+                reply = await interaction.editReply(viewPlaylistEmbed);
             }
         } catch (e) {
-            console.error(e)
+            console.error(e);
         }
 
         if (!reply) {
-            return
+            return;
         }
 
         if (components.components.length != 0) {
             const collector = reply.createMessageComponentCollector({
                 componentType: ComponentType.Button,
-            })
+            });
 
             collector.on(`collect`, (buttonInteraction) => {
                 const isPrevPage =
-                    buttonInteraction.customId == `viewPrevPageButton`
+                    buttonInteraction.customId == `viewPrevPageButton`;
                 const isNextPage =
-                    buttonInteraction.customId == `viewNextPageButton`
+                    buttonInteraction.customId == `viewNextPageButton`;
 
                 if (isPrevPage) {
-                    this.showTracks(buttonInteraction, page - 1)
+                    this.showTracks(buttonInteraction, page - 1);
                 } else if (isNextPage) {
-                    this.showTracks(buttonInteraction, page + 1)
+                    this.showTracks(buttonInteraction, page + 1);
                 }
 
-                collector.stop()
-            })
+                collector.stop();
+            });
         }
     }
 }
