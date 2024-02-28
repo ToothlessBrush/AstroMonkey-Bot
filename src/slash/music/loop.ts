@@ -1,9 +1,13 @@
-import { SlashCommandBuilder } from "@discordjs/builders"
-import { QueueRepeatMode, useQueue } from "discord-player"
-import { EmbedBuilder, ChatInputCommandInteraction } from "discord.js"
+import { SlashCommandBuilder } from "@discordjs/builders";
+import { QueueRepeatMode, useQueue } from "discord-player";
+import { EmbedBuilder, ChatInputCommandInteraction } from "discord.js";
 
-export default class Loop {
-    constructor() {}
+import BaseCommand from "../../utils/BaseCommand";
+
+export default class Loop extends BaseCommand {
+    constructor() {
+        super();
+    }
 
     data = new SlashCommandBuilder()
         .setName("loop")
@@ -18,47 +22,48 @@ export default class Loop {
                     { name: "Queue", value: "QUEUE" },
                     { name: "Track", value: "TRACK" }
                 )
-        )
+        );
 
-    async run(interaction: ChatInputCommandInteraction) {
+    async run(interaction: ChatInputCommandInteraction): Promise<void> {
         if (!interaction.guild) {
             //somethings gone horrible if this is true
-            return
+            return;
         }
 
-        const queue = useQueue(interaction.guild)
+        const queue = useQueue(interaction.guild);
 
         if (!queue) {
-            return await interaction.editReply({
+            await interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
                         .setDescription(`**No Music in Queue!**`),
                 ],
-            })
+            });
+            return;
         }
 
         const loopMode = interaction.options.get("mode")?.value as
             | string
-            | undefined
+            | undefined;
 
-        let embed = new EmbedBuilder()
+        let embed = new EmbedBuilder();
 
-        embed.setColor(0xa020f0)
+        embed.setColor(0xa020f0);
 
         if (loopMode === "OFF") {
-            queue.setRepeatMode(QueueRepeatMode.OFF)
-            embed.setDescription(`**Stopped Looping**`)
+            queue.setRepeatMode(QueueRepeatMode.OFF);
+            embed.setDescription(`**Stopped Looping**`);
         } else if (loopMode === `TRACK`) {
-            queue.setRepeatMode(QueueRepeatMode.TRACK)
-            embed.setDescription(`**Looping the Current Track**`)
+            queue.setRepeatMode(QueueRepeatMode.TRACK);
+            embed.setDescription(`**Looping the Current Track**`);
         } else if (loopMode === `QUEUE`) {
-            queue.setRepeatMode(QueueRepeatMode.QUEUE)
-            embed.setDescription(`**Looping the Queue**`)
+            queue.setRepeatMode(QueueRepeatMode.QUEUE);
+            embed.setDescription(`**Looping the Queue**`);
         }
 
         await interaction.editReply({
             embeds: [embed],
-        })
+        });
     }
 }

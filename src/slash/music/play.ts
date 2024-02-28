@@ -14,9 +14,13 @@ import { GuildQueue, QueryType, Track, useMainPlayer } from "discord-player";
 
 import isUrl from "./../../utils/isUrl";
 import MyClient from "../../utils/MyClient";
+import { COLORS } from "../../utils/constants";
+import BaseCommand from "../../utils/BaseCommand";
 
-export default class Play {
-    constructor() {}
+export default class Play extends BaseCommand {
+    constructor() {
+        super();
+    }
 
     data = new SlashCommandBuilder()
         .setName("play")
@@ -73,21 +77,23 @@ export default class Play {
 
     async run(
         interaction: ChatInputCommandInteraction | StringSelectMenuInteraction
-    ) {
+    ): Promise<void> {
         const client = interaction.client as MyClient;
         //error checking
         if (!(interaction.member instanceof GuildMember)) {
             return;
         }
 
-        if (!interaction.member?.voice?.channel)
-            return interaction.editReply({
+        if (!interaction.member?.voice?.channel) {
+            interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
-                        .setColor(0xff0000)
+                        .setColor(COLORS.failure)
                         .setDescription(`**You Must be in a VC!**`),
                 ],
             });
+            return;
+        }
 
         if (!interaction.guild?.members.me) {
             return;
@@ -104,7 +110,7 @@ export default class Play {
             !voiceChannelPermissions.has(PermissionsBitField.Flags.Speak)
         ) {
             console.log("no connect/speak permission");
-            return await interaction.editReply({
+            await interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setDescription(
@@ -113,6 +119,7 @@ export default class Play {
                         .setColor(0xff0000),
                 ],
             });
+            return;
         }
 
         const player = useMainPlayer();
@@ -165,7 +172,7 @@ export default class Play {
             interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
-                        .setColor(0x00cbb7)
+                        .setColor(COLORS.search)
                         .setTitle("Searching...")
                         .setDescription("searching URL "),
                 ],
@@ -184,7 +191,7 @@ export default class Play {
             interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
-                        .setColor(0x00cbb7)
+                        .setColor(COLORS.search)
                         .setTitle("Searching...")
                         .setDescription(`searching youtube for ${query}`),
                 ],
@@ -199,13 +206,14 @@ export default class Play {
         }
 
         if (tracks.length === 0) {
-            return interaction.editReply({
+            await interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
                         .setDescription(`**No Results!**`),
                 ],
             });
+            return;
         }
 
         try {
@@ -222,9 +230,10 @@ export default class Play {
         } catch (error) {
             queue.delete();
             console.log(error);
-            return await interaction.editReply({
+            await interaction.editReply({
                 content: "could not join voice channel",
             });
+            return;
         }
 
         if (!queue.node.isPlaying()) {
@@ -340,6 +349,8 @@ export default class Play {
 
         //want to pass json version of track to button to decrease size
         const trackJson = tracks[0].toJSON(true);
+
+        console.log(trackJson);
 
         const collector = reply.createMessageComponentCollector({
             componentType: ComponentType.Button,

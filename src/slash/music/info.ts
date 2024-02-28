@@ -1,49 +1,53 @@
-import { useMainPlayer, useQueue } from "discord-player"
+import { useMainPlayer, useQueue } from "discord-player";
 
-import { SlashCommandBuilder } from "@discordjs/builders"
+import { SlashCommandBuilder } from "@discordjs/builders";
 import {
     EmbedBuilder,
     CommandInteraction,
     ChatInputCommandInteraction,
-} from "discord.js"
+} from "discord.js";
+import BaseCommand from "../../utils/BaseCommand";
 
-export default class Info {
-    constructor() {}
+export default class Info extends BaseCommand {
+    constructor() {
+        super();
+    }
 
     data = new SlashCommandBuilder()
         .setName("info")
-        .setDescription("displays info of the current song")
+        .setDescription("displays info of the current song");
 
-    async run(interaction: ChatInputCommandInteraction) {
+    async run(interaction: ChatInputCommandInteraction): Promise<void> {
         if (!interaction) {
-            return
+            return;
         }
         if (interaction.isAutocomplete()) {
-            return
+            return;
         }
-        const player = useMainPlayer()
+        const player = useMainPlayer();
 
         if (!player) {
-            return
+            return;
         }
 
         if (!interaction.guild) {
-            return
+            return;
         }
 
-        const queue = useQueue(interaction.guild)
+        const queue = useQueue(interaction.guild);
 
         if (!queue) {
-            return await interaction.editReply({
+            await interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
                         .setDescription(`**No Song is Currently Playing!**`),
                 ],
-            })
+            });
+            return;
         }
 
-        const currentSong = queue.currentTrack
+        const currentSong = queue.currentTrack;
 
         let bar = queue.node.createProgressBar({
             queue: false,
@@ -51,7 +55,7 @@ export default class Info {
             indicator: "<:Purple_Dot_small:1151261471142060073>",
             leftChar: "<:Purple_Bar_small:1151261449105186857>",
             rightChar: "<:White_Bar_small:1151261505912840382>",
-        })
+        });
 
         //let progressBar = `${queue.getPlayerTimestamp().current} **|**${bar}**|** ${queue.getPlayerTimestamp().end}`
 
@@ -71,6 +75,6 @@ export default class Info {
                             : "None"
                     ),
             ],
-        })
+        });
     }
 }

@@ -1,17 +1,21 @@
-import { SlashCommandBuilder } from "@discordjs/builders"
+import { SlashCommandBuilder } from "@discordjs/builders";
 import {
     EmbedBuilder,
     CommandInteraction,
     ChatInputCommandInteraction,
-} from "discord.js"
+} from "discord.js";
 
-export default class Help {
-    constructor() {}
+import BaseCommand from "../../utils/BaseCommand";
+
+export default class Help extends BaseCommand {
+    constructor() {
+        super();
+    }
     data = new SlashCommandBuilder()
         .setName("help")
-        .setDescription("show the bot commands")
+        .setDescription("show the bot commands");
 
-    async run(interaction: ChatInputCommandInteraction) {
+    async run(interaction: ChatInputCommandInteraction): Promise<void> {
         const description = `
         **General Commands**
         </help:1103275724183453708> - Displays the bot commands (what this is)
@@ -46,7 +50,7 @@ export default class Help {
         </view-playlist:1138955261441224832> - view the tracks within a playlist
         </delete-playlist:1138955261441224826> - delete a playlist *only the owner of a playlist can delete it
         </playlist-now:1144360988448145542> - skips current queue to play a playlist instantly
-        `
+        `;
 
         await interaction.editReply({
             embeds: [
@@ -55,6 +59,6 @@ export default class Help {
                     .setTitle(`Help Menu`)
                     .setDescription(description),
             ],
-        })
+        });
     }
 }

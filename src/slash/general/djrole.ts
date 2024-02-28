@@ -1,12 +1,16 @@
-import { SlashCommandBuilder, EmbedBuilder } from "@discordjs/builders"
+import { SlashCommandBuilder, EmbedBuilder } from "@discordjs/builders";
 import {
     ChatInputCommandInteraction,
     CommandInteraction,
     PermissionFlagsBits,
-} from "discord.js"
+} from "discord.js";
 
-export default class djrole {
-    constructor() {}
+import BaseCommand from "../../utils/BaseCommand";
+
+export default class djrole extends BaseCommand {
+    constructor() {
+        super();
+    }
     data = new SlashCommandBuilder()
         .setName("djrole")
         .setDescription(
@@ -18,19 +22,20 @@ export default class djrole {
                 .setDescription("the role to set the djrole")
                 .setRequired(true)
         )
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator);
 
-    async run(interaction: ChatInputCommandInteraction) {
+    async run(interaction: ChatInputCommandInteraction): Promise<void> {
         if (interaction.isAutocomplete()) {
-            return
+            return;
         }
 
-        return interaction.editReply({
+        interaction.editReply({
             embeds: [
                 new EmbedBuilder()
                     .setColor(0xff0000)
                     .setDescription(`djrole is currently WIP`),
             ],
-        })
+        });
+        return;
     }
 }

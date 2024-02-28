@@ -2,57 +2,60 @@ import {
     ButtonBuilder,
     SlashCommandBuilder,
     ActionRowBuilder,
-} from "@discordjs/builders"
+} from "@discordjs/builders";
 import {
     ButtonStyle,
     ChatInputCommandInteraction,
-    CommandInteraction,
     ComponentType,
     EmbedBuilder,
-} from "discord.js"
-import { Track, useQueue } from "discord-player"
-import MyClient from "../../utils/MyClient"
+} from "discord.js";
+import { Track, useQueue } from "discord-player";
+import MyClient from "../../utils/MyClient";
+import BaseCommand from "../../utils/BaseCommand";
 
-export default class PlayLast {
-    constructor() {}
-    
+export default class PlayLast extends BaseCommand {
+    constructor() {
+        super();
+    }
+
     data = new SlashCommandBuilder()
         .setName("playlast")
-        .setDescription("Plays the Previously Played Song")
+        .setDescription("Plays the Previously Played Song");
 
-    async run(interaction: ChatInputCommandInteraction) {
-        const client = interaction.client as MyClient
+    async run(interaction: ChatInputCommandInteraction): Promise<void> {
+        const client = interaction.client as MyClient;
 
         if (!interaction.guild) {
-            return
+            return;
         }
 
-        const queue = useQueue(interaction.guild)
+        const queue = useQueue(interaction.guild);
 
         if (!queue) {
-            return await interaction.editReply({
+            await interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
                         .setDescription(`**No Music in Queue!**`),
                 ],
-            })
+            });
+            return;
         }
 
-        let embed = new EmbedBuilder()
-        let components = new ActionRowBuilder<ButtonBuilder>()
+        let embed = new EmbedBuilder();
+        let components = new ActionRowBuilder<ButtonBuilder>();
 
-        embed.setColor(0xa020f0)
+        embed.setColor(0xa020f0);
 
-        let song: Track | null
+        let song: Track | null;
         if (queue.history.previousTrack != null) {
-            await queue.history.back()
-            song = queue.currentTrack
+            await queue.history.back();
+            song = queue.currentTrack;
             embed
                 .setTitle(`**Playing**`)
                 .setDescription(`**[${song?.title}](${song?.url})**`)
                 .setThumbnail(song?.thumbnail || null)
-                .setFooter({ text: `Duration: ${song?.duration}` })
+                .setFooter({ text: `Duration: ${song?.duration}` });
 
             components
                 .addComponents(
@@ -104,29 +107,29 @@ export default class PlayLast {
                             name: "Heart",
                             id: "1150523515250942025",
                         })
-                )
+                );
         } else {
             embed
                 .setColor(0xff0000)
-                .setDescription(`**There is no Previous Track**`)
+                .setDescription(`**There is no Previous Track**`);
         }
 
         const reply = await interaction.editReply({
             embeds: [embed],
             components: [components],
-        })
+        });
 
         const collector = reply.createMessageComponentCollector({
             componentType: ComponentType.Button,
-        })
+        });
 
         collector.on(`collect`, (interaction) => {
             //only use collector for like
             if (interaction.customId != `like`) {
-                return
+                return;
             }
 
-            client.commands.get(`like`).button(interaction, song)
-        })
+            client.commands.get(`like`).button(interaction, song);
+        });
     }
 }

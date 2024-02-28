@@ -1,40 +1,45 @@
-import { SlashCommandBuilder, ActionRowBuilder } from "@discordjs/builders"
+import { SlashCommandBuilder, ActionRowBuilder } from "@discordjs/builders";
 import {
     EmbedBuilder,
     ButtonBuilder,
     ButtonStyle,
     ChatInputCommandInteraction,
-} from "discord.js"
-import { useQueue } from "discord-player"
+} from "discord.js";
+import { useQueue } from "discord-player";
 
-export default class Pause {
-    constructor() {}
-    
+import BaseCommand from "../../utils/BaseCommand";
+
+export default class Pause extends BaseCommand {
+    constructor() {
+        super();
+    }
+
     data = new SlashCommandBuilder()
         .setName("pause")
-        .setDescription("pauses the music queue")
+        .setDescription("pauses the music queue");
 
-    async run(interaction: ChatInputCommandInteraction) {
+    async run(interaction: ChatInputCommandInteraction): Promise<void> {
         if (!interaction.guild) {
-            return
+            return;
         }
 
-        const queue = useQueue(interaction.guild)
+        const queue = useQueue(interaction.guild);
 
         if (!queue) {
-            return await interaction.editReply({
+            await interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
                         .setDescription(`**No Music in Queue!**`),
                 ],
-            })
+            });
+            return;
         }
         //calling queue.setPaused() causes queue to break
 
         //queue.playing
 
-        queue.node.pause()
+        queue.node.pause();
 
         await interaction.editReply({
             embeds: [
@@ -62,7 +67,7 @@ export default class Pause {
                         })
                 ),
             ],
-        }) //("Paused! Use /resume to resume")
+        }); //("Paused! Use /resume to resume")
         //queue.setPause()
     }
 }
