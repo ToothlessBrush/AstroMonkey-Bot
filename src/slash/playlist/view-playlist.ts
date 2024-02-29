@@ -16,9 +16,12 @@ import {
 import { Server } from "./../../model/Server.js";
 import { User } from "./../../model/User.js";
 import { IPlaylist } from "../../model/Playlist.js";
+import BaseCommand from "../../utils/BaseCommand.js";
 
-export default class ViewPlaylist {
-    constructor() {}
+export default class ViewPlaylist extends BaseCommand {
+    constructor() {
+        super();
+    }
 
     data = new SlashCommandBuilder()
         .setName("view-playlist")
@@ -85,7 +88,7 @@ export default class ViewPlaylist {
         );
     }
 
-    async run(interaction: ChatInputCommandInteraction) {
+    async run(interaction: ChatInputCommandInteraction): Promise<void> {
         const serverID = interaction.guild?.id;
         const userID = interaction.user.id;
         const playlistName = interaction.options.get("playlist")
@@ -114,7 +117,8 @@ export default class ViewPlaylist {
                 tracks: likedTracks,
             };
 
-            return this.showTracks(interaction, page, playlist);
+            await this.showTracks(interaction, page, playlist);
+            return;
         }
 
         const server = await Server.findOne({ "server.ID": serverID });
