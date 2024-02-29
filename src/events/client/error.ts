@@ -1,8 +1,10 @@
-import { Events } from "discord.js"
+import { Events } from "discord.js";
 
-export default {
+const errorEvent: BaseEvent = {
     name: Events.Error,
     execute(error: Error) {
-        console.error(error)
+        console.error(error);
     },
-}
+};
+
+export default errorEvent;

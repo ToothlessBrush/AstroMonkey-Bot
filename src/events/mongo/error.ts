@@ -1,8 +1,10 @@
-import chalk from "chalk"
+import chalk from "chalk";
 
-export default {
+const errEvent: BaseEvent = {
     name: "err",
     execute() {
-        console.log(chalk.red(`an error occured with the database connection`))
+        console.log(chalk.red(`an error occured with the database connection`));
     },
-}
+};
+
+export default errEvent;

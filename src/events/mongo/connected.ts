@@ -1,8 +1,10 @@
-import chalk from "chalk"
+import chalk from "chalk";
 
-export default {
+const connnectedEvent: BaseEvent = {
     name: "connected",
     execute() {
-        console.log(chalk.green("[Database Status]: Connected"))
+        console.log(chalk.green("[Database Status]: Connected"));
     },
-}
+};
+
+export default connnectedEvent;

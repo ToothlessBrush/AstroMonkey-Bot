@@ -143,14 +143,16 @@ if (LOAD_SLASH) {
     //register discord events
     for (const file of eventFiles) {
         const filePath = path.join(clientPath, file);
-        const event = require(filePath).default;
+        const event = require(filePath).default as BaseEvent;
         try {
             if (event.once) {
-                client.once(event.name, (...args: any) =>
+                client.once(event.name, (...args: unknown[]) =>
                     event.execute(...args)
                 );
             } else {
-                client.on(event.name, (...args: any) => event.execute(...args));
+                client.on(event.name, (...args: unknown[]) =>
+                    event.execute(...args)
+                );
             }
         } catch (err) {
             console.log(`error while importing discord event files: ${err}`);

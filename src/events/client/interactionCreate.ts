@@ -3,9 +3,9 @@ import MyClient from "../../utils/MyClient";
 import Queue from "../../slash/music/queue";
 import Play from "../../slash/music/play";
 
-export default {
+const interactionCreateEvent: BaseEvent = {
     name: Events.InteractionCreate,
-    async execute(interaction: Interaction) {
+    async execute(interaction: Interaction): Promise<void> {
         const client = interaction.client as MyClient;
 
         if (interaction.isChatInputCommand()) {
@@ -16,8 +16,10 @@ export default {
             //console.log(client)
 
             const slashcmd = client.commands.get(interaction.commandName);
-            if (!slashcmd)
-                return interaction.reply("Not a valid slash command");
+            if (!slashcmd) {
+                interaction.reply("Not a valid slash command");
+                return;
+            }
 
             await interaction.deferReply();
             await slashcmd.run(interaction);
@@ -81,3 +83,5 @@ export default {
         }
     },
 };
+
+export default interactionCreateEvent;

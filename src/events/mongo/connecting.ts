@@ -1,8 +1,10 @@
-import chalk from "chalk"
+import chalk from "chalk";
 
-export default {
+const connectingEvent: BaseEvent = {
     name: "connecting",
     execute() {
-        console.log(chalk.cyan("[Database Status]: Connecting..."))
+        console.log(chalk.cyan("[Database Status]: Connecting..."));
     },
-}
+};
+
+export default connectingEvent;
