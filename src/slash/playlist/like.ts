@@ -47,10 +47,10 @@ export default class Like extends BaseCommand {
     }
 
     /**
-     * 
-     * @param interaction 
-     * @param track 
-     * @returns 
+     *
+     * @param interaction
+     * @param track
+     * @returns
      */
     async likeButton(
         interaction: ButtonInteraction,
@@ -77,6 +77,15 @@ async function addLikedTrack(
 
     User.findOne({ ID: interaction.user.id }).then(async (user) => {
         if (user) {
+            //check if track url is already in likes playlist
+            if (user.likes.some((e) => e.url === track.url)) {
+                const embed = new EmbedBuilder()
+                    .setColor(0xff0000)
+                    .setTitle("Already in Likes Playlist");
+
+                interaction.editReply({ embeds: [embed] });
+                return;
+            }
             user.likes.push(track);
             user.save();
         } else {

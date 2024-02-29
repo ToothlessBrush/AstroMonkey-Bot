@@ -303,8 +303,7 @@ export default class ViewPlaylist extends BaseCommand {
                     .setDescription(tracksString)
                     .setFooter({ text: `Page ${page + 1} of ${totalPages}` }),
             ],
-            components:
-                components.components.length > 0 ? [components] : undefined, //components[0].componets.length mush not be empty otherwise undefined
+            components: components.components.length > 0 ? [components] : [], //components[0].componets.length mush not be empty otherwise undefined
         };
 
         let reply: InteractionResponse | Message | undefined;

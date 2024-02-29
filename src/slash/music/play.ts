@@ -351,7 +351,7 @@ export default class Play extends BaseCommand {
         //want to pass json version of track to button to decrease size
         const trackJson = tracks[0].toJSON(true);
 
-        console.log(trackJson);
+        //console.log(trackJson);
 
         const collector = reply.createMessageComponentCollector({
             componentType: ComponentType.Button,
