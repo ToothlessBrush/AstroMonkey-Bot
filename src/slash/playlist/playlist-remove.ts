@@ -10,14 +10,17 @@ import {
     AutocompleteInteraction,
     ChatInputCommandInteraction,
     ComponentType,
-} from "discord.js"
+} from "discord.js";
 
-import { Server, IServer } from "./../../model/Server.js"
-import { IUser, User } from "./../../model/User.js"
-import { IPlaylist } from "../../model/Playlist.js"
+import { Server, IServer } from "./../../model/Server.js";
+import { IUser, User } from "./../../model/User.js";
+import { IPlaylist } from "../../model/Playlist.js";
+import BaseCommand from "../../utils/BaseCommand.js";
 
-export default class PlaylistRemove {
-    constructor() {}
+export default class PlaylistRemove extends BaseCommand {
+    constructor() {
+        super();
+    }
 
     data = new SlashCommandBuilder()
         .setName("playlist-remove")
@@ -35,125 +38,125 @@ export default class PlaylistRemove {
                 .setDescription("name of track to remove")
                 .setAutocomplete(true)
                 .setRequired(true)
-        )
+        );
 
     async autocomplete(interaction: AutocompleteInteraction) {
-        const focusedOption = interaction.options.getFocused(true)
+        const focusedOption = interaction.options.getFocused(true);
 
-        let choices = []
+        let choices = [];
         if (focusedOption.name == "playlist") {
-            choices.push("Likes")
+            choices.push("Likes");
             await Server.findOne({ "server.ID": interaction.guild?.id }).then(
                 (server) => {
                     if (!server) {
-                        return
+                        return;
                     }
                     if (server.playlists) {
                         server.playlists
                             .map((playlist) => playlist.name)
                             .forEach((name) => {
-                                choices.push(name)
-                            })
+                                choices.push(name);
+                            });
                     }
                 }
-            )
+            );
             await User.findOne({ ID: interaction.user.id }).then((user) => {
                 if (!user) {
-                    return
+                    return;
                 }
                 if (user.playlists) {
                     user.playlists
                         .map((playlist) => playlist.name)
                         .forEach((name) => {
-                            choices.push(name)
-                        })
+                            choices.push(name);
+                        });
                 }
-            })
+            });
         }
 
         if (focusedOption.name == "track") {
             const playlistName = interaction.options.get(`playlist`)
-                ?.value as string //hope this will work
+                ?.value as string; //hope this will work YAY it worked
 
             //const playlistName = interaction.options._hoistedOptions[0].value
 
             if (playlistName == "Likes") {
                 User.findOne({ ID: interaction.user.id }).then((user) => {
                     if (!user) {
-                        return
+                        return;
                     }
                     user.likes
                         .map((track) => track.title)
-                        .forEach((trackName) => choices.push(trackName))
-                })
+                        .forEach((trackName) => choices.push(trackName));
+                });
             }
 
             await Server.findOne({ "server.ID": interaction.guild?.id }).then(
                 (server) => {
                     if (!server) {
-                        return
+                        return;
                     }
                     if (server.playlists) {
                         const playlist = server.playlists.find(
                             (playlist) => playlist.name == playlistName
-                        )
+                        );
 
                         if (!playlist) {
-                            return
+                            return;
                         }
 
                         playlist.tracks
                             .map((track) => track.title)
                             .forEach((trackName) => {
-                                choices.push(trackName)
-                            })
+                                choices.push(trackName);
+                            });
                     }
                 }
-            )
+            );
             await User.findOne({ ID: interaction.user.id }).then((user) => {
                 if (!user) {
-                    return
+                    return;
                 }
                 if (user.playlists) {
                     const playlist = user.playlists.find(
                         (playlist) => playlist.name == playlistName
-                    )
+                    );
 
                     if (!playlist) {
-                        return
+                        return;
                     }
 
                     playlist.tracks
                         .map((track) => track.title)
                         .forEach((trackName) => {
-                            choices.push(trackName)
-                        })
+                            choices.push(trackName);
+                        });
                 }
-            })
+            });
         }
 
-        choices = removeDuplicates(choices)
+        choices = removeDuplicates(choices);
         function removeDuplicates<T>(arr: T[]) {
-            return arr.filter((item, index) => arr.indexOf(item) === index)
+            return arr.filter((item, index) => arr.indexOf(item) === index);
         }
 
         const filtered = choices.filter((choice) =>
             choice.startsWith(focusedOption.value)
-        )
+        );
 
-        filtered.slice(0, 25)
+        filtered.slice(0, 25);
 
         return await interaction.respond(
             filtered.map((choice) => ({ name: choice, value: choice }))
-        )
+        );
     }
 
-    async run(interaction: ChatInputCommandInteraction) {
+    async run(interaction: ChatInputCommandInteraction): Promise<void> {
         const playlistName = interaction.options.get("playlist")
-            ?.value as string
-        const query = interaction.options.get("track")?.value as string
-        const serverID = interaction.guild?.id
-        const userID = interaction.user.id
+            ?.value as string;
+        const query = interaction.options.get("track")?.value as string;
+        const serverID = interaction.guild?.id;
+        const userID = interaction.user.id;
 
         if (playlistName == "Likes") {
             User.findOne({ ID: userID }).then((user) => {
@@ -164,11 +167,11 @@ export default class PlaylistRemove {
                                 .setColor(0xff0000)
                                 .setTitle("Your Likes Playlist Is Empty!"),
                         ],
-                    })
+                    });
                 }
                 const trackIndex = user.likes.findIndex(
                     (track) => track.title == query
-                )
+                );
 
                 if (trackIndex == -1) {
                     return interaction.editReply({
@@ -177,12 +180,12 @@ export default class PlaylistRemove {
                                 .setColor(0xff0000)
                                 .setTitle(`\`${query}\` was not found!`),
                         ],
-                    })
+                    });
                 }
 
-                user.likes.splice(trackIndex, 1)
+                user.likes.splice(trackIndex, 1);
 
-                user.save()
+                user.save();
 
                 return interaction.editReply({
                     embeds: [
@@ -190,25 +193,25 @@ export default class PlaylistRemove {
                             .setColor(0xa020f0)
                             .setTitle(`Removed: \`${query}\` From Your Likes`),
                     ],
-                })
-            })
-            return
+                });
+            });
+            return;
         }
 
-        const server = await Server.findOne({ "server.ID": serverID })
-        let serverPL: IPlaylist | undefined
+        const server = await Server.findOne({ "server.ID": serverID });
+        let serverPL: IPlaylist | undefined;
         if (server) {
             serverPL = server.playlists.find(
                 (playlist) => playlist.name == playlistName
-            )
+            );
         }
 
-        const user = await User.findOne({ ID: userID })
-        let userPL: IPlaylist | undefined
+        const user = await User.findOne({ ID: userID });
+        let userPL: IPlaylist | undefined;
         if (user) {
             userPL = user.playlists.find(
                 (playlist) => playlist.name == playlistName
-            )
+            );
         }
 
         if (serverPL && userPL) {
@@ -233,43 +236,44 @@ export default class PlaylistRemove {
                             .setStyle(ButtonStyle.Secondary)
                     ),
                 ],
-            })
+            });
 
             const collector = reply.createMessageComponentCollector({
                 componentType: ComponentType.Button,
-            })
+            });
 
             collector.on(`collect`, (interaction) => {
                 const isRemoveServerPL =
-                    interaction.customId == `removeServerPL`
-                this.button(
+                    interaction.customId == `removeServerPL`;
+                this.duplicateButton(
                     interaction,
                     isRemoveServerPL ? server : user,
                     isRemoveServerPL ? serverPL : userPL,
                     query
-                )
-            })
-            return
+                );
+            });
+            return;
         }
 
         if (!serverPL && !userPL) {
-            return interaction.editReply({
+            interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
                         .setTitle(`Playlist: ${playlistName} Not Found!`),
                 ],
-            })
+            });
+            return;
         }
 
         if (serverPL && server) {
-            removeTrack(interaction, serverPL, query)
-            server.save()
+            removeTrack(interaction, serverPL, query);
+            server.save();
         }
 
         if (userPL && user) {
-            removeTrack(interaction, userPL, query)
-            user.save()
+            removeTrack(interaction, userPL, query);
+            user.save();
         }
     }
 
@@ -281,7 +285,7 @@ export default class PlaylistRemove {
      * @param query string
      * @returns void
      */
-    async button(
+    async duplicateButton(
         interaction: ButtonInteraction,
         schema: IUser | IServer | null,
         playlist: IPlaylist | undefined,
@@ -292,7 +296,7 @@ export default class PlaylistRemove {
                 content: "Playlist Data Not Found!",
                 embeds: [],
                 components: [],
-            })
+            });
         }
 
         if (!playlist) {
@@ -300,23 +304,23 @@ export default class PlaylistRemove {
                 content: "Playlist Data Not Found!",
                 embeds: [],
                 components: [],
-            })
+            });
         }
 
-        removeTrack(interaction, playlist, query)
+        removeTrack(interaction, playlist, query);
 
         if (`save` in schema) {
             try {
-                await schema.save()
+                await schema.save();
             } catch (error) {
-                console.error(error)
+                console.error(error);
                 return await interaction.reply({
                     embeds: [
                         new EmbedBuilder()
                             .setColor(0xff0000)
                             .setTitle(`Somthing went wrong!`),
                     ],
-                })
+                });
             }
         }
     }
@@ -334,11 +338,11 @@ async function removeTrack(
     playlist: IPlaylist,
     query: string
 ): Promise<void> {
-    const buttonInteraction = interaction.isButton()
+    const buttonInteraction = interaction.isButton();
 
     const trackIndex = playlist.tracks.findIndex(
         (track) => track.title == query
-    )
+    );
 
     if (trackIndex == -1) {
         const noTrackFoundEmbed = {
@@ -348,17 +352,17 @@ async function removeTrack(
                     .setTitle(`\`${query}\` was not found!`),
             ],
             components: [],
-        }
+        };
         if (buttonInteraction) {
-            await interaction.update(noTrackFoundEmbed)
-            return
+            await interaction.update(noTrackFoundEmbed);
+            return;
         } else {
-            await interaction.editReply(noTrackFoundEmbed)
-            return
+            await interaction.editReply(noTrackFoundEmbed);
+            return;
         }
     }
 
-    playlist.tracks.splice(trackIndex, 1)
+    playlist.tracks.splice(trackIndex, 1);
 
     const removedTrackEmbed = {
         embeds: [
@@ -367,12 +371,12 @@ async function removeTrack(
                 .setTitle(`Removed: \`${query}\` From \`${playlist.name}\``),
         ],
         components: [],
-    }
+    };
     if (buttonInteraction) {
-        await interaction.update(removedTrackEmbed)
-        return
+        await interaction.update(removedTrackEmbed);
+        return;
     } else {
-        await interaction.editReply(removedTrackEmbed)
-        return
+        await interaction.editReply(removedTrackEmbed);
+        return;
     }
 }

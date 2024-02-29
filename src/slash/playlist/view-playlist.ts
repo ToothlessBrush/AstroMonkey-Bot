@@ -18,11 +18,7 @@ import { User } from "./../../model/User.js";
 import { IPlaylist } from "../../model/Playlist.js";
 
 export default class ViewPlaylist {
-    playlist: IPlaylist | undefined;
-
-    constructor() {
-        this.playlist = undefined;
-    }
+    constructor() {}
 
     data = new SlashCommandBuilder()
         .setName("view-playlist")
@@ -97,6 +93,8 @@ export default class ViewPlaylist {
         const page =
             ((interaction.options.get("page")?.value as number) || 1) - 1;
 
+        let playlist: IPlaylist | undefined = undefined;
+
         if (playlistName == "Likes") {
             const likedTracks =
                 (await User.findOne({ ID: userID }).then((user) => {
@@ -107,7 +105,7 @@ export default class ViewPlaylist {
                     return user.likes;
                 })) || [];
 
-            this.playlist = {
+            playlist = {
                 name: "Likes",
                 creater: {
                     name: interaction.user.username,
@@ -116,7 +114,7 @@ export default class ViewPlaylist {
                 tracks: likedTracks,
             };
 
-            return this.showTracks(interaction, page);
+            return this.showTracks(interaction, page, playlist);
         }
 
         const server = await Server.findOne({ "server.ID": serverID });
@@ -161,15 +159,34 @@ export default class ViewPlaylist {
                 ],
             });
 
-            return this.handleDuplicateButton(reply, serverPL, userPL, page);
+            return this.handleDuplicateButtonCollector(
+                reply,
+                serverPL,
+                userPL,
+                page
+            );
         }
 
-        this.playlist = serverPL || userPL;
+        playlist = serverPL || userPL;
 
-        this.showTracks(interaction, page);
+        if (!playlist) {
+            const noPlaylistEmbed = {
+                embeds: [
+                    new EmbedBuilder()
+                        .setColor(0xff0000)
+                        .setTitle(`Playlist was not found!`),
+                ],
+                components: [],
+            };
+
+            await interaction.editReply(noPlaylistEmbed);
+            return;
+        }
+
+        this.showTracks(interaction, page, playlist);
     }
 
-    private async handleDuplicateButton(
+    private async handleDuplicateButtonCollector(
         reply: Message,
         serverPL: IPlaylist,
         userPL: IPlaylist,
@@ -181,22 +198,23 @@ export default class ViewPlaylist {
 
         collector.on(`collect`, (interaction) => {
             const isServerPL = interaction.customId == `showServerPL`;
-            this.playlist = isServerPL ? serverPL : userPL; //set the playlist to the one specifed
-            this.showTracks(interaction, page);
+            const playlist = isServerPL ? serverPL : userPL; //set the playlist to the one specifed
+            this.showTracks(interaction, page, playlist);
             collector.stop();
         });
     }
 
     private async showTracks(
         interaction: CommandInteraction | ButtonInteraction,
-        page: number
+        page: number,
+        playlist: IPlaylist
     ) {
         if (page < 0) {
             page = 0;
         }
 
         const buttonInteraction = interaction.isButton();
-        const playlist = this.playlist;
+        //const playlist = this.playlist;
 
         if (!playlist) {
             const noPlaylistEmbed = {
@@ -312,9 +330,9 @@ export default class ViewPlaylist {
                     buttonInteraction.customId == `viewNextPageButton`;
 
                 if (isPrevPage) {
-                    this.showTracks(buttonInteraction, page - 1);
+                    this.showTracks(buttonInteraction, page - 1, playlist);
                 } else if (isNextPage) {
-                    this.showTracks(buttonInteraction, page + 1);
+                    this.showTracks(buttonInteraction, page + 1, playlist);
                 }
 
                 collector.stop();

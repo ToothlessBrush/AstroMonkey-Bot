@@ -11,20 +11,18 @@ import {
     Message,
     ComponentType,
     InteractionResponse,
-} from "discord.js"
+} from "discord.js";
 
-import { Server, IServer } from "./../../model/Server.js"
-import { User, IUser } from "./../../model/User.js"
-import { IPlaylist } from "../../model/Playlist.js"
-import { Schema } from "mongoose"
+import { Server, IServer } from "./../../model/Server.js";
+import { User, IUser } from "./../../model/User.js";
+import { IPlaylist } from "../../model/Playlist.js";
+import { Schema } from "mongoose";
 
-export default class DeletePlaylist {
-    private UserDoc: IUser | null
-    private ServerDoc: IServer | null
+import BaseCommand from "../../utils/BaseCommand.js";
 
+export default class DeletePlaylist extends BaseCommand {
     constructor() {
-        this.UserDoc = null
-        this.ServerDoc = null
+        super();
     }
 
     data = new SlashCommandBuilder()
@@ -36,83 +34,86 @@ export default class DeletePlaylist {
                 .setDescription("name of the playlist you want to delete")
                 .setAutocomplete(true)
                 .setRequired(true)
-        )
+        );
 
     async autocomplete(interaction: AutocompleteInteraction) {
-        const focusedValue = interaction.options.getFocused()
-        let choices: string[] = []
+        const focusedValue = interaction.options.getFocused();
+        let choices: string[] = [];
 
         if (!interaction.guild?.id) {
-            return
+            return;
         }
         await Server.findOne({ "server.ID": interaction.guild.id }).then(
             (server) => {
                 if (!server) {
-                    return
+                    return;
                 }
                 if (server.playlists) {
                     server.playlists
                         .map((playlist) => playlist.name)
                         .forEach((name) => {
-                            choices.push(name)
-                        })
+                            choices.push(name);
+                        });
                 }
             }
-        )
+        );
         await User.findOne({ ID: interaction.user.id }).then((user) => {
             if (!user) {
-                return
+                return;
             }
             if (user.playlists) {
                 user.playlists
                     .map((playlist) => playlist.name)
                     .forEach((name) => {
-                        choices.push(name)
-                    })
+                        choices.push(name);
+                    });
             }
-        })
+        });
 
-        choices = removeDuplicates(choices)
+        choices = removeDuplicates(choices);
         function removeDuplicates<T>(arr: T[]): T[] {
-            return arr.filter((item, index) => arr.indexOf(item) === index)
+            return arr.filter((item, index) => arr.indexOf(item) === index);
         }
 
         const filtered = choices.filter((choice) =>
             choice.startsWith(focusedValue)
-        )
+        );
 
         await interaction.respond(
             filtered.map((choice) => ({ name: choice, value: choice }))
-        )
+        );
     }
 
-    async run(interaction: ChatInputCommandInteraction) {
+    async run(interaction: ChatInputCommandInteraction): Promise<void> {
         const playlistQuery = interaction.options.get("playlist")
-            ?.value as string
+            ?.value as string;
 
         if (!interaction.guild?.id) {
-            return
+            return;
         }
-        const serverID = interaction.guild.id
-        const userID = interaction.user.id
+        const serverID = interaction.guild.id;
+        const userID = interaction.user.id;
+
+        let UserDoc: IUser | null;
+        let ServerDoc: IServer | null;
 
         //check if playlist exists
-        this.ServerDoc = await Server.findOne({ "server.ID": serverID })
+        ServerDoc = await Server.findOne({ "server.ID": serverID });
 
-        let serverPL: IPlaylist | undefined
-        if (this.ServerDoc) {
-            serverPL = this.ServerDoc.playlists.find(
+        let serverPL: IPlaylist | undefined;
+        if (ServerDoc) {
+            serverPL = ServerDoc.playlists.find(
                 (playlist) => playlist.name == playlistQuery
-            )
+            );
         }
 
-        this.UserDoc = await User.findOne({ ID: userID })
+        UserDoc = await User.findOne({ ID: userID });
 
-        let userPL: IPlaylist | undefined
-        if (this.UserDoc) {
-            userPL = this.UserDoc.playlists.find(
+        let userPL: IPlaylist | undefined;
+        if (UserDoc) {
+            userPL = UserDoc.playlists.find(
                 (playlist) => playlist.name == playlistQuery
-            )
+            );
         }
 
         if (serverPL && userPL) {
@@ -137,58 +138,75 @@ export default class DeletePlaylist {
                             .setStyle(ButtonStyle.Secondary)
                     ),
                 ],
-            })
+            });
 
-            return this.handleDuplicateCollector(reply, userPL, serverPL)
+            return this.handleDuplicateCollector(
+                reply,
+                userPL,
+                serverPL,
+                ServerDoc,
+                UserDoc
+            );
         }
 
         if (!serverPL && !userPL) {
-            return interaction.editReply({
+            interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
                         .setTitle(`Playlist: \`${playlistQuery}\` Not Found!`),
                 ],
-            })
+            });
+            return;
         }
 
         if (serverPL) {
-            return this.askConfirmDelete(interaction, serverPL, this.ServerDoc)
+            return this.askConfirmDelete(interaction, serverPL, ServerDoc);
         }
 
         if (userPL) {
-            return this.askConfirmDelete(interaction, userPL, this.UserDoc)
+            return this.askConfirmDelete(interaction, userPL, UserDoc);
         }
     }
 
+    /**
+     * 
+     * @param reply
+     * @param userPL 
+     * @param serverPL 
+     * @param ServerDoc 
+     * @param UserDoc 
+     */
     async handleDuplicateCollector(
         reply: Message,
         userPL: IPlaylist,
-        serverPL: IPlaylist
+        serverPL: IPlaylist,
+        ServerDoc: IServer | null,
+        UserDoc: IUser | null
     ) {
-        const ServerDoc = this.ServerDoc
-        const UserDoc = this.UserDoc
+        // const ServerDoc = this.ServerDoc;
+        // const UserDoc = this.UserDoc;
 
         const collector = reply.createMessageComponentCollector({
             componentType: ComponentType.Button,
-        })
+        });
 
         collector.on("collect", async (interaction) => {
             if (
                 interaction.customId == "deleteServerPL" ||
                 interaction.customId == "deleteUserPL"
             ) {
-                const isDeleteServer = interaction.customId == "deleteServerPL"
+                const isDeleteServer = interaction.customId == "deleteServerPL";
 
                 this.askConfirmDelete(
                     interaction,
                     isDeleteServer ? serverPL : userPL,
                     isDeleteServer ? ServerDoc : UserDoc
-                )
+                );
             }
 
-            collector.stop()
-        })
+            collector.stop();
+        });
     }
 
     /** asks the user to confirm if they want to delete the playlist
@@ -202,7 +220,7 @@ export default class DeletePlaylist {
         playlist: IPlaylist | null,
         Schema: IUser | IServer | null
     ) {
-        const buttonInteraction = interaction.isButton()
+        const buttonInteraction = interaction.isButton();
 
         const askToConfirmEmbed = {
             embeds: [
@@ -221,18 +239,18 @@ export default class DeletePlaylist {
                         .setStyle(ButtonStyle.Danger)
                 ),
             ],
-        }
+        };
 
-        let reply: Message | InteractionResponse
+        let reply: Message | InteractionResponse;
         if (buttonInteraction) {
-            reply = await interaction.update(askToConfirmEmbed)
+            reply = await interaction.update(askToConfirmEmbed);
         } else {
-            reply = await interaction.editReply(askToConfirmEmbed)
+            reply = await interaction.editReply(askToConfirmEmbed);
         }
 
         const collector = reply.createMessageComponentCollector({
             componentType: ComponentType.Button,
-        })
+        });
 
         collector.on("collect", async (interaction) => {
             if (interaction.customId == "DeletePL") {
@@ -240,9 +258,9 @@ export default class DeletePlaylist {
                     interaction,
                     Schema,
                     playlist?._id?.toString()
-                )
+                );
             }
-        })
+        });
     }
 
     /** deletes a playlist from the database using the playlistID
@@ -262,13 +280,13 @@ export default class DeletePlaylist {
                         .setColor(0xff0000)
                         .setTitle(`Somthing Went Wrong!`),
                 ],
-            })
+            });
         }
 
         //check so that the interaction.user == playlist.creater.id before deleting
         const playlist = schema.playlists.find(
             (playlist) => playlist._id?.toString() == playlistID
-        )
+        );
         if (playlist?.creater.ID != interaction.user.id) {
             return interaction.reply({
                 embeds: [
@@ -276,18 +294,18 @@ export default class DeletePlaylist {
                         .setColor(0xff0000)
                         .setTitle(`You are not the creater of this playlist!`),
                 ],
-            })
+            });
         }
 
         //playlist without playlist with playlistID
         const updatedPlaylists = schema.playlists.filter(
             (playlist) => playlist._id?.toString() != playlistID
-        )
+        );
 
-        schema.playlists = updatedPlaylists
+        schema.playlists = updatedPlaylists;
 
         try {
-            await schema.save()
+            await schema.save();
         } catch {
             return interaction.reply({
                 embeds: [
@@ -295,7 +313,7 @@ export default class DeletePlaylist {
                         .setColor(0xff0000)
                         .setTitle(`Somthing Went Wrong!`),
                 ],
-            })
+            });
         }
 
         return interaction.update({
@@ -305,6 +323,6 @@ export default class DeletePlaylist {
                     .setTitle(`Deleted Playlist!`),
             ],
             components: [],
-        })
+        });
     }
 }

@@ -12,7 +12,7 @@ import {
 class BaseCommand {
     /**
      * The data for the slash command
-     * @type {SlashCommandBuilder | undefined}
+     * @type {SlashCommandBuilder | Omit<SlashCommandBuilder, "addSubcommand" | "addSubcommandGroup"> | undefined}
      */
     data:
         | SlashCommandBuilder

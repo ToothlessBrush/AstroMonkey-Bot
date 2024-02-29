@@ -5,24 +5,26 @@ import {
     CommandInteraction,
     ComponentType,
     GuildMember,
-} from "discord.js"
+} from "discord.js";
 
-import { SlashCommandBuilder, ButtonBuilder } from "@discordjs/builders"
+import { SlashCommandBuilder, ButtonBuilder } from "@discordjs/builders";
 import {
     EmbedBuilder,
     ActionRowBuilder,
     ButtonStyle,
     PermissionsBitField,
-} from "discord.js"
-import path from "path"
-import { Server } from "./../../model/Server.js"
-import { User } from "./../../model/User.js"
-import { Track, TrackJSON, useMainPlayer } from "discord-player"
-import { IPlaylist } from "../../model/Playlist.js"
-import mongoose from "mongoose"
+} from "discord.js";
+import path from "path";
+import { Server } from "./../../model/Server.js";
+import { User } from "./../../model/User.js";
+import { Track, TrackJSON, useMainPlayer } from "discord-player";
+import { IPlaylist } from "../../model/Playlist.js";
+import BaseCommand from "../../utils/BaseCommand.js";
 
-export default class PlaylistNow {
-    constructor() {}
+export default class PlaylistNow extends BaseCommand {
+    constructor() {
+        super();
+    }
 
     data = new SlashCommandBuilder()
         .setName("playlist-now")
@@ -41,85 +43,86 @@ export default class PlaylistNow {
                 .setName("shuffle")
                 .setDescription("add the music to the playlist shuffled or not")
                 .setRequired(false)
-        )
+        );
 
     async autocomplete(interaction: AutocompleteInteraction) {
-        const focusedValue = interaction.options.getFocused()
-        let choices = ["Likes"]
+        const focusedValue = interaction.options.getFocused();
+        let choices = ["Likes"];
         await Server.findOne({ "server.ID": interaction.guild?.id }).then(
             (server) => {
                 if (!server) {
-                    return
+                    return;
                 }
                 if (server.playlists) {
                     server.playlists
                         .map((playlist) => playlist.name)
                         .forEach((name) => {
-                            choices.push(name)
-                        })
+                            choices.push(name);
+                        });
                 }
             }
-        )
+        );
         await User.findOne({ ID: interaction.user.id }).then((user) => {
             if (!user) {
-                return
+                return;
             }
             if (user.playlists) {
                 user.playlists
                     .map((playlist) => playlist.name)
                     .forEach((name) => {
-                        choices.push(name)
-                    })
+                        choices.push(name);
+                    });
             }
-        })
+        });
 
-        choices = removeDuplicates(choices)
+        choices = removeDuplicates(choices);
         function removeDuplicates<T>(arr: T[]): T[] {
-            return arr.filter((item, index) => arr.indexOf(item) === index)
+            return arr.filter((item, index) => arr.indexOf(item) === index);
         }
 
         const filtered = choices.filter((choice) =>
             choice.startsWith(focusedValue)
-        )
+        );
 
-        filtered.slice(0, 25)
+        filtered.slice(0, 25);
 
         await interaction.respond(
             filtered.map((choice) => ({ name: choice, value: choice }))
-        )
+        );
     }
 
-    async run(interaction: ChatInputCommandInteraction) {
+    async run(interaction: ChatInputCommandInteraction): Promise<void> {
         if (!(interaction.member instanceof GuildMember)) {
-            return
+            return;
         }
 
         if (!interaction.member?.voice.channel) {
-            return interaction.editReply({
+            interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
                         .setDescription(`**You Must be in a VC!**`),
                 ],
-            })
+            });
+            return;
         }
 
         if (!interaction.guild?.members.me) {
-            return
+            return;
         }
 
         //verify permission to connect
         const voiceChannelPermissions =
             interaction.member.voice.channel.permissionsFor(
                 interaction.guild.members.me
-            )
+            );
 
         if (
             !voiceChannelPermissions.has(PermissionsBitField.Flags.Connect) ||
             !voiceChannelPermissions.has(PermissionsBitField.Flags.Speak)
         ) {
-            console.log("no connect/speak permission")
-            return await interaction.editReply({
+            console.log("no connect/speak permission");
+            await interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setDescription(
@@ -127,30 +130,31 @@ export default class PlaylistNow {
                         )
                         .setColor(0xff0000),
                 ],
-            })
+            });
+            return;
         }
 
         const playlistName = interaction.options.get("playlist")
-            ?.value as string
+            ?.value as string;
         const shuffle =
-            (interaction.options.get("shuffle")?.value as boolean) || false
+            (interaction.options.get("shuffle")?.value as boolean) || false;
 
-        const serverID = interaction.guild.id
-        const userID = interaction.user.id
+        const serverID = interaction.guild.id;
+        const userID = interaction.user.id;
 
         if (playlistName == "Likes") {
             const likedTracks = await User.findOne({
                 ID: interaction.user.id,
             }).then((user) => {
                 if (!user) {
-                    return
+                    return;
                 }
 
                 //log access date
-                user.save()
+                user.save();
 
-                return user.likes
-            })
+                return user.likes;
+            });
 
             //build fake playlist object for function
             const playlist: IPlaylist = {
@@ -160,9 +164,10 @@ export default class PlaylistNow {
                     ID: interaction.user.id,
                 },
                 tracks: likedTracks || [],
-            }
+            };
 
-            return queueTracks(interaction, playlist, shuffle)
+            await queueTracks(interaction, playlist, shuffle);
+            return;
         }
 
         //find playlist
@@ -170,32 +175,32 @@ export default class PlaylistNow {
             "server.ID": serverID,
         }).then(async (server) => {
             if (!server) {
-                return
+                return;
             }
 
             //log access date
-            server.save()
+            server.save();
 
             return server.playlists.find(
                 (playlist) => playlist.name == playlistName
-            )
+            );
             //log access time
-        })
+        });
 
         const userPlaylist = await User.findOne({
             ID: userID,
         }).then(async (user) => {
             if (!user) {
-                return
+                return;
             }
 
             //log access date
-            user.save()
+            user.save();
 
             return user.playlists.find(
                 (playlist) => playlist.name == playlistName
-            )
-        })
+            );
+        });
 
         if (serverPlaylist && userPlaylist) {
             const reply = await interaction.editReply({
@@ -219,55 +224,56 @@ export default class PlaylistNow {
                             .setStyle(ButtonStyle.Secondary)
                     ),
                 ],
-            })
+            });
 
             const collector = reply.createMessageComponentCollector({
                 componentType: ComponentType.Button,
-            })
+            });
 
             collector.on(`collect`, async (interaction) => {
                 const isServerPlaylist =
-                    interaction.customId == `serverPlaylistButton`
+                    interaction.customId == `serverPlaylistButton`;
                 const isUserPlaylist =
-                    interaction.customId == `userPlaylistButton`
+                    interaction.customId == `userPlaylistButton`;
 
                 if (isServerPlaylist) {
-                    await queueTracks(interaction, serverPlaylist, shuffle)
+                    await queueTracks(interaction, serverPlaylist, shuffle);
                 } else if (isUserPlaylist) {
-                    await queueTracks(interaction, userPlaylist, shuffle)
+                    await queueTracks(interaction, userPlaylist, shuffle);
                 }
 
-                collector.stop()
-            })
+                collector.stop();
+            });
 
-            return
+            return;
         }
 
-        const playlist = serverPlaylist || userPlaylist
+        const playlist = serverPlaylist || userPlaylist;
 
-        return await queueTracks(interaction, playlist, shuffle)
+        await queueTracks(interaction, playlist, shuffle);
+        return;
     }
 }
 
 /** queues tracks from playlist
  *
- * @param {object} interaction discord interaction object
- * @param {object} playlist playlist object which contains tracks
+ * @param {ChatInputCommandInteraction | ButtonInteraction} interaction discord interaction object
+ * @param {IPlaylist | undefined} playlist playlist object which contains tracks
  * @param {boolean} shuffle whether to shuffle queue or not before adding
  * @returns nothing
  */
 async function queueTracks(
-    interaction: CommandInteraction | ButtonInteraction,
+    interaction: ChatInputCommandInteraction | ButtonInteraction,
     playlist: IPlaylist | undefined,
     shuffle: boolean
 ) {
-    const player = useMainPlayer()
+    const player = useMainPlayer();
     if (!player) {
-        return
+        return;
     }
 
     if (!interaction.guild) {
-        return
+        return;
     }
 
     const queue = player.nodes.create(interaction.guild, {
@@ -281,9 +287,9 @@ async function queueTracks(
         volume: 80,
         leaveOnEmpty: true,
         leaveOnEnd: true,
-    })
+    });
 
-    const buttonInteraction = interaction.isButton() //if we update or reply
+    const buttonInteraction = interaction.isButton(); //if we update or reply
 
     if (!playlist) {
         const noPlaylistEmbed = {
@@ -293,12 +299,12 @@ async function queueTracks(
                     .setTitle(`playlist was not found!`),
             ],
             components: [],
-        }
+        };
 
         if (buttonInteraction) {
-            return await interaction.update(noPlaylistEmbed)
+            return await interaction.update(noPlaylistEmbed);
         } else {
-            return await interaction.editReply(noPlaylistEmbed)
+            return await interaction.editReply(noPlaylistEmbed);
         }
     }
 
@@ -312,19 +318,19 @@ async function queueTracks(
                     ),
             ],
             components: [],
-        }
+        };
 
         if (buttonInteraction) {
-            return await interaction.update(emptyPlaylistEmbed)
+            return await interaction.update(emptyPlaylistEmbed);
         } else {
-            return await interaction.editReply(emptyPlaylistEmbed)
+            return await interaction.editReply(emptyPlaylistEmbed);
         }
     }
 
-    let tracksJSON = playlist.tracks
+    let tracksJSON = playlist.tracks;
 
     if (shuffle == true) {
-        shuffleArray(tracksJSON)
+        shuffleArray(tracksJSON);
     }
 
     const tracks = tracksJSON.map(
@@ -339,42 +345,42 @@ async function queueTracks(
                 requestedBy: interaction.user, //requested by interaction user instead of the user who added track to playlist
                 description: trackData.description,
             })
-    ) //convert track data to track objects
+    ); //convert track data to track objects
 
-    const QUEUE_SIZE = queue.tracks.size
+    const QUEUE_SIZE = queue.tracks.size;
 
-    queue.addTrack(tracks)
+    queue.addTrack(tracks);
 
-    queue.node.skipTo(QUEUE_SIZE)
+    queue.node.skipTo(QUEUE_SIZE);
 
     if (!(interaction.member instanceof GuildMember)) {
-        return
+        return;
     }
 
     if (!interaction.member.voice.channel) {
-        return
+        return;
     }
 
     try {
         //verify vc connection
         if (!queue.connection) {
-            await queue.connect(interaction.member?.voice?.channel)
+            await queue.connect(interaction.member?.voice?.channel);
         }
     } catch (error) {
-        queue.delete()
-        console.log(error)
+        queue.delete();
+        console.log(error);
         if (buttonInteraction) {
             return await interaction.update({
                 content: "could not join voice channel",
-            })
+            });
         } else {
             return await interaction.editReply({
                 content: "could not join voice channel",
-            })
+            });
         }
     }
 
-    if (!queue.node.isPlaying()) await queue.node.play()
+    if (!queue.node.isPlaying()) await queue.node.play();
 
     //reply with playlist info
     const queuedPlaylistEmbed = {
@@ -435,19 +441,24 @@ async function queueTracks(
                         })
                 ),
         ],
-    }
+    };
 
     if (buttonInteraction) {
-        return await interaction.update(queuedPlaylistEmbed)
+        return await interaction.update(queuedPlaylistEmbed);
     } else {
-        return await interaction.editReply(queuedPlaylistEmbed)
+        return await interaction.editReply(queuedPlaylistEmbed);
     }
 }
 
 //durstenfeld shuffle
+/**
+ * durstenfeld shuffle
+ * @param {T} array array to shuffle
+ * @returns void
+ */
 function shuffleArray<T>(array: T[]) {
     for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1))
-        ;[array[i], array[j]] = [array[j], array[i]]
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
     }
 }

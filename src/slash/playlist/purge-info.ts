@@ -12,8 +12,12 @@ import {
     EmbedBuilder,
 } from "@discordjs/builders";
 
-export default class PurgeInfo {
-    constructor() {}
+import BaseCommand from "../../utils/BaseCommand";
+
+export default class PurgeInfo extends BaseCommand {
+    constructor() {
+        super();
+    }
 
     data = new SlashCommandBuilder()
         .setName("purge-info")
@@ -58,14 +62,14 @@ export default class PurgeInfo {
 
             collector.on("collect", async (buttonInteraction) => {
                 if (buttonInteraction.customId == "deleteUser") {
-                    this.buttons(buttonInteraction, user._id.toString());
+                    this.confirmButton(buttonInteraction, user._id.toString());
                 }
             });
 
             return;
         });
     }
-    async buttons(interaction: ButtonInteraction, docId: string) {
+    async confirmButton(interaction: ButtonInteraction, docId: string) {
         const userDoc = await User.findById(docId);
 
         if (!userDoc) {

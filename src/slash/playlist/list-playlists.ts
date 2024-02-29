@@ -5,14 +5,18 @@ import { Server } from "./../../model/Server.js"
 import { User } from "./../../model/User.js"
 import { IPlaylist } from "../../model/Playlist"
 
-export default class ListPlaylists {
-    constructor() {}
+import BaseCommand from "../../utils/BaseCommand.js"
+
+export default class ListPlaylists extends BaseCommand{
+    constructor() {
+        super();
+    }
 
     data = new SlashCommandBuilder()
         .setName("list-playlists")
         .setDescription("lists your playlists and server playlists")
 
-    async run(interaction: ChatInputCommandInteraction) {
+    async run(interaction: ChatInputCommandInteraction): Promise<void> {
         const serverID = interaction.guild?.id
         const userID = interaction.user.id
 
