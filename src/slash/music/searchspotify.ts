@@ -4,22 +4,26 @@ import {
     AutocompleteInteraction,
     ChatInputCommandInteraction,
     ComponentType,
-} from "discord.js"
+} from "discord.js";
 
-import { SlashCommandBuilder, ButtonBuilder } from "@discordjs/builders"
+import { SlashCommandBuilder, ButtonBuilder } from "@discordjs/builders";
 import {
     EmbedBuilder,
     ActionRowBuilder,
     ButtonStyle,
     PermissionsBitField,
-} from "discord.js"
-import { QueryType, Track, useMainPlayer } from "discord-player"
+} from "discord.js";
+import { QueryType, Track, useMainPlayer } from "discord-player";
 
-import isUrl from "./../../utils/isUrl"
-import MyClient from "../../utils/MyClient"
+import isUrl from "./../../utils/isUrl";
+import MyClient from "../../utils/MyClient";
+import BaseCommand from "../../utils/BaseCommand";
+import Like from "../playlist/like";
 
-export default class SearchSpotify {
-    constructor() {}
+export default class SearchSpotify extends BaseCommand {
+    constructor() {
+        super();
+    }
 
     data = new SlashCommandBuilder()
         .setName("spotifysearch")
@@ -32,81 +36,82 @@ export default class SearchSpotify {
                 .setDescription("search term for spotify (use /play for url)")
                 .setRequired(true)
                 .setAutocomplete(true)
-        )
+        );
 
     async autocomplete(interaction: AutocompleteInteraction) {
-        const player = useMainPlayer()
+        const player = useMainPlayer();
 
         if (!player) {
-            return
+            return;
         }
 
-        const focusedValue = interaction.options.getFocused()
+        const focusedValue = interaction.options.getFocused();
 
-        let result_search
+        let result_search;
 
-        let choices = []
+        let choices = [];
 
         if (focusedValue) {
-            choices.push({ name: focusedValue, value: focusedValue })
+            choices.push({ name: focusedValue, value: focusedValue });
             result_search = await player.search(focusedValue, {
                 searchEngine: QueryType.SPOTIFY_SEARCH,
-            })
+            });
         }
 
         if (result_search?.playlist) {
             choices.push({
                 name: result_search.playlist.title,
                 value: result_search.playlist.title,
-            })
+            });
         } else {
             result_search?.tracks?.forEach((track: Track) => {
                 choices.push({
                     name: track.title.slice(0, 100),
                     value: track.title.slice(0, 100),
-                })
-            })
+                });
+            });
         }
 
-        return await interaction.respond(choices.slice(0, 6))
+        return await interaction.respond(choices.slice(0, 6));
     }
 
-    async run(interaction: ChatInputCommandInteraction) {
-        const client = interaction.client as MyClient
+    async run(interaction: ChatInputCommandInteraction): Promise<void> {
+        const client = interaction.client as MyClient;
 
         if (!(interaction.member instanceof GuildMember)) {
-            return
+            return;
         }
 
         if (!interaction.member?.voice?.channel) {
-            return interaction.editReply({
+            interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
                         .setDescription(`**You Must be in a VC!**`),
                 ],
-            })
+            });
+            return;
         }
 
         if (!interaction.guild) {
-            return
+            return;
         }
 
         if (!interaction.guild.members.me) {
-            return
+            return;
         }
         //verify permission to connect
         const voiceChannelPermissions =
             interaction.member.voice.channel.permissionsFor(
                 interaction.guild.members.me
-            )
+            );
 
         if (
             !voiceChannelPermissions.has(PermissionsBitField.Flags.Connect) ||
             !voiceChannelPermissions.has(PermissionsBitField.Flags.Speak)
         ) {
-            console.log("no connect/speak permission")
-            return await interaction.editReply({
+            console.log("no connect/speak permission");
+            await interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setDescription(
@@ -114,16 +119,17 @@ export default class SearchSpotify {
                         )
                         .setColor(0xff0000),
                 ],
-            })
+            });
+            return;
         }
 
-        const player = useMainPlayer()
+        const player = useMainPlayer();
 
         if (!player) {
-            return
+            return;
         }
 
-        const queue = await player.nodes.create(interaction.guild, {
+        const queue = player.nodes.create(interaction.guild, {
             metadata: {
                 interaction: interaction,
                 channel: interaction.channel,
@@ -134,15 +140,15 @@ export default class SearchSpotify {
             volume: 80,
             leaveOnEmpty: true,
             leaveOnEnd: true,
-        })
+        });
 
-        let embed = new EmbedBuilder() //need to change this to embed builder for v14 (done)
+        let embed = new EmbedBuilder(); //need to change this to embed builder for v14 (done)
 
         //plays a search term or url if not in playlist
-        let query = interaction.options.get("query")?.value as string
+        let query = interaction.options.get("query")?.value as string;
 
-        if (isUrl(query))
-            return interaction.editReply({
+        if (isUrl(query)) {
+            interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
@@ -150,10 +156,12 @@ export default class SearchSpotify {
                             `**query cant be url! use /play to use url.**`
                         ),
                 ],
-            })
+            });
+            return;
+        }
 
-        let tracks: Track[] = []
-        console.log(`searching spotify: ${query}`)
+        let tracks: Track[] = [];
+        console.log(`searching spotify: ${query}`);
 
         interaction.editReply({
             embeds: [
@@ -162,23 +170,24 @@ export default class SearchSpotify {
                     .setTitle("Searching...")
                     .setDescription(`searching spotify for ${query}`),
             ],
-        })
+        });
 
         const result_search = await player.search(query, {
             requestedBy: interaction.user,
             searchEngine: QueryType.SPOTIFY_SEARCH,
-        })
+        });
 
-        tracks.push(result_search.tracks[0]) //adds first result
+        tracks.push(result_search.tracks[0]); //adds first result
 
         if (!tracks[0]) {
-            return interaction.editReply({
+            interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
                         .setDescription(`**No Results!**`),
                 ],
-            })
+            });
+            return;
         }
 
         //console.log(tracks)
@@ -199,22 +208,23 @@ export default class SearchSpotify {
         //     return
         // }
 
-        await queue.addTrack(tracks) //adds track(s) from the search result
+        queue.addTrack(tracks); //adds track(s) from the search result
 
         try {
             //verify vc connection
             if (!queue.connection) {
-                await queue.connect(interaction.member.voice.channel)
+                await queue.connect(interaction.member.voice.channel);
             }
         } catch (error) {
-            queue.delete()
-            console.log(error)
-            return await interaction.editReply({
+            queue.delete();
+            console.log(error);
+            await interaction.editReply({
                 content: "could not join voice channel",
-            })
+            });
+            return;
         }
 
-        if (!queue.node.isPlaying()) await queue.node.play() //play if not already playing
+        if (!queue.node.isPlaying()) await queue.node.play(); //play if not already playing
 
         //console.log(tracks)
 
@@ -227,7 +237,7 @@ export default class SearchSpotify {
                 .setTitle(`Queued ${tracks.length} Tracks`)
                 //.setDescription(`**[${playlist.title}](${playlist.url})**`) //doesnt work for spotify
                 .setThumbnail(tracks[0].thumbnail)
-                .setFooter({ text: `source: ${tracks[0].source}` })
+                .setFooter({ text: `source: ${tracks[0].source}` });
         } else {
             if (queue.tracks.size == 0) {
                 embed
@@ -241,7 +251,7 @@ export default class SearchSpotify {
                         text: `${interaction.user.username}`,
                         iconURL: interaction.user.avatarURL() || undefined,
                     })
-                    .setTimestamp()
+                    .setTimestamp();
             } else {
                 embed
                     .setColor(0xa020f0) //purple
@@ -254,7 +264,7 @@ export default class SearchSpotify {
                         text: `${interaction.user.username}`,
                         iconURL: interaction.user.avatarURL() || undefined,
                     })
-                    .setTimestamp()
+                    .setTimestamp();
             }
         }
 
@@ -315,23 +325,24 @@ export default class SearchSpotify {
                             })
                     ),
             ],
-        })
+        });
 
-        const trackJson = tracks[0].toJSON(true)
+        const trackJson = tracks[0].toJSON(true);
 
         const collector = reply.createMessageComponentCollector({
             componentType: ComponentType.Button,
             time: 3_600_000, //1 hour
             dispose: true,
-        })
+        });
 
         collector.on(`collect`, (interaction) => {
             //only use collector for like
             if (interaction.customId != `like`) {
-                return
+                return;
             }
 
-            client.commands.get(`like`).button(interaction, trackJson)
-        })
+            const likeCommand = client.commands.get(`like`) as Like;
+            likeCommand.likeButton(interaction, trackJson);
+        });
     }
 }

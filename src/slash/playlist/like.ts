@@ -4,14 +4,18 @@ import {
     CommandInteraction,
     EmbedBuilder,
     SlashCommandBuilder,
-} from "discord.js"
+} from "discord.js";
 
-import { QueryType, Track, TrackJSON, useMainPlayer } from "discord-player"
-import isUrl from "./../../utils/isUrl"
-import { User } from "./../../model/User.js"
-import { Query } from "mongoose"
-export default class Like {
-    constructor() {}
+import { QueryType, Track, TrackJSON, useMainPlayer } from "discord-player";
+import isUrl from "./../../utils/isUrl";
+import { User } from "./../../model/User.js";
+import { Query } from "mongoose";
+
+import BaseCommand from "./../../utils/BaseCommand";
+export default class Like extends BaseCommand {
+    constructor() {
+        super();
+    }
 
     data = new SlashCommandBuilder()
         .setName("like")
@@ -21,24 +25,39 @@ export default class Like {
                 .setName("query")
                 .setDescription("Song you want to like")
                 .setRequired(true)
-        )
+        );
 
-    async run(interaction: ChatInputCommandInteraction) {
+    /**
+     * run implementation for the like slash command
+     * @param {ChatInputCommandInteraction} interaction - discord interaction object
+     * @returns void
+     */
+    async run(interaction: ChatInputCommandInteraction): Promise<void> {
         const track = await searchQuery(
             interaction.options.get("query")?.value as string,
             interaction
-        )
+        );
 
         // if (!query) {
         //     return
         // }
 
-        return addLikedTrack(interaction, track?.toJSON(true))
+        addLikedTrack(interaction, track?.toJSON(true));
+        return;
     }
 
-    async button(interaction: ButtonInteraction, track: TrackJSON) {
-        await interaction.deferReply()
-        return addLikedTrack(interaction, track)
+    /**
+     * 
+     * @param interaction 
+     * @param track 
+     * @returns 
+     */
+    async likeButton(
+        interaction: ButtonInteraction,
+        track: TrackJSON | undefined
+    ) {
+        await interaction.deferReply();
+        return addLikedTrack(interaction, track);
     }
 }
 
@@ -51,24 +70,24 @@ async function addLikedTrack(
     if (!track) {
         const embed = new EmbedBuilder()
             .setColor(0xff0000)
-            .setTitle("No Results!")
+            .setTitle("No Results!");
 
-        return interaction.editReply({ embeds: [embed] })
+        return interaction.editReply({ embeds: [embed] });
     }
 
     User.findOne({ ID: interaction.user.id }).then(async (user) => {
         if (user) {
-            user.likes.push(track)
-            user.save()
+            user.likes.push(track);
+            user.save();
         } else {
-            console.log("Creating new user")
+            console.log("Creating new user");
             const newUser = new User({
                 name: interaction.user.username,
                 ID: interaction.user.id,
                 likes: [track],
                 playlists: [],
-            })
-            newUser.save()
+            });
+            newUser.save();
         }
 
         const embed = new EmbedBuilder()
@@ -86,12 +105,12 @@ async function addLikedTrack(
                 text: `${interaction.user.username}`,
                 iconURL: interaction.user.avatarURL() || undefined,
             })
-            .setTimestamp()
+            .setTimestamp();
 
         return interaction.editReply({
             embeds: [embed],
-        })
-    })
+        });
+    });
 }
 
 /** search youtube, spotify, or soundcloud for a track and returns it as an object
@@ -106,51 +125,51 @@ async function searchQuery(
     query: string,
     interaction: CommandInteraction | ButtonInteraction
 ): Promise<Track<unknown> | undefined> {
-    const player = useMainPlayer()
+    const player = useMainPlayer();
 
     if (!player) {
-        return
+        return;
     }
 
-    let result_search
+    let result_search;
     if (isUrl(query)) {
-        console.log(`searching url: ${query}`)
+        console.log(`searching url: ${query}`);
 
         const URLembed = new EmbedBuilder()
             .setColor(0x00cbb7)
             .setTitle("Searching...")
-            .setDescription("searching URL ")
+            .setDescription("searching URL ");
 
         await interaction.editReply({
             embeds: [URLembed],
-        })
+        });
 
         result_search = await player.search(query, {
             requestedBy: interaction.user,
             searchEngine: QueryType.AUTO,
-        })
+        });
     } else {
         //searches youtube if its not a url
-        console.log(`searching prompt: ${query}`)
+        console.log(`searching prompt: ${query}`);
 
         const YTembed = new EmbedBuilder()
             .setColor(0x00cbb7)
             .setTitle("Searching...")
-            .setDescription(`searching youtube for ${query}`)
+            .setDescription(`searching youtube for ${query}`);
 
         await interaction.editReply({
             embeds: [YTembed],
-        })
+        });
 
         result_search = await player.search(query, {
             requestedBy: interaction.user,
             searchEngine: QueryType.YOUTUBE_SEARCH,
-        })
+        });
     }
 
     if (!result_search) {
-        return
+        return;
     }
 
-    return result_search.tracks[0] //adds 1 track from search
+    return result_search.tracks[0]; //adds 1 track from search
 }

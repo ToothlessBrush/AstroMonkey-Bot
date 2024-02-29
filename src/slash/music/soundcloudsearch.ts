@@ -1,4 +1,4 @@
-import { Track, useMainPlayer } from "discord-player"
+import { Track, useMainPlayer } from "discord-player";
 import {
     AutocompleteInteraction,
     CommandInteraction,
@@ -9,16 +9,20 @@ import {
     PermissionsBitField,
     ChatInputCommandInteraction,
     ComponentType,
-} from "discord.js"
+} from "discord.js";
 
-import { SlashCommandBuilder, ButtonBuilder } from "@discordjs/builders"
-import { QueryType } from "discord-player"
+import { SlashCommandBuilder, ButtonBuilder } from "@discordjs/builders";
+import { QueryType } from "discord-player";
 
-import isUrl from "../../utils/isUrl"
-import MyClient from "../../utils/MyClient"
+import isUrl from "../../utils/isUrl";
+import MyClient from "../../utils/MyClient";
+import BaseCommand from "../../utils/BaseCommand";
+import Like from "../playlist/like";
 
-export default class SoundCloudSearch {
-    constructor() {}
+export default class SoundCloudSearch extends BaseCommand {
+    constructor() {
+        super();
+    }
 
     data = new SlashCommandBuilder()
         .setName("soundcloudsearch")
@@ -33,80 +37,82 @@ export default class SoundCloudSearch {
                 )
                 .setRequired(true)
                 .setAutocomplete(true)
-        )
+        );
 
     async autocomplete(interaction: AutocompleteInteraction) {
-        const player = useMainPlayer()
+        const player = useMainPlayer();
 
         if (!player) {
-            return
+            return;
         }
 
-        const focusedValue = interaction.options.getFocused()
+        const focusedValue = interaction.options.getFocused();
 
-        let result_search
+        let result_search;
 
-        let choices = []
+        let choices = [];
 
         if (focusedValue) {
-            choices.push({ name: focusedValue, value: focusedValue })
+            choices.push({ name: focusedValue, value: focusedValue });
             result_search = await player.search(focusedValue, {
                 searchEngine: QueryType.SOUNDCLOUD_SEARCH,
-            })
+            });
         }
 
         if (result_search?.playlist) {
             choices.push({
                 name: result_search.playlist.title,
                 value: result_search.playlist.title,
-            })
+            });
         } else {
             result_search?.tracks?.forEach((track) => {
                 choices.push({
                     name: track.title.slice(0, 100),
                     value: track.title.slice(0, 100),
-                })
-            })
+                });
+            });
         }
 
-        return await interaction.respond(choices.slice(0, 6))
+        return await interaction.respond(choices.slice(0, 6));
     }
 
-    async run(interaction: ChatInputCommandInteraction) {
-        const client = interaction.client as MyClient
+    async run(interaction: ChatInputCommandInteraction): Promise<void> {
+        const client = interaction.client as MyClient;
 
         if (!(interaction.member instanceof GuildMember)) {
-            return
+            return;
         }
 
-        if (!interaction.member?.voice.channel)
-            return interaction.editReply({
+        if (!interaction.member?.voice.channel) {
+            interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
                         .setDescription(`**You Must be in a VC!**`),
                 ],
-            })
+            });
+            return;
+        }
 
         if (!interaction.guild) {
-            return
+            return;
         }
 
         if (!interaction.guild.members.me) {
-            return
+            return;
         }
         //verify permission to connect
         const voiceChannelPermissions =
             interaction.member?.voice.channel.permissionsFor(
                 interaction.guild.members.me
-            )
+            );
 
         if (
             !voiceChannelPermissions.has(PermissionsBitField.Flags.Connect) ||
             !voiceChannelPermissions.has(PermissionsBitField.Flags.Speak)
         ) {
-            console.log("no connect/speak permission")
-            return await interaction.editReply({
+            console.log("no connect/speak permission");
+            await interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setDescription(
@@ -114,13 +120,14 @@ export default class SoundCloudSearch {
                         )
                         .setColor(0xff0000),
                 ],
-            })
+            });
+            return;
         }
 
-        const player = useMainPlayer()
+        const player = useMainPlayer();
 
         if (!player) {
-            return
+            return;
         }
 
         const queue = await player.nodes.create(interaction.guild, {
@@ -134,13 +141,13 @@ export default class SoundCloudSearch {
             volume: 80,
             leaveOnEmpty: true,
             leaveOnEnd: true,
-        })
+        });
 
         //plays a search term or url if not in playlist
-        let query = interaction.options.get("query")?.value as string
+        let query = interaction.options.get("query")?.value as string;
 
-        if (isUrl(query))
-            return interaction.editReply({
+        if (isUrl(query)) {
+            interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
@@ -148,10 +155,12 @@ export default class SoundCloudSearch {
                             `**query cant be url! use /play to use url.**`
                         ),
                 ],
-            })
+            });
+            return;
+        }
 
-        let tracks: Track[] = []
-        console.log(`searching SoundCloud: ${query}`)
+        let tracks: Track[] = [];
+        console.log(`searching SoundCloud: ${query}`);
 
         interaction.editReply({
             embeds: [
@@ -160,24 +169,25 @@ export default class SoundCloudSearch {
                     .setTitle("Searching...")
                     .setDescription(`searching SoundCloud for ${query}`),
             ],
-        })
+        });
 
         const result_search = await player.search(query, {
             requestedBy: interaction.user,
             searchEngine: QueryType.SOUNDCLOUD_SEARCH,
-        })
+        });
 
-        tracks.push(result_search.tracks[0]) //adds first result
+        tracks.push(result_search.tracks[0]); //adds first result
 
         if (!tracks[0]) {
-            return interaction.editReply({
+            interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
                         .setTitle(`**No Results!**`)
                         .setDescription(`Try using /play if searching a url`),
                 ],
-            })
+            });
+            return;
         }
 
         // if (!tracks[0]) {
@@ -196,26 +206,27 @@ export default class SoundCloudSearch {
         //     return
         // }
 
-        queue.addTrack(tracks) //adds track(s) from the search result
+        queue.addTrack(tracks); //adds track(s) from the search result
 
         try {
             //verify vc connection
             if (!queue.connection) {
-                await queue.connect(interaction.member.voice.channel)
+                await queue.connect(interaction.member.voice.channel);
             }
         } catch (error) {
-            queue.delete()
-            console.log(error)
-            return await interaction.editReply({
+            queue.delete();
+            console.log(error);
+            await interaction.editReply({
                 content: "could not join voice channel",
-            })
+            });
+            return;
         }
 
-        if (!queue.node.isPlaying()) await queue.node.play() //play if not already playing
+        if (!queue.node.isPlaying()) await queue.node.play(); //play if not already playing
 
         //console.log(tracks)
 
-        let embed = new EmbedBuilder()
+        let embed = new EmbedBuilder();
 
         //build embed based on info
         if (tracks.length > 1) {
@@ -226,7 +237,7 @@ export default class SoundCloudSearch {
                 .setTitle(`Queued ${tracks.length} Tracks`)
                 //.setDescription(`**[${playlist.title}](${playlist.url})**`) //doesnt work for spotify
                 .setThumbnail(tracks[0].thumbnail)
-                .setFooter({ text: `source: ${tracks[0].source}` })
+                .setFooter({ text: `source: ${tracks[0].source}` });
         } else {
             if (queue.tracks.size == 0) {
                 embed
@@ -240,7 +251,7 @@ export default class SoundCloudSearch {
                         text: `${interaction.user.username}`,
                         iconURL: interaction.user.avatarURL() || undefined,
                     })
-                    .setTimestamp()
+                    .setTimestamp();
             } else {
                 embed
                     .setColor(0xa020f0) //purple
@@ -253,7 +264,7 @@ export default class SoundCloudSearch {
                         text: `${interaction.user.username}`,
                         iconURL: interaction.user.avatarURL() || undefined,
                     })
-                    .setTimestamp()
+                    .setTimestamp();
             }
         }
 
@@ -314,23 +325,24 @@ export default class SoundCloudSearch {
                             })
                     ),
             ],
-        })
+        });
 
-        const trackJson = tracks[0].toJSON(true)
+        const trackJson = tracks[0].toJSON(true);
 
         const collector = reply.createMessageComponentCollector({
             componentType: ComponentType.Button,
             time: 3_600_000, //1 hour
             dispose: true,
-        })
+        });
 
         collector.on(`collect`, (interaction) => {
             //only use collector for like
             if (interaction.customId != `like`) {
-                return
+                return;
             }
 
-            client.commands.get(`like`).button(interaction, trackJson)
-        })
+            const likeCommand = client.commands.get(`like`) as Like;
+            likeCommand.likeButton(interaction, trackJson);
+        });
     }
 }

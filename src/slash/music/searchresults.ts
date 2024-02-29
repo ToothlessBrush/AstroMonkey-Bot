@@ -1,9 +1,9 @@
-import { Track, useMainPlayer } from "discord-player"
+import { Track, useMainPlayer } from "discord-player";
 import {
     ChatInputCommandInteraction,
     CommandInteraction,
     GuildMember,
-} from "discord.js"
+} from "discord.js";
 
 import {
     EmbedBuilder,
@@ -11,13 +11,16 @@ import {
     StringSelectMenuBuilder,
     StringSelectMenuOptionBuilder,
     SlashCommandBuilder,
-} from "discord.js"
-import { QueryType } from "discord-player"
+} from "discord.js";
+import { QueryType } from "discord-player";
 
-import isUrl from "./../../utils/isUrl"
+import isUrl from "./../../utils/isUrl";
+import BaseCommand from "./../../utils/BaseCommand";
 
-export default class SearchResults {
-    constructor() {}
+export default class SearchResults extends BaseCommand {
+    constructor() {
+        super();
+    }
 
     data = new SlashCommandBuilder()
         .setName("searchresults")
@@ -40,34 +43,36 @@ export default class SearchResults {
                 .setName("query")
                 .setDescription("search term (use /play for url)")
                 .setRequired(true)
-        )
+        );
 
-    async run(interaction: ChatInputCommandInteraction) {
+    async run(interaction: ChatInputCommandInteraction): Promise<void> {
         if (!(interaction.member instanceof GuildMember)) {
-            return
+            return;
         }
 
-        if (!interaction.member?.voice?.channel)
-            return interaction.editReply({
+        if (!interaction.member?.voice?.channel) {
+            interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
                         .setDescription(`**You Must be in a VC!**`),
                 ],
-            })
+            });
+            return;
+        }
 
-        const player = useMainPlayer()
+        const player = useMainPlayer();
 
         if (!player) {
-            return
+            return;
         }
 
         //plays a search term or url if not in playlist
-        let query = interaction.options.get("query")?.value as string
-        let platform = interaction.options.get("platform")?.value as string
+        let query = interaction.options.get("query")?.value as string;
+        let platform = interaction.options.get("platform")?.value as string;
 
-        if (isUrl(query))
-            return interaction.editReply({
+        if (isUrl(query)) {
+            interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
@@ -75,12 +80,14 @@ export default class SearchResults {
                             `**query cant be url! use /play to use url.**`
                         ),
                 ],
-            })
+            });
+            return;
+        }
 
-        let track: Track[] = []
+        let track: Track[] = [];
         if (platform == "YOUTUBE") {
             //auto searches the url
-            console.log(`searching Youtube results for: ${query}`)
+            console.log(`searching Youtube results for: ${query}`);
 
             interaction.editReply({
                 embeds: [
@@ -89,17 +96,17 @@ export default class SearchResults {
                         .setTitle("Searching...")
                         .setDescription("Searching Youtube"),
                 ],
-            })
+            });
 
             const result_search = await player.search(query, {
                 requestedBy: interaction.user,
                 searchEngine: QueryType.YOUTUBE_SEARCH,
-            })
+            });
 
-            track = result_search.tracks //add multiple tracks if playlist/album
+            track = result_search.tracks; //add multiple tracks if playlist/album
         } else if (platform == "SPOTIFY") {
             //searches youtube if its not a url
-            console.log(`searching Spotify results for: ${query}`)
+            console.log(`searching Spotify results for: ${query}`);
 
             interaction.editReply({
                 embeds: [
@@ -108,16 +115,16 @@ export default class SearchResults {
                         .setTitle("Searching...")
                         .setDescription(`searching Spotify`),
                 ],
-            })
+            });
 
             const result_search = await player.search(query, {
                 requestedBy: interaction.user,
                 searchEngine: QueryType.SPOTIFY_SEARCH,
-            })
+            });
 
-            track = result_search.tracks //adds 1 track from search
+            track = result_search.tracks; //adds 1 track from search
         } else if (platform == "SOUNDCLOUD") {
-            console.log(`searching SoundCloud results for: ${query}`)
+            console.log(`searching SoundCloud results for: ${query}`);
 
             interaction.editReply({
                 embeds: [
@@ -126,24 +133,25 @@ export default class SearchResults {
                         .setTitle("Searching...")
                         .setDescription(`searching SoundCloud`),
                 ],
-            })
+            });
 
             const result_search = await player.search(query, {
                 requestedBy: interaction.user,
                 searchEngine: QueryType.SOUNDCLOUD_SEARCH,
-            })
+            });
 
-            track = result_search.tracks
+            track = result_search.tracks;
         }
 
         if (track.length === 0) {
-            return interaction.editReply({
+            interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
                         .setDescription(`**No Results!**`),
                 ],
-            })
+            });
+            return;
         }
 
         //console.log(tracks)
@@ -153,41 +161,41 @@ export default class SearchResults {
             .map((song: Track, i) => {
                 return `**${i + 1}.** \`[${song.duration}]\` [${song.title}](${
                     song.url
-                })`
+                })`;
             })
-            .join("\n")
+            .join("\n");
 
         //build embed
         const resultembed = new EmbedBuilder()
             .setColor(0xa020f0)
             .setTitle("**Results**")
             .setDescription(resultString)
-            .setFooter({ text: "use the menu below to select track to add" })
+            .setFooter({ text: "use the menu below to select track to add" });
 
         //build options based on results
-        let options = []
+        let options = [];
         for (let i = 0; i < Math.min(track.length, 10); i++) {
             const option = new StringSelectMenuOptionBuilder()
                 .setLabel(`${track[i].title}`)
                 .setValue(`${track[i].url}`) //url of song is value
-                .setDescription(`By ${track[i].author}`)
+                .setDescription(`By ${track[i].author}`);
 
-            options.push(option)
+            options.push(option);
         }
 
         const songOptions = new StringSelectMenuBuilder()
             .setCustomId("select")
             .setPlaceholder("Select Track")
-            .addOptions(options)
+            .addOptions(options);
 
         const row =
             new ActionRowBuilder<StringSelectMenuBuilder>().addComponents(
                 songOptions
-            )
+            );
 
         await interaction.editReply({
             embeds: [resultembed],
             components: [row],
-        })
+        });
     }
 }

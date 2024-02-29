@@ -12,6 +12,7 @@ import {
 import { Track, useQueue } from "discord-player";
 import MyClient from "../../utils/MyClient";
 import BaseCommand from "../../utils/BaseCommand";
+import Like from "../playlist/like";
 
 export default class PlayLast extends BaseCommand {
     constructor() {
@@ -129,7 +130,8 @@ export default class PlayLast extends BaseCommand {
                 return;
             }
 
-            client.commands.get(`like`).button(interaction, song);
+            let likeCommand = client.commands.get(`like`) as Like;
+            likeCommand.likeButton(interaction, song?.toJSON());
         });
     }
 }

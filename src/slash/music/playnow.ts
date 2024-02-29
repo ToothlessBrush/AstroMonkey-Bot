@@ -1,4 +1,4 @@
-import { SlashCommandBuilder, ButtonBuilder } from "@discordjs/builders"
+import { SlashCommandBuilder, ButtonBuilder } from "@discordjs/builders";
 import {
     EmbedBuilder,
     ActionRowBuilder,
@@ -10,14 +10,18 @@ import {
     ChatInputCommandInteraction,
     AutocompleteInteraction,
     ComponentType,
-} from "discord.js"
-import { QueryType, SearchResult, Track, useMainPlayer } from "discord-player"
+} from "discord.js";
+import { QueryType, SearchResult, Track, useMainPlayer } from "discord-player";
 
-import isUrl from "./../../utils/isUrl"
-import MyClient from "../../utils/MyClient"
+import isUrl from "./../../utils/isUrl";
+import MyClient from "../../utils/MyClient";
+import BaseCommand from "../../utils/BaseCommand";
+import Like from "../playlist/like";
 
-export default class PlayNow {
-    constructor() {}
+export default class PlayNow extends BaseCommand {
+    constructor() {
+        super();
+    }
 
     data = new SlashCommandBuilder()
         .setName("playnow")
@@ -30,29 +34,29 @@ export default class PlayNow {
                 .setDescription("a search term, share link, or URL of the song")
                 .setRequired(true)
                 .setAutocomplete(true)
-        )
+        );
 
     async autocomplete(interaction: AutocompleteInteraction) {
-        const player = useMainPlayer()
-        const focusedValue = interaction.options.getFocused()
+        const player = useMainPlayer();
+        const focusedValue = interaction.options.getFocused();
 
         //search platforms for the query
-        let result_search
+        let result_search;
 
-        let choices = []
+        let choices = [];
         if (focusedValue) {
             choices.push({
                 name: focusedValue.slice(0, 100),
                 value: focusedValue.slice(0, 100),
-            })
+            });
             if (isUrl(focusedValue)) {
                 result_search = await player?.search(focusedValue, {
                     searchEngine: QueryType.AUTO,
-                })
+                });
             } else {
                 result_search = await player?.search(focusedValue, {
                     searchEngine: QueryType.YOUTUBE_SEARCH,
-                })
+                });
             }
         }
 
@@ -61,53 +65,54 @@ export default class PlayNow {
             choices.push({
                 name: result_search.playlist.title.slice(0, 100),
                 value: result_search.playlist.url.slice(0, 100),
-            })
+            });
         } else {
             result_search?.tracks?.forEach((track: any) =>
                 choices.push({
                     name: track.title.slice(0, 100),
                     value: track.url.slice(0, 100),
                 })
-            )
+            );
         }
 
-        return await interaction.respond(choices.slice(0, 5))
+        return await interaction.respond(choices.slice(0, 5));
     }
 
-    async run(interaction: ChatInputCommandInteraction) {
-        const client = interaction.client as MyClient
+    async run(interaction: ChatInputCommandInteraction): Promise<void> {
+        const client = interaction.client as MyClient;
 
         //error checking
         if (!(interaction.member instanceof GuildMember)) {
-            return
+            return;
         }
 
         if (!interaction.member?.voice?.channel) {
-            return interaction.editReply({
+            interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
                         .setDescription(`**You Must be in a VC!**`),
                 ],
-            })
+            });
+            return;
         }
 
         if (!interaction.guild?.members.me) {
-            return
+            return;
         }
 
         //verify permission to connect
         const voiceChannelPermissions =
             interaction.member.voice.channel.permissionsFor(
                 interaction.guild.members.me
-            )
+            );
 
         if (
             !voiceChannelPermissions.has(PermissionsBitField.Flags.Connect) ||
             !voiceChannelPermissions.has(PermissionsBitField.Flags.Speak)
         ) {
-            console.log("no connect/speak permission")
-            return await interaction.editReply({
+            console.log("no connect/speak permission");
+            await interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setDescription(
@@ -115,13 +120,14 @@ export default class PlayNow {
                         )
                         .setColor(0xff0000),
                 ],
-            })
+            });
+            return;
         }
 
-        const player = useMainPlayer()
+        const player = useMainPlayer();
 
         if (!player) {
-            return
+            return;
         }
 
         const queue = player.nodes.create(interaction.guild, {
@@ -135,20 +141,20 @@ export default class PlayNow {
             volume: 80,
             leaveOnEmpty: true,
             leaveOnEnd: true,
-        })
+        });
 
-        let embed = new EmbedBuilder() //need to change this to embed builder for v14 (done)
+        let embed = new EmbedBuilder(); //need to change this to embed builder for v14 (done)
 
-        const query = interaction.options.getString("query")
+        const query = interaction.options.getString("query");
 
         if (!query) {
-            return
+            return;
         }
 
-        let tracks: Track[]
+        let tracks: Track[];
         if (isUrl(query)) {
             //auto searches the url
-            console.log(`searching url: ${query}`)
+            console.log(`searching url: ${query}`);
 
             interaction.editReply({
                 embeds: [
@@ -157,17 +163,17 @@ export default class PlayNow {
                         .setTitle("Searching...")
                         .setDescription("searching URL "),
                 ],
-            })
+            });
 
             const result_search = await player.search(query, {
                 requestedBy: interaction.user,
                 searchEngine: QueryType.AUTO,
-            })
+            });
 
-            tracks = result_search.tracks //add multiple tracks if playlist/album
+            tracks = result_search.tracks; //add multiple tracks if playlist/album
         } else {
             //searches youtube if its not a url
-            console.log(`searching prompt: ${query}`)
+            console.log(`searching prompt: ${query}`);
 
             interaction.editReply({
                 embeds: [
@@ -176,24 +182,25 @@ export default class PlayNow {
                         .setTitle("Searching...")
                         .setDescription(`searching youtube for ${query}`),
                 ],
-            })
+            });
 
             const result_search = await player.search(query, {
                 requestedBy: interaction.user,
                 searchEngine: QueryType.YOUTUBE_SEARCH,
-            })
+            });
 
-            tracks = [result_search.tracks[0]] //adds 1 track from search
+            tracks = [result_search.tracks[0]]; //adds 1 track from search
         }
 
         if (tracks.length === 0) {
-            return interaction.editReply({
+            interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
                         .setColor(0xff0000)
                         .setDescription(`**No Results!**`),
                 ],
-            })
+            });
+            return;
         }
 
         //console.log(tracks)
@@ -203,7 +210,7 @@ export default class PlayNow {
         if (tracks.length == 0) {
             console.log(
                 `cannot start playing as all songs are removed or dont exist`
-            )
+            );
             interaction.editReply({
                 embeds: [
                     new EmbedBuilder()
@@ -212,41 +219,42 @@ export default class PlayNow {
                             `Could not start playing as all tracks were removed or don't exist`
                         ),
                 ],
-            })
-            return
+            });
+            return;
         }
 
         try {
-            const QUEUE_SIZE = queue.tracks.size
+            const QUEUE_SIZE = queue.tracks.size;
 
-            await queue.addTrack(tracks)
+            await queue.addTrack(tracks);
 
-            queue.node.skipTo(QUEUE_SIZE)
+            queue.node.skipTo(QUEUE_SIZE);
         } catch (error) {
-            console.error(error)
+            console.error(error);
         }
         //adds track(s) from the search result
 
         try {
             //verify vc connection
             if (!queue.connection) {
-                await queue.connect(interaction.member.voice.channel)
+                await queue.connect(interaction.member.voice.channel);
             }
         } catch (error) {
-            queue.delete()
-            console.log(error)
-            return await interaction.editReply({
+            queue.delete();
+            console.log(error);
+            await interaction.editReply({
                 content: "could not join voice channel",
-            })
+            });
+            return;
         }
 
         if (!queue.node.isPlaying()) {
-            await queue.node.play() //play if not already playing
+            await queue.node.play(); //play if not already playing
         }
 
         //build embed based on info
         if (tracks.length > 1) {
-            const playlist = tracks[0].playlist
+            const playlist = tracks[0].playlist;
             //console.log(tracks)
 
             embed
@@ -261,7 +269,7 @@ export default class PlayNow {
                     text: `${interaction.user.username}`,
                     iconURL: interaction.user.avatarURL() || undefined,
                 })
-                .setTimestamp()
+                .setTimestamp();
         } else {
             if (queue.tracks.size == 0) {
                 embed
@@ -275,7 +283,7 @@ export default class PlayNow {
                         text: `${interaction.user.username}`,
                         iconURL: interaction.user.avatarURL() || undefined,
                     })
-                    .setTimestamp()
+                    .setTimestamp();
             } else {
                 embed
                     .setColor(0xa020f0) //purple
@@ -288,7 +296,7 @@ export default class PlayNow {
                         text: `${interaction.user.username}`,
                         iconURL: interaction.user.avatarURL() || undefined,
                     })
-                    .setTimestamp()
+                    .setTimestamp();
             }
         }
 
@@ -349,19 +357,20 @@ export default class PlayNow {
                             })
                     ),
             ],
-        })
+        });
 
         const collector = reply.createMessageComponentCollector({
             componentType: ComponentType.Button,
-        })
+        });
 
         collector.on(`collect`, (interaction) => {
             //only use collector for like
             if (interaction.customId != `like`) {
-                return
+                return;
             }
 
-            client.commands.get(`like`).button(interaction, tracks[0])
-        })
+            const likeCommand = client.commands.get(`like`) as Like;
+            likeCommand.likeButton(interaction, tracks[0]?.toJSON());
+        });
     }
 }

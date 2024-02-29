@@ -16,6 +16,7 @@ import isUrl from "./../../utils/isUrl";
 import MyClient from "../../utils/MyClient";
 import { COLORS } from "../../utils/constants";
 import BaseCommand from "../../utils/BaseCommand";
+import Like from "../playlist/like";
 
 export default class Play extends BaseCommand {
     constructor() {
@@ -364,7 +365,8 @@ export default class Play extends BaseCommand {
                 return;
             }
 
-            await client.commands.get(`like`).button(interaction, trackJson);
+            let likeCommand = client.commands.get(`like`) as Like;
+            await likeCommand.likeButton(interaction, trackJson);
         });
 
         collector.on(`end`, (interaction) => {

@@ -4,6 +4,7 @@ import {
     ButtonBuilder,
     ButtonStyle,
     ChatInputCommandInteraction,
+    ButtonInteraction,
 } from "discord.js";
 import { useQueue } from "discord-player";
 
@@ -19,6 +20,16 @@ export default class Pause extends BaseCommand {
         .setDescription("pauses the music queue");
 
     async run(interaction: ChatInputCommandInteraction): Promise<void> {
+        this.handlePause(interaction);
+    }
+
+    async button(interaction: ButtonInteraction) {
+        this.handlePause(interaction);
+    }
+
+    private async handlePause(
+        interaction: ChatInputCommandInteraction | ButtonInteraction
+    ) {
         if (!interaction.guild) {
             return;
         }
@@ -67,7 +78,6 @@ export default class Pause extends BaseCommand {
                         })
                 ),
             ],
-        }); //("Paused! Use /resume to resume")
-        //queue.setPause()
+        });
     }
 }
