@@ -22,6 +22,8 @@ import { registerPlayerEvents } from "./events/playerEvents";
 
 const ENVIORNMENT = process.env.NODE_ENV || "dev";
 
+console.log(`Running in ${ENVIORNMENT} mode`);
+
 //get env file based on enviornment
 require("dotenv").config({
     path: path.join(__dirname, `..`, `.env.${ENVIORNMENT}`),

@@ -5,10 +5,10 @@
     "main": "./src/index.ts",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "start": "set NODE_ENV=prod&& node ./dist/index.js",
-        "dev": "set NODE_ENV=dev&& npx tsx watch ./src/index.ts",
+        "start": "cross-env NODE_ENV=prod node ./dist/index.js",
+        "dev": "cross-env NODE_ENV=dev npx tsx watch ./src/index.ts",
         "build": "tsc",
-        "deploy": "set NODE_ENV=prod&& npx tsx ./src/index.ts load global"
+        "deploy": "cross-env NODE_ENV=prod npx tsx ./src/index.ts load global"
     },
     "keywords": [],
     "author": "",
@@ -16,6 +16,7 @@
     "devDependencies": {
         "@types/node": "^20.10.0",
         "@types/node-cron": "^3.0.11",
+        "cross-env": "^7.0.3",
         "npm": "^10.2.4",
         "tslib": "^2.6.2",
         "tsx": "^3.14.0",
