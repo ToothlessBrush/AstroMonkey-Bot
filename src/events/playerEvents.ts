@@ -134,10 +134,12 @@ export const registerPlayerEvents = (player: Player) => {
         console.log(
             `started: \"${track.title}\" in \"${queue.channel?.name}\" | ${queue.guild.name}`
         );
+        //send data to website upstream if exists
     });
 
     player.events.on("audioTracksAdd", (queue, track) => {
         console.log(`${track} Added to Queue`);
+        //send data to website upstream if exists
     });
     player.events.on("disconnect", (queue) => {
         console.log(`bot disconnected`);
@@ -172,4 +174,8 @@ export const registerPlayerEvents = (player: Player) => {
         //     ],
         // });
     });
+    player.events.on("playerPause", (queue) => {
+        //send data to website upstream if exists
+    });
+    
 };

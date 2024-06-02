@@ -16,7 +16,6 @@
     "devDependencies": {
         "@types/node": "^20.10.0",
         "@types/node-cron": "^3.0.11",
-        "cross-env": "^7.0.3",
         "npm": "^10.2.4",
         "tslib": "^2.6.2",
         "tsx": "^3.14.0",
@@ -30,6 +29,7 @@
         "@discordjs/voice": "^0.16.1",
         "@distube/ytdl-core": "^4.13.3",
         "chalk": "^4.1.2",
+        "cross-env": "^7.0.3",
         "discord-api-types": "^0.37.65",
         "discord-player": "^6.6.6",
         "discord.js": "^14.14.1",
